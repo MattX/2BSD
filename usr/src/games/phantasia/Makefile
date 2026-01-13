@@ -1,4 +1,4 @@
-# Makefile for Phantasia 3.3 (1.3 2.11BSD - 2020/1/7)
+# Makefile for Phantasia 3.3 (1.4 2.11BSD - 2025/11/25)
 
 # MODIFIED TO COMPILE WITHOUT 'XSTR'.
 
@@ -17,8 +17,7 @@ RM =		-rm
 LIBS =		-lm -lcurses -ltermlib
 # May need '-I/usr/include/sys' for 4.2bsd
 CFLAGS =	-I. -Dpdp11
-SEPFLAG=	-i
-DESTDIR=
+LDFLAGS=	-i
 
 # DEST is where the program and its support files reside
 #   If this changes then the symbolic link in the 'install' target must change.
@@ -61,10 +60,10 @@ all:		phantasia setfiles phant.help phantasia.0
 #phantasia:	${OFILES} ${NOOPT} strings.o
 phantasia:	${OFILES} ${NOOPT}
 #		${CC} ${OFILES} ${NOOPT} strings.o ${LIBS} -o phantasia
-		-if [ X${SEPFLAG} = "X-i" ]; then \
+		-if [ X${LDFLAGS} = "X-i" ]; then \
 			${CC} main.o fight.o -Z func0.o -Z func1.o \
 				-Z func2.o -Y ${LIBS} -i -o phantasia; \
-		elif [ X${SEPFLAG} = "X-n" ]; then \
+		elif [ X${LDFLAGS} = "X-n" ]; then \
 			@echo "Need overlay scheme (HA!)"; \
 		else \
 			${CC} ${OFILES} ${NOOPT} ${LIBS} -o phantasia; \
@@ -98,15 +97,15 @@ phant.help:	phant.nr
 #   what the relative path is.
 
 install:	all phantasia.0
-	rm -f ${DESTDIR}/usr/games/phantasia
-	ln -s lib/phantasia/phantasia ${DESTDIR}/usr/games/phantasia
-	-mkdir ${DESTDIR}${DEST}
-	cp phantasia monsters phant.help ${DESTDIR}${DEST}
-	chmod 755 ${DESTDIR}${DEST}
-	chmod 4711 ${DESTDIR}${DEST}/phantasia
-	chmod 644 ${DESTDIR}${DEST}/phant.help
+	rm -f /usr/games/phantasia
+	ln -s lib/phantasia/phantasia /usr/games/phantasia
+	-mkdir ${DEST}
+	cp phantasia monsters phant.help ${DEST}
+	chmod 755 ${DEST}
+	chmod 4711 ${DEST}/phantasia
+	chmod 644 ${DEST}/phant.help
 	./setfiles
-	install -m 444 -o bin -g bin  phantasia.0 ${DESTDIR}/usr/man/cat6
+	install -c -m 444 -o root -g staff  phantasia.0 /usr/man/cat6
 
 phantasia.0: phant.nr
 	/usr/man/manroff phant.nr > phantasia.0

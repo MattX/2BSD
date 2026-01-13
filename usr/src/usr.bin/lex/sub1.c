@@ -36,6 +36,7 @@ digit(c)
 	return(c>='0' && c <= '9');
 }
 error(s,p,d)
+	char *s, *p, *d;
 	{
 	fprintf(errorf,"\"%s\", line %d: (Error) ",
 		fptr > 0 ? sargv[fptr] : "<stdin>", yyline);
@@ -56,6 +57,7 @@ error(s,p,d)
 	}
 
 warning(s,p,d)
+	char *s, *p, *d;
 	{
 	fprintf(errorf,"\"%s\", line %d: (Warning) ",
 		fptr > 0 ? sargv[fptr] : "<stdin>", yyline);

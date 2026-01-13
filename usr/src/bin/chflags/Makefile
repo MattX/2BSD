@@ -1,10 +1,10 @@
 #
 # Public Domain.  12/3/1994 - Steven Schultz
 #
-#	@(#)Makefile	1.2 (2.11BSD GTE) 1996/1/27
+#	@(#)Makefile	1.3 (2.11BSD) 2025/11/26
 #
 CFLAGS=	 -O
-SEPFLAG= -i
+LDFLAGS= -i
 VPATH= ../ls
 SRCS=	chflags.c stat_flags.c
 OBJS=	chflags.o stat_flags.o
@@ -14,7 +14,7 @@ MANSRC=	chflags.1
 all: chflags chflags.0
 
 chflags: ${OBJS}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS}
 
 chflags.0: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
@@ -26,8 +26,8 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: chflags
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat1
-	install -s -o root -g bin -m 755 chflags ${DESTDIR}/bin/chflags
+	install -c -o root -g staff -m 444 ${MAN} /usr/man/cat1
+	install -c -s -o root -g staff -m 755 chflags /bin/chflags
 
 lint: ${SRCS}
 	lint -hax ${SRCS}

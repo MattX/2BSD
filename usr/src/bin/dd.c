@@ -1,5 +1,5 @@
 #if !defined(lint) && defined(DOSCCS)
-static char *sccsid = "@(#)dd.c	5.1 (2.11BSD) 2025/8/18";
+static char *sccsid = "@(#)dd.c	5.2 (2.11BSD) 2025/11/25";
 #endif
 
 #include <sys/file.h>
@@ -319,7 +319,7 @@ char	**argv;
 	if (fflag) {
 		obuf = ibuf;
 	} else {
-		if ((long)ibs + obs >= MAXBUF) {
+		if ((unsigned long)ibs + obs >= (unsigned long)MAXBUF) {
 			fprintf(stderr,
 				"combined buffer sizes of %lu too large, max %lu\n",
 				(long)ibs + obs, MAXBUF-1);

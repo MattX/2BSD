@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)wwprintf.c	3.5 4/24/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)wwprintf.c	3.6 (2.11BSD) 2025/12/26";
 #endif
 
 /*
@@ -9,25 +9,16 @@ static char sccsid[] = "@(#)wwprintf.c	3.5 4/24/85";
  */
 
 #include "ww.h"
-
-/*VARARGS2*/
-wwprintf(w, fmt, args)
-struct ww *w;
-char *fmt;
-{
 #include <stdio.h>
-	struct _iobuf _wwbuf;
+#include <string.h>
+
+wwprintf(struct ww *w, char *fmt, ...)
+{
+	va_list ap;
 	char buf[1024];
 
-	/*
-	 * A danger is that when buf overflows, _flsbuf() will be
-	 * called automatically.  It doesn't check for _IOSTR.
-	 * We set the file descriptor to -1 so no actual io will be done.
-	 */
-	_wwbuf._flag = _IOWRT+_IOSTRG;
-	_wwbuf._base = _wwbuf._ptr = buf;
-	_wwbuf._cnt = sizeof buf;
-	_wwbuf._file = -1;			/* safe */
-	_doprnt(fmt, &args, &_wwbuf);
-	(void) wwwrite(w, buf, _wwbuf._ptr - buf);
+	va_start(ap, fmt);
+	vsnprintf(buf, sizeof buf, fmt, ap);
+	va_end(ap);
+	(void) wwwrite(w, buf, strlen(buf));
 }

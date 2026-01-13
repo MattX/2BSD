@@ -1,20 +1,16 @@
-#
-# Nifty foo monopoly maker
-#	Program:  Ken Arnold
-#	Makefile:  K.S.
-#
-DESTDIR=
+#       Makefile        2.0 (2.11BSD) 2025/11/25
+
 DATFILES=brd.dat mon.dat prop.dat
 CFILES=	monop.c cards.c execute.c getinp.c houses.c jail.c misc.c morg.c \
 	print.c prop.c rent.c roll.c spec.c strcmp.c trade.c
 OBJS=	monop.o cards.o execute.o getinp.o houses.o jail.o misc.o morg.o \
 	print.o prop.o rent.o roll.o spec.o strcmp.o trade.o strings.o
 HEADERS=monop.h deck.h
-BINDIR=	${DESTDIR}/usr/games
-LIBDIR=	${DESTDIR}/usr/games/lib
+BINDIR=	/usr/games
+LIBDIR=	/usr/games/lib
 LIB=
+LDFLAGS= -i
 CFLAGS=	-O -w
-SEPFLAG= -i
 DAT=	brd.dat monop.dat prop.dat
 CC=	cc
 XSTR=	xstr
@@ -34,11 +30,11 @@ CTAGS=	ctags
 it:	monop cards.pck
 
 monop:	${OBJS}
-	${CC} -o monop ${SEPFLAG} ${OBJS} ${LIB}
+	${CC} -o monop ${LDFLAGS} ${OBJS} ${LIB}
 
 install: monop cards.pck
 	${RM} ${BINDIR}/monop ${LIBDIR}/cards.pck
-	install -s monop ${BINDIR}
+	install -c -s -m 755 monop ${BINDIR}
 	mv cards.pck ${LIBDIR}
 
 new:	clean ctags monop
@@ -61,7 +57,7 @@ cards.o: deck.h
 	mv x.o cards.o
 
 newone:
-	${CC} ${SEPFLAG} -o monop ${CFLAGS} ${CFILES} ${LIB}
+	${CC} ${LDFLAGS} -o monop ${CFLAGS} ${CFILES} ${LIB}
 
 ctags:
 	${CTAGS} ${CFILES} monop.h deck.h monop.def initdeck.c

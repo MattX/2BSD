@@ -5,7 +5,7 @@
  */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char sccsid[] = "@(#)scanw.c	5.1 (Berkeley) 6/7/85";
+static char sccsid[] = "@(#)scanw.c	5.2 (2.11BSD) 2025/12/26";
 #endif
 
 /*
@@ -51,10 +51,10 @@ int	*args; {
 	char	buf[100];
 	FILE	junk;
 
-	junk._flag = _IOREAD|_IOSTRG;
-	junk._base = junk._ptr = buf;
+	junk._flags = __SRD;
+	junk._bf._base = junk._p = (unsigned char *)buf;
 	if (wgetstr(win, buf) == ERR)
 		return ERR;
-	junk._cnt = strlen(buf);
-	return _doscan(&junk, fmt, args);
+	junk._bf._size = junk._r = strlen(buf);
+	return __svfscanf(&junk, fmt, (char *)args);
 }

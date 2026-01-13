@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)2.t	1.12 (2.11BSD) 2022/8/30
+.\"	@(#)2.t	1.13 (2.11BSD) 2025/12/10
 .\"
 .ds lq ``
 .ds rq ''
@@ -23,23 +23,7 @@
 .PP
 This section explains the bootstrap procedure that can be used
 to get the kernel supplied with this distribution running on your machine.
-It is mandatory to do a full bootstrap since the filesystem has changed
-from \*(1B to \*(2B.
 .PP
-The safest route is to use \fItar\fP\|(1) to dump all of your current
-file systems, do a full bootstrap of \*(2B and then restore user files
-from the backups.
-There is also an untested version of \fI512restor\fP\|(8) available for
-V7 sites that need to read old dump tapes.
-.PP
-It is also desirable to make a convenient copy of system configuration
-files for use as guides when setting up the new system; the list of files
-to save from earlier PDP-11 UNIX systems, found in chapter 3, may be used
-as a guideline.
-.PP
-\*(2B \fIrestor\fP\|(8) is able to read and automatically convert to the
-new on disk directory format
-\fIdump\fP\|(8) tapes made under 2.9BSD, \*(Ps and \*(1B.
 .NH 2
 Booting from tape
 .PP
@@ -153,7 +137,7 @@ The console should type
 .R
 .DE
 where \fInn\fP is the CPU type on which it believes it is running.
-The value will be one of 23, 24, 40, 44, 45, 53, 60, 70, 73, 83, 84, 93
+The value will be one of 44, 70, 73, 83, 84, 93
 or 94 depending whether
 separate instruction and data (separate I/D) and/or a UNIBUS map are detected.
 For KDJ-11 systems the System Maintenance Register is examined to determine
@@ -226,20 +210,7 @@ B of this document.
 .NH 3
 Step 3: creating a UNIX ``root'' file system
 .PP
-Now create the root file system using the following procedure.\(ua
-.FS
-.IP \(ua
-\fBNote:\fP These instructions have changed quite a bit during the
-evolution of the system from \*(1B.  Previously,
-if the disk on which you are creating a root file system was an \fBxp\fP
-disk you would have been asked to check the drive type register and possibly
-halt the processor to patch a location (hopefully before the driver 
-accessed the drive).  \fBThis is no longer needed\fP.
-All geometry and partition information is obtained from the disklabel
-created in step 2.
-We also used to give tables of \fBm\fP and \fBn\fP values for various
-disks, which are now purposely omitted.
-.FE
+Now create the root file system using the following procedure.
 .PP
 The size of the root ('a') filesystem was assigned in step 2 (creating the 
 disk label).  \fImkfs\fP will not allow a filesystem to be created if there
@@ -323,9 +294,6 @@ Exit called
 \fB:\fR	(back at tape boot level)
 .R
 .TE
-.sp
-This takes about 8 minutes with a TZ30 on a 11/93 and about 15 minutes using
-a TK50 on a 11/73.
 .DE
 If you wish, you may use the \fIicheck\fP program on the tape,
 \fItp\|\fP(0,4), to check the consistency of the file system you have just
@@ -343,15 +311,17 @@ lw(1.5i) l.
 .TE
 .DE
 The standalone boot program will then load unix from
-the root file system you just created, and the system should boot:
+the root file system you just created, and the system should boot (the
+exact strings will vary of course):
 .DS
 .B
 .\"CHECK
-\*(2B BSD UNIX #1: Sat Jul 4 01:33:03 PDT 1992
-    root@wlonex.iipo.gtegsc.com:/usr/src/sys/GENERIC
-phys mem  = \fI???\fP
-avail mem = \fI???\fP
-user mem  = \fI???\fP
+2.11 BSD UNIX #35: Sun Aug 31 13:23:06 CDT 2025 
+    sms@localhost.2bsd.com:/usr/src/sys/GENERIC
+
+phys mem  = 4186112
+avail mem = 3709504
+user mem  = 307200
 
 configure system
 \fI\&... information about available devices ...\fP
@@ -399,28 +369,37 @@ whose login name is \*(lqroot\*(rq.
 The disk with the new root file system on it will not be bootable
 directly until the block 0 bootstrap program for your disk has been installed.
 There are copies of the bootstraps in /mdec.
-Use \fIdd\fP\|(1) to copy the right boot block onto block 0 of the disk.
+Use \fIdisklabel\fP\|(1) to install the boot block onto the disk.
 .DS
-\fB#\fP dd if=/mdec/\fIboot\fP of=/dev/r\fIdk\^\fP0a count=1
+\fB#\fP disklabel -r -B \fIdk\^\fP0 device
+.sp
+For example:
+.sp
+ disklabel -r -B xp0 rp06
+.sp
+will install /mdec/hpuboot into sector 0 of xp0
+.sp
+disklabel -r -B ra0
+.sp 
 .DE
 Block zero bootstraps and the devices they support are:
 .DS
 .TS
-l l l.
-boot	driver	devices
+l l.
+boot	disk_type
 _
-hkuboot	hk	RK06/07
-rauboot	ra	All RA, RD, RZ, RX (except RX01,02) and RC25 drives
-rkuboot	rk	RK05
-rluboot	rl	RL01/02
-si95uboot	si	SI 9500, CDC 9766
-dvhpuboot	xp	Diva Comp V, Ampex 9300
-hpuboot	xp	RP04/05/06
-rp07uboot	xp	RP07
-rm03uboot	xp	RM03
-rm05uboot	xp	RM05 or SI 9500, CDC 9766
-si51uboot	xp	SI 6100, Fujitsu Eagle 2351A
-si94uboot	xp	Emulex SC01B/SC03B or SI 9400, Fujitsu 160
+hkuboot	rk06/rk07
+rauboot	MSCP drives
+rkuboot	rk05
+rluboot	rl01/rl02
+si95uboot	si_eagle
+dvhpuboot	diva
+hpuboot	rp04/rp05/rp06
+rp07uboot	rp07
+rm03uboot	rm03
+rm05uboot	rm05/cdc9766
+si51uboot	si_eagle/2351A
+si94uboot	rm2x/fuji160
 .TE
 .DE
 .B NOTE:
@@ -594,19 +573,11 @@ saying
 \fB#\fP mount /dev/${name} /usr
 .DE
 .NH 3
-Step 7: extracting remaining source from the second tape
+Step 7: extracting remaining sources
 .PP
-You can then extract the source code for the commands from the
-second distribution tape\(ua
-.FS
-.IP \(ua
-On the TK50 the remaining source is the 9th file on the cartridge.
-.FE
-(with the exception of RK07's, RM03's, and RD52's and other small disks
-this will fit in the /usr file system):
 .DS
 \fB#\fP cd /usr/src
-\fB#\fP tar xpb 20
+\fB#\fP tar xp
 .DE
 If you get an error at this point, most likely it was
 a problem with tape positioning.  Rewind the tape and

@@ -1,5 +1,5 @@
-#ifndef lint
-static char *RCSid = "$Header: /src/common/usc/bin/qterm/RCS/qterm.c,v 5.4 1991/03/21 02:09:40 mcooper Exp $";
+#if     !defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)qterm.c    5.5 (2.11BSD) 2025/12/24";
 #endif
 
 /*
@@ -202,27 +202,17 @@ static char *RCSid = "$Header: /src/common/usc/bin/qterm/RCS/qterm.c,v 5.4 1991/
 
 #include <stdio.h>
 #include <ctype.h>
+#include <stdlib.h>
 #include <pwd.h>
 #include <signal.h>
 #include <sys/ioctl.h>
 #include <setjmp.h>
-#ifdef USG5
-# include <termio.h>
-#else /*USG5*/
 # include <sys/file.h>
 # include <sgtty.h>
-#endif /*USG5*/
 #include "qterm.h"
 #include "options.h"
-#ifdef HAS_VARARGS
-#include <varargs.h>
-#endif /*HAS_VARARGS*/
 
-#ifdef USG5
-struct termio _ntty, _otty;
-#else
 struct sgttyb _tty;
-#endif
 int _tty_ch = 2;
 char recvbuf[SIZE];
 char *progname;
@@ -324,14 +314,9 @@ OptionDescRec opts[] = {
 	 (char *)NULL,	"Enable debug mode"},
 };
 
-FILE *fopen();
 char *decode();
-char *getenv();
-char *malloc();
 char *re_comp();
-char *strcat();
 char *xmalloc();
-int alarm();
 int found = FALSE;
 int modes_set = FALSE;
 jmp_buf env;
@@ -340,15 +325,11 @@ struct passwd *getpwuid();
 void catch();
 void done();
 void dprintf();
-void exit();
 void myperror();
 void mktable();
 void notrecognized();
 void proctab();
 void wakeup();
-#ifdef USG5
-char *regcmp();
-#endif /* USG5 */
 
 main(argc, argv)
      int argc;
@@ -448,19 +429,12 @@ setmodes()
     /*
      * Set terminal modes
      */
-#ifdef USG5
-    if (ioctl(_tty_ch, TCGETA, &_otty) < 0)
-#else
     if (ioctl(_tty_ch, TIOCGETP, &_tty) < 0)
-#endif /* USG5 */
     {
 	myperror("gtty");
 	done(1);
 	/*NOTREACHED*/
     }
-#ifdef USG5
-    _ntty = _otty;
-#endif /* USG5 */
 
     if (crmode() < 0) {
 	myperror("crmode");
@@ -546,9 +520,6 @@ prinfo(t, what)
 struct termtable *compare(str)
      char *str;
 {
-#ifdef USG5
-    register char *reexp;
-#endif /* USG5 */
     register struct termtable *t;
     char buf[BUFSIZ];
 
@@ -562,31 +533,20 @@ struct termtable *compare(str)
 	dprintf("  with %s ", decode(t->qt_recvstr));
 	(void) sprintf(buf, "^%s$", t->qt_recvstr);
 	
-#ifdef USG5
-	if ((reexp = regcmp(buf, NULL)) == NULL) {
-#else
 	if (re_comp((char *)buf) != NULL) {
-#endif /* USG5 */
 	    (void) fprintf(stderr, "%s: bad regular expression: \"%s\"\n", 
 			   progname, t->qt_recvstr);
 	    done(1);
 	    /*NOTREACHED*/
 	}
 
-#ifdef USG5
-	if (regex(reexp, str) != NULL) {
-#else
 	if (re_exec(str) == 1) {
-#endif /* USG5 */
 	    found = TRUE;
 	    dprintf("\tOK\n");
 	    return(t);
 	}
 
 	dprintf("\tNOPE\n");
-#ifdef USG5
-	(void) free(reexp);
-#endif /* USG5 */
     }
     found = FALSE;
 
@@ -999,35 +959,18 @@ char *xmalloc(size)
     return(p);
 }
 
-#ifdef HAS_VARARGS
-void dprintf(va_alist)
-     va_dcl
+void dprintf(char *fmt, ...)
 {
-    va_list args;
-    char *fmt;
+    va_list ap;
 
     if (!debug)
 	return;
 
-    va_start(args);
-    fmt = (char *) va_arg(args, char *);
-    (void) vprintf(fmt, args);
-    va_end(args());
+    va_start(fmt, ap);
+    (void) vprintf(fmt, ap);
+    va_end(ap);
     (void) fflush(stdout);
 }
-
-#else /*HAS_VARARGS*/
-
-void dprintf(fmt, a1, a2, a3, a4, a5, a6)
-     char *fmt;
-{
-    if (!debug)
-	return;
-
-    (void) printf(fmt, a1, a2, a3, a4, a5, a6);
-    (void) fflush(stdout);
-}
-#endif /*HAS_VARARGS*/
 
 /*
  * Catch kill signals and cleanup.

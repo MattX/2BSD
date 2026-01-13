@@ -41,9 +41,9 @@ SHELL = /bin/sh
 all: warp $(util) warp.0
 
 warp: $(OBJS)
-	ld -X -i /lib/crt0.o object.o play.o score.o util.o version.o warp.o \
+	ld -X -i /lib/crt0.o play.o score.o version.o warp.o \
 		weapon.o  init.o intrp.o \
-		-Z sig.o term.o \
+		-Z sig.o util.o object.o term.o \
 		-Z them.o us.o \
 		-Z bang.o move.o \
 		-Y $(libs) -lc -o warp

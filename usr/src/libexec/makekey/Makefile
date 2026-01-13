@@ -1,17 +1,17 @@
 #
 # Public Domain.  1996/10/24 - sms
 #
-#	@(#)Makefile	1.0 (2.11BSD GTE) 1996/10/24
+#	@(#)Makefile	1.1 (2.11BSD) 2025/12/26
 #
 CFLAGS=	 -O
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	makekey.c
 OBJS=	makekey.o
 
 all: makekey
 
 makekey: ${OBJS}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS}
 
 clean:
 	rm -f ${OBJS} makekey tags 
@@ -20,7 +20,7 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: makekey
-	install -s -o root -g bin -m 755 makekey ${DESTDIR}/usr/libexec/makekey
+	install -c -s -o root -g staff -m 755 makekey /usr/libexec/makekey
 
 lint: ${SRCS}
 	lint -hax ${SRCS}

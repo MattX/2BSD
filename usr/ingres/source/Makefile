@@ -1,10 +1,11 @@
+#       Makefile        2.0 (2.11BSD) 2025/11/29
+
 INGRES=..
 BIN=$(INGRES)/bin
 DEMO=$(INGRES)/demo
 LIB=$(INGRES)/lib
-DESTDIR=/usr
-DESTBIN=$(DESTDIR)/bin
-DESTLIB=$(DESTDIR)/lib
+DESTBIN=/usr/bin
+DESTLIB=/usr/lib
 INSTALL=install
 INSTALLQ=installq
 SYSALL = creatdb ingres destroydb sysmod purge printr helpr restore equel

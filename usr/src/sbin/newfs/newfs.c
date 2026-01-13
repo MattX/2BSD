@@ -11,7 +11,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)newfs.c	6.3 (2.11BSD) 1996/11/16";
+static chaf sccsid[] = "@(#)newfs.c	6.4 (2.11BSD) 2025/12/24";
 #endif
 
 /*
@@ -37,7 +37,6 @@ static char sccsid[] = "@(#)newfs.c	6.3 (2.11BSD) 1996/11/16";
 #include <paths.h>
 #include <stdlib.h>
 #include <syslog.h>
-#include <varargs.h>
 
 #ifdef	COMPAT
 	char	*disktype;
@@ -195,11 +194,7 @@ main(argc, argv)
 	exit(0);
 }
 
-#ifdef COMPAT
 char lmsg[] = "%s: can't read disk label; disk type must be specified";
-#else
-char lmsg[] = "%s: can't read disk label";
-#endif
 
 struct disklabel *
 getdisklabel(s, fd)
@@ -240,15 +235,12 @@ usage()
 	exit(1);
 }
 
-/*VARARGS*/
 void
-fatal(fmt, va_alist)
-	char *fmt;
-	va_dcl
+fatal(char *fmt, ...)
 {
 	va_list ap;
 
-	va_start(ap);
+	va_start(ap, fmt);
 
 	if (fcntl(fileno(stderr), F_GETFL) < 0) {
 		openlog(__progname, LOG_CONS, LOG_DAEMON);
@@ -259,5 +251,4 @@ fatal(fmt, va_alist)
 	}
 	va_end(ap);
 	exit(1);
-	/*NOTREACHED*/
 }

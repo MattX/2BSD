@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.5 (2.11BSD) 2020/3/24
+#	@(#)Makefile	5.6 (2.11BSD) 2025/11/25
 #
 MDIR=	/usr/man/cat7
 SRCS=	ascii.7 environ.7 eqnchar.7 hier.7 hostname.7  intro.7 mailaddr.7 \
@@ -25,7 +25,7 @@ OBJS=	ascii.0 environ.0 eqnchar.0 hier.0 hostname.0 intro.0 mailaddr.0 \
 .SUFFIXES: .7 .0
 
 .7.0:
-	${DESTDIR}/usr/man/manroff $*.7 > $*.0
+	/usr/man/manroff $*.7 > $*.0
 
 all: _make_01
 
@@ -35,8 +35,8 @@ clean: FRC
 	rm -f ${OBJS}
 
 install: _make_01
-	install -c -o bin -g bin -m 444 ${OBJS} ${DESTDIR}${MDIR}
-	rm -f ${DESTDIR}${MDIR}/miscellaneous.0
-	ln ${DESTDIR}${MDIR}/intro.0 ${DESTDIR}${MDIR}/miscellaneous.0
+	install -c -o root -g staff -m 444 ${OBJS} ${MDIR}
+	rm -f ${MDIR}/miscellaneous.0
+	ln ${MDIR}/intro.0 ${MDIR}/miscellaneous.0
 
 FRC:

@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)more.c	5.8 (2.11BSD) 2022/9/17";
+static char sccsid[] = "@(#)more.c	5.9 (2.11BSD) 2025/12/26";
 #endif
 
 /*
@@ -350,7 +350,7 @@ int *clearfirst;
 
     /* Try to see whether it is an ASCII file */
 
-    switch ((c | *f->_ptr << 8) & 0177777) {
+    switch ((c | *f->_p << 8) & 0177777) {
     case 0405:
     case 0407:
     case 0410:
@@ -540,48 +540,6 @@ register FILE *f;
 
     while ((c = getc(f)) != EOF)
 	putchar(c);
-}
-
-/* Simplified printf function */
-
-printf (fmt, args)
-register char *fmt;
-int args;
-{
-	register int *argp;
-	register char ch;
-	register int ccount;
-
-	ccount = 0;
-	argp = &args;
-	while (*fmt) {
-		while ((ch = *fmt++) != '%') {
-			if (ch == '\0')
-				return (ccount);
-			ccount++;
-			putchar (ch);
-		}
-		switch (*fmt++) {
-		case 'd':
-			ccount += printd (*argp);
-			break;
-		case 's':
-			ccount += pr ((char *)*argp);
-			break;
-		case '%':
-			ccount++;
-			argp--;
-			putchar ('%');
-			break;
-		case '0':
-			return (ccount);
-		default:
-			break;
-		}
-		++argp;
-	}
-	return (ccount);
-
 }
 
 /*
@@ -1330,7 +1288,6 @@ register int n;
     }
     if (feof (file)) {
 	if (!no_intty) {
-	    file->_flag &= ~_IOEOF; /* why doesn't fseek do this ??!!??! */
 	    Currline = saveln;
 	    Fseek (file, startline);
 	}

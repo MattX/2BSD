@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	4.16	(2.11BSD)	2020/1/4
+#	@(#)Makefile	4.17	(2.11BSD)	2025/12/24
 #
 # This makefile is designed to be run as:
 #	make build
@@ -19,31 +19,16 @@
 # The `make install' will then install everything. Note however
 # that all the binaries will have been loaded with the old libraries.
 #
-# C library options: passed to libc makefile.
-# See lib/libc/Makefile for explanation.
 # NOTE: The method of hostname lookup (hosts file or nameserver) is no
 #	longer selected here.  Make sure to edit lib/libc/Makefile to set
 #	HOSTLOOKUP
-# DFLMON must be either mon.o or gmon.o.
-# DEFS may include -DLIBC_SCCS, -DSYSLIBC_SCCS, both, or neither.
-#
-DFLMON=mon.o
-DEFS= 
-LIBCDEFS= DFLMON=${DFLMON} DEFS="${DEFS}"
 
-# global flags
-# SRC_MFLAGS are used on makes in command source directories,
-# but not in library or compiler directories that will be installed
-# for use in compiling everything else.
-#
-DESTDIR=
 CFLAGS=	-O
-SRC_MFLAGS = -k
 
-# Programs that live in subdirectories, and have makefiles of their own.
+# Programs that live in subdirectories and have makefiles of their own.
 #
-# 'share' has to be towards the front of the list because programs such as
-# lint(1) need their data files, etc installed first.
+# 'share' has to be towards the front of the list because some programs
+# need their data files installed first.
 
 LIBDIR= lib usr.lib
 SRCDIR=	share bin sbin etc games libexec local new ucb usr.bin usr.sbin man
@@ -51,65 +36,76 @@ SRCDIR=	share bin sbin etc games libexec local new ucb usr.bin usr.sbin man
 all:	${LIBDIR} ${SRCDIR}
 
 lib:	FRC
-	cd lib/libc; make ${MFLAGS} ${LIBCDEFS}
-	cd lib; make ${MFLAGS} ccom cpp c2
+	cd lib/libc; make
+	cd lib; make ccom cpp c2
 
 usr.lib ${SRCDIR}: FRC
-	cd $@; make ${MFLAGS} ${SRC_MFLAGS}
+	cd $@; make
 
 build: buildlib ${SRCDIR}
 
+# 'cpp' depends on libvmf so build libvmf after libc and before cpp
+
 buildlib: FRC
 	@echo compiling libc.a
-	cd lib/libc; make ${MFLAGS} ${LIBCDEFS}
+	cd lib/libc; make
 	@echo installing /lib/libc.a
-	cd lib/libc; make ${MFLAGS} DESTDIR=${DESTDIR} install
+	cd lib/libc; make install
+	@echo compiling usr.lib/libvmf.a
+	cd usr.lib/libvmf; make
+	@echo installing /usr/lib/libvmf.a
+	cd usr.lib/libvmf; make install
+	cd usr.lib/libvmf; make clean
 	@echo
 	@echo compiling C compiler
-	cd lib; make ${MFLAGS} ccom cpp c2
+	cd lib; make ccom cpp c2
 	@echo installing C compiler
-	cd lib/ccom; make ${MFLAGS} DESTDIR=${DESTDIR} install
-	cd lib/cpp; make ${MFLAGS} DESTDIR=${DESTDIR} install
-	cd lib/c2; make ${MFLAGS} DESTDIR=${DESTDIR} install
-	cd lib; make ${MFLAGS} clean
+	cd lib/ccom; make install
+	cd lib/cpp; make install
+	cd lib/c2; make install
+	cd lib; make clean
 	@echo
 	@echo re-compiling libc.a
-	cd lib/libc; make ${MFLAGS} ${LIBCDEFS}
+	cd lib/libc; make
 	@echo re-installing /lib/libc.a
-	cd lib/libc; make ${MFLAGS} DESTDIR=${DESTDIR} install
+	cd lib/libc; make install
 	@echo
 	@echo re-compiling C compiler
-	cd lib; make ${MFLAGS} ccom cpp c2
+	cd lib; make ccom cpp c2
 	@echo re-installing C compiler
-	cd lib/ccom; make ${MFLAGS} DESTDIR=${DESTDIR} install
-	cd lib/cpp; make ${MFLAGS} DESTDIR=${DESTDIR} install
-	cd lib/c2; make ${MFLAGS} DESTDIR=${DESTDIR} install
+	cd lib/ccom; make install
+	cd lib/cpp; make install
+	cd lib/c2; make install
+	@echo installing libkern
+	cd lib/libkern; make  install
 	@echo
+	cd lib; make clean
 	@echo compiling usr.lib
-	cd usr.lib; make ${MFLAGS} ${SRC_MFLAGS}
+	cd usr.lib; make
 	@echo installing /usr/lib
-	cd usr.lib; make ${MFLAGS} ${SRC_MFLAGS} DESTDIR=${DESTDIR} install
+	cd usr.lib; make install
+	cd usr.lib; make clean
 
 FRC:
 
 install:
 	-for i in ${LIBDIR} ${SRCDIR}; do \
 		(cd $$i; \
-		make ${MFLAGS} ${SRC_MFLAGS} DESTDIR=${DESTDIR} install); \
+		make install); \
 	done
 
 installsrc:
 	-for i in ${SRCDIR}; do \
 		(cd $$i; \
-		make ${MFLAGS} ${SRC_MFLAGS} DESTDIR=${DESTDIR} install); \
+		make install); \
 	done
 
 tags:
 	for i in lib usr.lib; do \
-		(cd $$i; make ${MFLAGS} TAGSFILE=../tags tags); \
+		(cd $$i; make TAGSFILE=../tags tags); \
 	done
 	sort -u +0 -1 -o tags tags
 
 clean:
 	rm -f a.out core *.s *.o
-	for i in ${LIBDIR} ${SRCDIR}; do (cd $$i; make -k ${MFLAGS} clean); done
+	for i in ${LIBDIR} ${SRCDIR}; do (cd $$i; make -k clean); done

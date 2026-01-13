@@ -1,22 +1,21 @@
-#	@(#)Makefile	1.0 (2.11BSD) 1995/04/10
+#	@(#)Makefile	1.1 (2.11BSD) 2025/12/25
 
-DESTDIR=
 CFLAGS=-O
-SEPFLAG=-i
+LDFLAGS=-i
 MANDIR=/usr/man/cat
 
 all: disklabel disklabel.5.0 disklabel.0
 
 disklabel: disklabel.o
-	cc ${CFLAGS} ${SEPFLAG} -o $@ $@.o -lutil
+	cc ${CFLAGS} ${LDFLAGS} -o $@ $@.o -lutil
 
 install: all
-	install -s -c -o bin -g operator -m 2550 disklabel \
-			${DESTDIR}/bin/disklabel
-	install -c -o bin -g bin -m 444 disklabel.5.0 \
-			${DESTDIR}${MANDIR}5/disklabel.0
-	install -c -o bin -g bin -m 444 disklabel.0 \
-			${DESTDIR}/${MANDIR}8/disklabel.0
+	install -s -c -o root -g operator -m 2755 disklabel \
+			/bin/disklabel
+	install -c -o root -g staff -m 444 disklabel.5.0 \
+			${MANDIR}5/disklabel.0
+	install -c -o root -g staff -m 444 disklabel.0 \
+			${MANDIR}8/disklabel.0
 
 clean:
 	rm -f *.o *.0 *.core disklabel

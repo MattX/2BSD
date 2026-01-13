@@ -1,3 +1,5 @@
+#       Makefile        2.0 (2.11BSD) 2025/11/29
+
 ###########################################################################
 # This program is Copyright (C) 1986, 1987, 1988 by Jonathan Payne.  JOVE #
 # is provided to you without charge, and with no warranty.  You may give  #
@@ -17,7 +19,6 @@
 # JOVE, RECOVER and TEACHJOVE.  MANEXT is the extension for the man pages,
 # e.g., jove.1 or jove.l or jove.m.
 
-DESTDIR =
 TMPDIR = /tmp
 LIBDIR = /usr/new/lib/jove
 BINDIR = /usr/new
@@ -26,61 +27,29 @@ MANEXT = 0
 SHELL = /bin/csh
 
 # These should all just be right if the above ones are.
-JOVE = $(DESTDIR)$(BINDIR)/jove
-TEACHJOVE = $(DESTDIR)$(BINDIR)/teachjove
-RECOVER = $(DESTDIR)$(LIBDIR)/recover
-PORTSRV = $(DESTDIR)$(LIBDIR)/portsrv
-JOVERC = $(DESTDIR)$(LIBDIR)/.joverc
-CMDS.DOC = $(DESTDIR)$(LIBDIR)/cmds.doc
-TEACH-JOVE = $(DESTDIR)$(LIBDIR)/teach-jove
-JOVEM = $(DESTDIR)$(MANDIR)/jove.$(MANEXT)
-TEACHJOVEM = $(DESTDIR)$(MANDIR)/teachjove.$(MANEXT)
-
-# Select the right libraries for your system.
-#	2.10BSD:LIBS = -ltermcap
-#	v7:	LIBS = -ltermcap
-#	4.1BSD:	LIBS = -ltermcap -ljobs
-#	4.2BSD:	LIBS = -ltermcap
-#	4.3BSD:	LIBS = -ltermcap
-#	SysV Rel. 2: LIBS = -lcurses
-#	SCO Xenix: LIBS = -ltermcap -lx
+JOVE = $(BINDIR)/jove
+TEACHJOVE = $(BINDIR)/teachjove
+RECOVER = $(LIBDIR)/recover
+PORTSRV = $(LIBDIR)/portsrv
+JOVERC = $(LIBDIR)/.joverc
+CMDS.DOC = $(LIBDIR)/cmds.doc
+TEACH-JOVE = $(LIBDIR)/teach-jove
+JOVEM = $(MANDIR)/jove.$(MANEXT)
+TEACHJOVEM = $(MANDIR)/teachjove.$(MANEXT)
 
 LIBS = -ltermcap
 
-# If you are not VMUNIX (vax running Berkeley Version 4), you must specify
-# the -i flags (split I/D space) and maybe the -x option (for adb to work).
-#	2.10BSD:LDFLAGS =
-#	v7:	LDFLAGS =
-#	4.1BSD:	LDFLAGS =
-#	4.2BSD:	LDFLAGS =
-#	4.3BSD:	LDFLAGS =
-#	SysV Rel. 2: LDFLAGS = -Ml
-#	SCO Xenix: LDFLAGS = -Ml -F 3000
-#
-# SEPFLAG should be:
-#	not on a PDP-11:		SEPFLAG =
-#	PDP-11 with separate I&D:	SEPFLAG = -i
-#	PDP-11 without separate I&D:	SEPFLAG = -n
-#
-
-LDFLAGS = 
-
-SEPFLAG = -i
-
-# for SCO Xenix, set
-#	MEMFLAGS = -Mle
-#	CFLAGS = -LARGE -O -F 3000 -K -Mle  (say -Mle2 for an 80286)
-
+LDFLAGS = -i
 CFLAGS = -O 
 
-BASESEG = funcdefs.o keymaps.o ask.o buf.o ctype.o delete.o \
-	  disp.o insert.o io.o jove.o marks.o misc.o re.o \
-	  screen.o tune.o util.o version.o
-OVLAY1 = abbrev.o rec.o paragraph.o fmt.o malloc.o vars.o table.o
-OVLAY2 = c.o wind.o fp.o
+BASESEG = keymaps.o ask.o buf.o ctype.o \
+	  disp.o insert.o io.o jove.o misc.o re.o \
+	  screen.o term.o tune.o util.o version.o
+OVLAY1 = abbrev.o funcdefs.o rec.o paragraph.o fmt.o malloc.o vars.o table.o
+OVLAY2 = c.o wind.o marks.o fp.o
 OVLAY3 = extend.o macros.o
 OVLAY4 = iproc.o re1.o argcount.o
-OVLAY5 = proc.o scandir.o term.o case.o move.o
+OVLAY5 = proc.o scandir.o case.o delete.o move.o
 
 OBJECTS = $(BASESEG) $(OVLAY1) $(OVLAY2) $(OVLAY3) $(OVLAY4) $(OVLAY5)
 
@@ -105,56 +74,27 @@ MISC = Makefile Ovmakefile Makefile.dos tune.dos tune.template \
 SUPPORT = teachjove.c recover.c setmaps.c portsrv.c keymaps.txt \
 	macvert.c menumaps.txt mjovers.Hqx
 
-BACKUPS = $(HEADERS) $(C_SRC) $(DOCS) $(SUPPORT) $(MISC)
-
-all:	sdate xjove recover teachjove portsrv macvert edate
-
-sdate:
-	@echo "**** make started at `date` ****"
-
-edate:
-	@echo "**** make completed at `date` ****"
+all:	xjove recover teachjove portsrv macvert
 
 xjove:	$(OBJECTS)
-	-if [ X$(SEPFLAG) = X ]; then \
-		$(CC) $(LDFLAGS) -o xjove $(OBJECTS) $(LIBS); \
-	elif [ X$(SEPFLAG) = X-i ]; then \
-		ld $(SEPFLAG) $(LDFLAGS) -X /lib/crt0.o \
+	ld $(LDFLAGS) -X /lib/crt0.o \
 			-Z $(OVLAY1) \
 			-Z $(OVLAY2) \
 			-Z $(OVLAY3) \
 			-Z $(OVLAY4) \
 			-Z $(OVLAY5) \
 			-Y $(BASESEG) \
-			-o xjove $(LIBS) -lc; \
-	else \
-		echo "Need overlay scheme for nonseparate I&D"; \
-	fi
-	@-size xjove
-
-gjove:	$(OBJECTS)
-	ld -X /lib/gcrt0.o -o gjove $(OBJECTS) -lc $(LIBS)
-	@-size gjove
-
-ovjove:	$(OBJECTS)
-	ld $(SEPFLAG) $(LDFLAGS) -X /lib/crt0.o \
-		-Z $(OVLAY1) \
-		-Z $(OVLAY2) \
-		-Z $(OVLAY3) \
-		-Z $(OVLAY4) \
-		-Z $(OVLAY5) \
-		-Y $(BASESEG) \
-		-o xjove $(LIBS) -lc; \
+			-o xjove $(LIBS) -lc
 	@-size xjove
 
 portsrv:	portsrv.o
-	$(CC) $(LDFLAGS) -o portsrv $(SEPFLAG) portsrv.o $(LIBS)
+	$(CC) $(LDFLAGS) -o portsrv portsrv.o $(LIBS)
 
 recover:	recover.o tune.o rec.h temp.h
-	$(CC) $(LDFLAGS) -o recover $(SEPFLAG) recover.o tune.o $(LIBS)
+	$(CC) $(LDFLAGS) -o recover recover.o tune.o $(LIBS)
 
 teachjove:	teachjove.o
-	$(CC) $(LDFLAGS) -o teachjove $(SEPFLAG) teachjove.o $(LIBS)
+	$(CC) $(LDFLAGS) -o teachjove teachjove.o $(LIBS)
 
 setmaps:	setmaps.o funcdefs.c
 	$(CC) $(LDFLAGS) -o setmaps setmaps.o
@@ -189,13 +129,11 @@ iproc.o: iproc-ptys.c iproc-pipes.c iproc.c
 macvert:	macvert.c
 	$(CC) $(CFLAGS) -o macvert macvert.c
 
-# install doesn't work for Xenix (no install program)
-
 install: DESTDIR_LIBDIR TEACH-JOVE CMDS.DOC JOVERC PORTSRV RECOVER JOVE \
 	TEACHJOVE JOVEM TEACHJOVEM
 
 DESTDIR_LIBDIR:
-	-mkdir $(DESTDIR)$(LIBDIR)
+	-mkdir $(LIBDIR)
 
 TEACH-JOVE: doc/teach-jove
 	install -c -m 644 doc/teach-jove $(TEACH-JOVE)
@@ -239,9 +177,6 @@ TEACHJOVEM: doc/teachjove.nr
 	chmod 444 $(TEACHJOVEM)
 	chown bin.bin $(TEACHJOVEM)
 
-echo:
-	@echo $(C-FILES) $(HEADERS)
-
 lint:
 	lint -n $(C_SRC) tune.c keymaps.c
 	@echo Done
@@ -249,50 +184,9 @@ lint:
 tags:
 	ctags -w $(C_SRC) $(HEADERS) iproc-ptys.c
 
-ciall:
-	ci $(BACKUPS)
-
-coall:
-	co $(BACKUPS)
-
-jove.shar:
-	shar $(BACKUPS) > jove.shar
-
-backup: $(BACKUPS)
-	tar chf backup $(BACKUPS)
-
-tape-backup:
-	tar c $(BACKUPS)
-
-srcdownload:
-	kermit -s $(SUPPORT) $(MISC) $(HEADERS) $(C_SRC)
-
-docdownload:
-	kermit -s $(DOCS)
-
-touch:
-	touch $(OBJECTS)
-
 clean:
 	rm -f a.out core *.o keymaps.c tune.c xjove portsrv recover setmaps \
 	teachjove macvert
 
-# This version only works under 4.3BSD
-#depend:
-#	for i in ${SOURCES} ; do \
-#		cc -M ${CFLAGS} $$i | awk ' { if ($$1 != prev) \
-#		    { if (rec != "") print rec; rec = $$0; prev = $$1; } \
-#		    else { if (length(rec $$2) > 78) { print rec; rec = $$0; } \
-#		    else rec = rec " " $$2 } } \
-#		    END { print rec } ' >> makedep; done
-#	echo '/^# DO NOT DELETE THIS LINE/+2,$$d' >eddep
-#	echo '$$r makedep' >>eddep
-#	echo 'w' >>eddep
-#	cp Makefile Makefile.bak
-#	ed - Makefile < eddep
-#	rm eddep makedep
-#	echo '# DEPENDENCIES MUST END AT END OF FILE' >> Makefile
-#	echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY' >> Makefile
-#	echo '# see make depend above' >> Makefile
-#
-## DO NOT DELETE THIS LINE -- make depend uses it
+depend:	${SOURCES}
+	mkdep ${CFLAGS} ${SOURCES}

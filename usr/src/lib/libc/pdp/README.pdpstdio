@@ -1,0 +1,9 @@
+		README.pdpstdio 1.0 (2.11BSD) 2025/12/26
+
+The files in stdio/ were written for the old stdio but not adapted to the new
+ANSI compliant stdio package
+
+The files in stdio/ are being retained for reference. 
+
+It is not likely that rewriting the routines in stdio/ for the new stdio 
+will save much space but there might be a minor speed improvement.

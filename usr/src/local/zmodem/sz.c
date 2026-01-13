@@ -1,12 +1,7 @@
-#define VERSION "sz 3.07 2-02-90"
+#define VERSION "sz 3.08 (2.11BSD) 2025/12/27"
 #define PUBDIR "/usr/spool/uucppublic"
 
-/*% cc -compat -M2 -Ox -K -i -DTXBSIZE=16384  -DNFGVMIN -DREADCHECK sz.c -lx -o sz; size sz
-
-/*% cc -Zi -DXX -DNFGVMIN -DREADCHECK sz.c -lx -o xsz; size xsz
-<-xtx-*> cc -Osal -DTXBSIZE=32768  -DSV sz.c -lx -o $B/sz; size $B/sz
-
- ****************************************************************************
+/****************************************************************************
  *
  * sz.c By Chuck Forsberg,  Omen Technology INC
  *
@@ -1184,8 +1179,8 @@ long pos;
 #endif
 
 
-/* VARARGS1 */
 vfile(f, a, b, c, d)
+char *f;
 long a, b, c, d;
 {
 	if (Verbose > 2) {

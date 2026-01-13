@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	2.0 (2.11BSD) 2002/8/4
+#	@(#)Makefile	2.1 (2.11BSD) 2025/11/25
 #
 MDIR=	/usr/man/cat1
 SRCS=	adb.1 addbib.1 apply.1 apropos.1 as.1 at.1 atq.1 atrm.1 \
@@ -26,7 +26,7 @@ SRCS=	adb.1 addbib.1 apply.1 apropos.1 as.1 at.1 atq.1 atrm.1 \
 	find.1 fmt.1 fold.1 fpr.1 from.1 fsplit.1 gcore.1 \
 	graph.1 grep.1 head.1 hostid.1 indent.1 \
 	intro.1 iostat.1 join.1 kill.1 last.1 lastcomm.1 \
-	learn.1 leave.1 lex.1 lint.1 lisp.1 ln.1 logger.1 login.1 \
+	learn.1 leave.1 lex.1 lisp.1 ln.1 logger.1 login.1 \
 	look.1 lookbib.1 lorder.1 lpq.1 lpr.1 lprm.1 lptest.1 ls.1 \
 	lxref.1 m4.1 mail.1 make.1 man.1 mesg.1 mkdep.1 mkdir.1 mkstr.1 \
 	more.1 mset.1 msgs.1 mt.1 mv.1 netstat.1 newaliases.1 nice.1 nm.1 
@@ -54,7 +54,7 @@ OBJS1=	adb.0 addbib.0 apply.0 apropos.0 as.0 at.0 atq.0 atrm.0 \
 	find.0 fmt.0 fold.0 fpr.0 from.0 fsplit.0 gcore.0 \
 	graph.0 grep.0 head.0 hostid.0 indent.0 \
 	intro.0 iostat.0 join.0 kill.0 last.0 lastcomm.0 \
-	learn.0 leave.0 lex.0 lint.0 lisp.0 ln.0 logger.0 login.0 \
+	learn.0 leave.0 lex.0 lisp.0 ln.0 logger.0 login.0 \
 	look.0 lookbib.0 lorder.0 lpq.0 lpr.0 lprm.0 lptest.0 ls.0 \
 	lxref.0 m4.0 mail.0 make.0 man.0 mesg.0 mkdep.0 mkdir.0 mkstr.0 \
 	more.0 mset.0 msgs.0 mt.0 mv.0 netstat.0 newaliases.0 nice.0 nm.0
@@ -77,7 +77,7 @@ OBJS2=	nroff.0 nslookup.0 od.0 pagesize.0 pdx.0 pi.0 pix.0 \
 .SUFFIXES: .1 .0
 
 .1.0:
-	${DESTDIR}/usr/man/manroff $*.1 > $*.0
+	/usr/man/manroff $*.1 > $*.0
 
 all: _make_01 _make_02 
 
@@ -86,56 +86,56 @@ _make_01: ${OBJS1}
 _make_02: ${OBJS2}
 
 eqn.0:
-	eqn eqn.1 | ${DESTDIR}/usr/man/manroff > $@
+	eqn eqn.1 | /usr/man/manroff > $@
 
 clean: FRC
 	rm -f ${OBJS1}
 	rm -f ${OBJS2}
 
 install: _make_01 _make_02
-	install -c -o bin -g bin -m 444 ${OBJS1} ${DESTDIR}${MDIR}
-	install -c -o bin -g bin -m 444 ${OBJS2} ${DESTDIR}${MDIR}
-	rm -f ${DESTDIR}${MDIR}/case.0
-	ln ${DESTDIR}/${MDIR}/sh.0 ${DESTDIR}${MDIR}/case.0
-	rm -f ${DESTDIR}${MDIR}/checkeq.0
-	ln ${DESTDIR}/${MDIR}/eqn.0 ${DESTDIR}${MDIR}/checkeq.0
-	rm -f ${DESTDIR}${MDIR}/cu.0
-	ln ${DESTDIR}${MDIR}/tip.0 ${DESTDIR}${MDIR}/cu.0
-	rm -f ${DESTDIR}${MDIR}/diffh.0
-	ln ${DESTDIR}${MDIR}/diff.0 ${DESTDIR}${MDIR}/diffh.0
-	rm -f ${DESTDIR}${MDIR}/edit.0
-	ln ${DESTDIR}${MDIR}/ex.0 ${DESTDIR}${MDIR}/edit.0
-	rm -f ${DESTDIR}${MDIR}/egrep.0
-	ln ${DESTDIR}${MDIR}/grep.0 ${DESTDIR}${MDIR}/egrep.0
-	rm -f ${DESTDIR}${MDIR}/explain.0
-	ln ${DESTDIR}${MDIR}/diction.0 ${DESTDIR}${MDIR}/explain.0
-	rm -f ${DESTDIR}${MDIR}/fgrep.0
-	ln ${DESTDIR}${MDIR}/grep.0 ${DESTDIR}${MDIR}/fgrep.0
-	rm -f ${DESTDIR}${MDIR}/for.0
-	ln ${DESTDIR}${MDIR}/sh.0 ${DESTDIR}${MDIR}/for.0
-	rm -f ${DESTDIR}${MDIR}/if.0
-	ln ${DESTDIR}${MDIR}/sh.0 ${DESTDIR}${MDIR}/if.0
-	rm -f ${DESTDIR}${MDIR}/indxbib.0
-	ln ${DESTDIR}${MDIR}/lookbib.0 ${DESTDIR}${MDIR}/indxbib.0
-	rm -f ${DESTDIR}${MDIR}/neqn.0
-	ln ${DESTDIR}${MDIR}/eqn.0 ${DESTDIR}${MDIR}/neqn.0
-	rm -f ${DESTDIR}${MDIR}/nohup.0
-	ln ${DESTDIR}${MDIR}/nice.0 ${DESTDIR}${MDIR}/nohup.0
-	rm -f ${DESTDIR}${MDIR}/page.0
-	ln ${DESTDIR}${MDIR}/more.0 ${DESTDIR}${MDIR}/page.0
-	rm -f ${DESTDIR}${MDIR}/spellin.0
-	ln ${DESTDIR}${MDIR}/spell.0 ${DESTDIR}${MDIR}/spellin.0
-	rm -f ${DESTDIR}${MDIR}/spellout.0
-	ln ${DESTDIR}${MDIR}/spell.0 ${DESTDIR}${MDIR}/spellout.0
-	rm -f ${DESTDIR}${MDIR}/uncompress.0
-	ln ${DESTDIR}${MDIR}/compress.0 ${DESTDIR}${MDIR}/uncompress.0
-	rm -f ${DESTDIR}${MDIR}/unexpand.0
-	ln ${DESTDIR}${MDIR}/expand.0 ${DESTDIR}${MDIR}/unexpand.0
-	rm -f ${DESTDIR}${MDIR}/uudecode.0
-	ln ${DESTDIR}${MDIR}/uuencode.0 ${DESTDIR}${MDIR}/uudecode.0
-	rm -f ${DESTDIR}${MDIR}/while.0
-	ln ${DESTDIR}${MDIR}/sh.0 ${DESTDIR}${MDIR}/while.0
-	rm -f ${DESTDIR}${MDIR}/zcat.0
-	ln ${DESTDIR}${MDIR}/compress.0 ${DESTDIR}${MDIR}/zcat.0
+	install -c -o root -g staff -m 444 ${OBJS1} ${MDIR}
+	install -c -o root -g staff -m 444 ${OBJS2} ${MDIR}
+	rm -f ${MDIR}/case.0
+	ln ${MDIR}/sh.0 ${MDIR}/case.0
+	rm -f ${MDIR}/checkeq.0
+	ln ${MDIR}/eqn.0 ${MDIR}/checkeq.0
+	rm -f ${MDIR}/cu.0
+	ln ${MDIR}/tip.0 ${MDIR}/cu.0
+	rm -f ${MDIR}/diffh.0
+	ln ${MDIR}/diff.0 ${MDIR}/diffh.0
+	rm -f ${MDIR}/edit.0
+	ln ${MDIR}/ex.0 ${MDIR}/edit.0
+	rm -f ${MDIR}/egrep.0
+	ln ${MDIR}/grep.0 ${MDIR}/egrep.0
+	rm -f ${MDIR}/explain.0
+	ln ${MDIR}/diction.0 ${MDIR}/explain.0
+	rm -f ${MDIR}/fgrep.0
+	ln ${MDIR}/grep.0 ${MDIR}/fgrep.0
+	rm -f ${MDIR}/for.0
+	ln ${MDIR}/sh.0 ${MDIR}/for.0
+	rm -f ${MDIR}/if.0
+	ln ${MDIR}/sh.0 ${MDIR}/if.0
+	rm -f ${MDIR}/indxbib.0
+	ln ${MDIR}/lookbib.0 ${MDIR}/indxbib.0
+	rm -f ${MDIR}/neqn.0
+	ln ${MDIR}/eqn.0 ${MDIR}/neqn.0
+	rm -f ${MDIR}/nohup.0
+	ln ${MDIR}/nice.0 ${MDIR}/nohup.0
+	rm -f ${MDIR}/page.0
+	ln ${MDIR}/more.0 ${MDIR}/page.0
+	rm -f ${MDIR}/spellin.0
+	ln ${MDIR}/spell.0 ${MDIR}/spellin.0
+	rm -f ${MDIR}/spellout.0
+	ln ${MDIR}/spell.0 ${MDIR}/spellout.0
+	rm -f ${MDIR}/uncompress.0
+	ln ${MDIR}/compress.0 ${MDIR}/uncompress.0
+	rm -f ${MDIR}/unexpand.0
+	ln ${MDIR}/expand.0 ${MDIR}/unexpand.0
+	rm -f ${MDIR}/uudecode.0
+	ln ${MDIR}/uuencode.0 ${MDIR}/uudecode.0
+	rm -f ${MDIR}/while.0
+	ln ${MDIR}/sh.0 ${MDIR}/while.0
+	rm -f ${MDIR}/zcat.0
+	ln ${MDIR}/compress.0 ${MDIR}/zcat.0
 
 FRC:

@@ -14,10 +14,10 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4.8 (2.11BSD) 2025/8/31
+#	@(#)Makefile	5.4.9 (2.11BSD) 2025/11/25
 #
 MDIR=	/usr/man/cat8
-SRCS=	XNSrouted.8 adduser.8 autoconfig.8 \
+SRCS=	adduser.8 autoconfig.8 \
 	bugfiler.8 crash.8 \
 	boot.8 \
 	drtest.8 dump.8 dumpdir.8 \
@@ -27,12 +27,12 @@ SRCS=	XNSrouted.8 adduser.8 autoconfig.8 \
 	makekey.8 \
 	named.8 pac.8 \
 	rc.8 rdump.8 \
-	routed.8 rrestore.8 \
+	routed.8 \
 	sendmail.8 \
 	sticky.8 sync.8 \
 	timed.8 timedc.8 uucico.8 \
 	uuclean.8 uupoll.8 uusnap.8 uuxqt.8
-OBJS=	XNSrouted.0 adduser.0 autoconfig.0 \
+OBJS=	adduser.0 autoconfig.0 \
 	bugfiler.0 crash.0 \
 	boot.0 \
 	drtest.0 dump.0 dumpdir.0 \
@@ -42,7 +42,7 @@ OBJS=	XNSrouted.0 adduser.0 autoconfig.0 \
 	makekey.0 \
 	named.0 pac.0 \
 	rc.0 rdump.0 \
-	routed.0 rrestore.0 \
+	routed.0 \
 	sendmail.0 \
 	sticky.0 sync.0 \
 	timed.0 timedc.0 uucico.0 \
@@ -51,7 +51,7 @@ OBJS=	XNSrouted.0 adduser.0 autoconfig.0 \
 .SUFFIXES: .8 .0
 
 .8.0:
-	${DESTDIR}/usr/man/manroff $*.8 > $*.0
+	/usr/man/manroff $*.8 > $*.0
 
 all: _make_01
 
@@ -61,8 +61,8 @@ clean: FRC
 	rm -f ${OBJS}
 
 install: _make_01
-	install -c -o bin -g bin -m 444 ${OBJS} ${DESTDIR}${MDIR}
-	rm -f ${DESTDIR}${MDIR}/uucpd.0
-	ln ${DESTDIR}${MDIR}/uucico.0 ${DESTDIR}${MDIR}/uucpd.0
+	install -c -o root -g staff -m 444 ${OBJS} ${MDIR}
+	rm -f ${MDIR}/uucpd.0
+	ln ${MDIR}/uucico.0 ${MDIR}/uucpd.0
 
 FRC:

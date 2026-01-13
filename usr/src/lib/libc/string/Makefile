@@ -1,5 +1,5 @@
 #
-#	@(#)Makefile	1.2 (2.11BSD GTE) 1996/3/20
+#	@(#)Makefile	1.2 (2.11BSD) 2025/11/29
 #
 # This is the Makefile for the 'string' functions.  New routines ported from 
 # 4.4BSD's libc/string directory go here but existing libc/gen files are 

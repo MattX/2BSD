@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static	char *sccsid = "@(#)dumpmain.c	1.4 (2.11BSD GTE) 1996/2/7";
+static	char *sccsid = "@(#)dumpmain.c	1.5 (2.11BSD) 2025/12/1";
 #endif
 
 #include "dump.h"
@@ -79,12 +79,6 @@ main(argc, argv)
 			argc--;
 			argv++;
 			break;
-#ifdef	notnow
-		case 'b':		/* blocks per tape write */
-			ntrec = numarg('b', "number of blocks per write",
-				    1L, 1000L, &argc, &argv);
-			break;
-#endif
 
 		case 'B':		/* blocks per output file */
 			blocksperfile = numarg('B', "number of blocks per file",

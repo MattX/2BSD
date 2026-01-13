@@ -1,3 +1,5 @@
+#       @(#)Makefile    2.0 (2.11BSD) 2025/11/26
+
 SRCS=	nm.c
 OBJS=	nm.o
 CFLAGS=	-O -I../ar
@@ -5,10 +7,10 @@ CFLAGS=	-O -I../ar
 all:	nm
 
 nm: ${OBJS}
-	cc -z -o nm ${OBJS}
+	cc -i -o nm ${OBJS}
 
 install:
-	install -c -s -o bin -g bin -m 755 nm ${DESTDIR}/bin/nm
+	install -c -s -o root -g staff -m 755 nm /bin/nm
 
 lint:
 	lint -havx -I../ar ${SRCS}

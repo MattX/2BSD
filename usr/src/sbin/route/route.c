@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)route.c	5.6.1 (2.11BSD GTE) 1/1/94";
+static char sccsid[] = "@(#)route.c	5.6.2 (2.11BSD) 2025/12/26";
 #endif
 
 #include <sys/param.h>
@@ -458,7 +458,7 @@ savestr(s)
 
 	sav = malloc(strlen(s) + 1);
 	if (sav == NULL) {
-		fprintf("route: out of memory\n");
+		fprintf(stderr, "route: out of memory\n");
 		exit(1);
 	}
 	strcpy(sav, s);

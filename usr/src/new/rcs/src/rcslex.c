@@ -1,10 +1,10 @@
 /*
  *                     RCS file input
  */
-#ifndef lint
-static char rcsid[]= "$Id: rcslex.c,v 4.4 87/12/18 11:44:47 narten Exp $ Purdue CS";
+#if	!defined(lint) & defined(DOSCCS)
+static char rcsid[]= "$Id: rcslex.c 4.5 (2.11BSD) 2025/12/26";
 #endif
-/*********************************************************************************
+/*******************************************************************************
  *                     Lexical Analysis.
  *                     Character mapping table,
  *                     hashtable, Lexinit, nextlex, getlex, getkey,
@@ -12,7 +12,7 @@ static char rcsid[]= "$Id: rcslex.c,v 4.4 87/12/18 11:44:47 narten Exp $ Purdue 
  *                     checkid, serror, fatserror, error, faterror, warn, diagnose
  *                     fflsbuf, puts, fprintf
  *                     Testprogram: define LEXDB
- *********************************************************************************
+ *******************************************************************************
  *
  * Copyright (C) 1982 by Walter F. Tichy
  *                       Purdue University
@@ -72,7 +72,6 @@ static char rcsid[]= "$Id: rcslex.c,v 4.4 87/12/18 11:44:47 narten Exp $ Purdue 
 
 
 #include "rcsbase.h"
-#include <varargs.h>
 
 
 
@@ -611,7 +610,7 @@ unsigned c; register FILE * iop;
  * Same routine as _flsbuf in stdio, but aborts program on error.
  */
 {       register result;
-        if ((result=_flsbuf(c,iop))==EOF)
+        if ((result=__swbuf(c,iop))==EOF)
                 faterror("write error");
         return result;
 }
@@ -634,10 +633,7 @@ register FILE *iop;
 
 
 
-fprintf(iop, fmt, va_alist)
-FILE *iop;
-char *fmt;
-va_dcl
+fprintf(FILE *iop, char *fmt, ...)
 /* Function: formatted output. Same as fprintf in stdio,
  * but aborts program on error
  */
@@ -645,12 +641,8 @@ va_dcl
 	register int value;
 	va_list ap;
 
-	va_start(ap);
-#ifdef VFPRINTF
+	va_start(ap, fmt);
 	VOID vfprintf(iop, fmt, ap);
-#else
-	_doprnt(fmt, ap, iop);
-#endif VFPRINTF
         if (ferror(iop)) {
                 faterror("write error");
                 value = EOF;

@@ -1,5 +1,5 @@
 #if	defined(DOSCCS) && !defined(lint)
-static	char *sccsid = "@(#)arp.c	5.5 (2.11BSD) 2024/9/20";
+static	char *sccsid = "@(#)arp.c	5.6 (2.11BSD) 2025/12/27";
 #endif
 
 /*
@@ -290,7 +290,7 @@ dump(kernel, mem)
 	}
 	mf = open(mem, 0);
 	if(mf < 0) {
-		fprintf(fprintf, "arp: cannot open %s\n", mem);
+		fprintf(stderr, "arp: cannot open %s\n", mem);
 		exit(1);
 	}
 #ifdef pdp11

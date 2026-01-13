@@ -1,16 +1,17 @@
-#	Makefile	4.1	83/02/12
+#	Makefile	4.2	(2.11BSD) 2025/11/27
 
 CFLAGS=-O
-SEPFLAGS= -i
+LDFLAGS= -i
 o = t0.o t1.o t2.o t3.o t4.o t5.o t6.o t7.o t8.o t9.o\
     tb.o tc.o te.o tf.o tg.o ti.o tm.o ts.o tt.o tu.o tv.o
 
 tbl :	$o
-	$(CC) ${SEPFLAG} $o -o tbl
+	$(CC) ${LDFLAGS} $o -o tbl
+
 $o :	t..c
 
 install: tbl
-	install -s tbl $(DESTDIR)/usr/bin
+	install -c -s -m 755 tbl /usr/bin
 
 clean :
 	rm -f *.o
@@ -65,8 +66,10 @@ test:
 	sh compr sample47
 	sh compnr sample48
 	sh compeq /usr/doc/mel/tables
+
 ichk: /usr/bin/tbl
 	/usr/bin/tbl sample1 >junk1
 	cmp -s junk1 out1
+
 comp: tbl
 	cmp -s tbl /usr/bin/tbl

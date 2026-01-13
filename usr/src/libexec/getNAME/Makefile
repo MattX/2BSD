@@ -1,17 +1,17 @@
 #
 # Public Domain.  1996/10/24 - sms
 #
-#	@(#)Makefile	1.0 (2.11BSD GTE) 1996/10/24
+#	@(#)Makefile	1.1 (2.11BSD) 2025/11/25
 #
 CFLAGS=	 -O
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	getNAME.c
 OBJS=	getNAME.o
 
 all: getNAME
 
 getNAME: ${OBJS}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS}
 
 clean:
 	rm -f ${OBJS} getNAME tags 
@@ -20,7 +20,7 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: getNAME
-	install -s -o root -g bin -m 755 getNAME ${DESTDIR}/usr/libexec/getNAME
+	install -c -s -o root -g staff -m 755 getNAME /usr/libexec/getNAME
 
 lint: ${SRCS}
 	lint -hax ${SRCS}

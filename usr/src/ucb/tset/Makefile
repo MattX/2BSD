@@ -3,27 +3,26 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.4.1 (2.11BSD) 1997/3/28
+#	@(#)Makefile	5.4.2 (2.11BSD) 2025/11/25
 #
-DESTDIR=
 CFLAGS=-O
-SEPFLAG= -i
+LDFLAGS= -i
 
 all: tset tset.0
 
 tset:	tset.o
-	${CC} ${SEPFLAG} ${CFLAGS} tset.o -o tset -ltermlib
+	${CC} ${LDFLAGS} ${CFLAGS} tset.o -o tset -ltermlib
 
 tset.0:	tset.1
 	/usr/man/manroff tset.1 > tset.0
 
 install: all
-	install -s tset ${DESTDIR}/usr/ucb
-	rm -f ${DESTDIR}/usr/ucb/reset
-	ln ${DESTDIR}/usr/ucb/tset ${DESTDIR}/usr/ucb/reset
-	rm -f ${DESTDIR}/usr/man/cat1/reset.0
-	install -c -o bin -g bin -m 444 tset.0 ${DESTDIR}/usr/man/cat1/tset.0
-	ln ${DESTDIR}/usr/man/cat1/tset.0 ${DESTDIR}/usr/man/cat1/reset.0
+	install -c -s -m 755 tset /usr/ucb
+	rm -f /usr/ucb/reset
+	ln /usr/ucb/tset /usr/ucb/reset
+	rm -f /usr/man/cat1/reset.0
+	install -c -o root -g staff -m 444 tset.0 /usr/man/cat1/tset.0
+	ln /usr/man/cat1/tset.0 /usr/man/cat1/reset.0
 
 clean:
 	rm -f *.o tset tset.o tset.0 tags

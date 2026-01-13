@@ -1,10 +1,10 @@
 #
 # Public Domain.  1996/11/16 - Steven Schultz
 #
-#	@(#)Makefile	1.0 (2.11BSD) 1996/11/16
+#	@(#)Makefile	1.1 (2.11BSD) 2025/11/28
 #
 CFLAGS=	 -O
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	rmt.c
 OBJS=	rmt.o
 MAN=	rmt.0
@@ -13,7 +13,7 @@ MANSRC=	rmt.8
 all: rmt rmt.0
 
 rmt: ${OBJS}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
+	${CC} ${LDFLAGS} -o $@ ${OBJS}
 
 rmt.0: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
@@ -25,8 +25,8 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: rmt
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat8
-	install -s -o root -g bin -m 755 rmt ${DESTDIR}/usr/sbin/rmt
+	install -c -o root -g staff -m 444 ${MAN} /usr/man/cat8
+	install -c -s -o root -g staff -m 755 rmt /usr/sbin/rmt
 
 lint: ${SRCS}
 	lint -hax ${SRCS}

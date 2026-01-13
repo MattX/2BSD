@@ -14,10 +14,10 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.5.2 (2.11BSD) 1996/12/1
+#	@(#)Makefile	5.5.3 (2.11BSD) 2025/11/26
 #
 CFLAGS=	-O
-SEPFLAG= -i
+LDFLAGS= -i
 ASRCS=	apropos.c
 AOBJS=	apropos.o
 MSRCS=	man.c
@@ -26,22 +26,22 @@ MOBJS=	man.o
 all: man apropos
 
 apropos: ${AOBJS}
-	${CC} ${SEPFLAG} -o $@ ${AOBJS}
+	${CC} ${LDFLAGS} -o $@ ${AOBJS}
 
 man: ${MOBJS}
-	${CC} ${SEPFLAG} -o $@ ${MOBJS}
+	${CC} ${LDFLAGS} -o $@ ${MOBJS}
 
 clean: FRC
 	rm -f core apropos man *.o
 
 depend: FRC
-	mkdep ${CFLAGS} ${ASRCS} ${MSRCS}
+	mkdep ${ASRCS} ${MSRCS}
 
 install: man apropos
-	rm -f ${DESTDIR}/usr/ucb/whatis ${DESTDIR}/usr/ucb/apropos
-	install -s -o bin -g bin -m 755 apropos ${DESTDIR}/usr/ucb/apropos
-	install -s -o bin -g bin -m 755 man ${DESTDIR}/usr/ucb/man
-	ln ${DESTDIR}/usr/ucb/apropos ${DESTDIR}/usr/ucb/whatis
+	rm -f /usr/ucb/whatis /usr/ucb/apropos
+	install -c -s -o root -g staff -m 755 apropos /usr/ucb/apropos
+	install -c -s -o root -g staff -m 755 man /usr/ucb/man
+	ln /usr/ucb/apropos /usr/ucb/whatis
 
 lint: FRC
 	lint ${CFLAGS} ${ASRCS}

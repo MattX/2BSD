@@ -1,5 +1,5 @@
 /* 
- * config.h
+ * config.h 2.0 (2.11BSD) 2025/12/25
  */
 
 /* CHARSPRINTF:
@@ -8,7 +8,7 @@
  *	is up to the package author to declare sprintf correctly based on the
  *	symbol.
  */
-#define	CHARSPRINTF 	/**/
+#undef	CHARSPRINTF 	/**/
 
 /* FCNTL:
  *	This symbol, if defined, indicates to the C program that it should

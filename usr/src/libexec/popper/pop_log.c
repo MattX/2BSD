@@ -4,14 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 static char copyright[] = "Copyright (c) 1990 Regents of the University of California.\nAll rights reserved.\n";
-static char SccsId[] = "@(#)@(#)pop_log.c	2.1  2.1 3/18/91";
-#endif not lint
+static char SccsId[] = "@(#)@(#)pop_log.c	2.2  (2.11BSD) 2025/12/26";
+#endif
 
 #include <stdio.h>
 #include <sys/types.h>
-#include <varargs.h>
 #include "popper.h"
 
 /* 
@@ -20,26 +19,15 @@ static char SccsId[] = "@(#)@(#)pop_log.c	2.1  2.1 3/18/91";
 
 static char msgbuf[MAXLINELEN];
 
-pop_log(va_alist)
-va_dcl
+pop_log(POP *p, int stat, char *format, ...)
 {
-    va_list     ap;
-    POP     *   p;
-    int         stat;
-    char    *   format;
+	va_list ap;
 
-    va_start(ap);
-    p = va_arg(ap,POP *);
-    stat = va_arg(ap,int);
-    format = va_arg(ap,char *);
-    va_end(ap);
+	va_start(ap, format);
+	vsprintf(msgbuf, format, ap);
+	va_end(ap);
 
-#ifdef HAVE_VSPRINTF
         vsprintf(msgbuf,format,ap);
-#else
-        (void)sprintf (msgbuf,format,((int *)ap)[0],((int *)ap)[1],((int *)ap)[2],
-                ((int *)ap)[3],((int *)ap)[4],((int *)ap)[5]);
-#endif HAVE_VSPRINTF
 
     if (p->debug && p->trace) {
         (void)fprintf(p->trace,"%s\n",msgbuf);

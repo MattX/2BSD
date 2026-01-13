@@ -6,7 +6,7 @@
 */
 
 #if	!defined(lint) && defined(DOSCCS)
-static	char	sccsid[] = "@(#)c10.c	2.1 (2.11BSD GTE) 10/4/94";
+static	char	sccsid[] = "@(#)c10.c	2.2 (2.11BSD) 2025/12/25";
 #endif
 
 #include "c1.h"
@@ -1370,3 +1370,11 @@ union tree *tree;
 	c = isfloat(tree);
 	printf("mov%.1s	r%d,r%d\n", &c, r0, r1);
 }
+
+char *
+__pfcom()
+{
+asm(".globl  fltused ; fltused:");
+	return NULL;
+}
+

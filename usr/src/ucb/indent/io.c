@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)io.c	5.4 (2.11BSD) 2020/1/7";
+static char sccsid[] = "@(#)io.c	5.5 (2.11BSD) 2025/12/27";
 #endif
 
 /*-
@@ -501,6 +501,7 @@ count_spaces(current, buffer)
 };
 
 diag(level, msg, a, b)
+	char *msg, *a, *b;
 {
     if (output == stdout) {
 	fprintf(stdout, "/**INDENT** %s@%d: ", level == 0 ? "Warning" : "Error", line_no);

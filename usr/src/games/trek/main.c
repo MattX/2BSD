@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)main.c	5.1.1 (2.11BSD GTE) 11/20/94";
+static char sccsid[] = "@(#)main.c	5.1.2 (2.11BSD) 2025/12/27";
 #endif
 
 # include	"trek.h"
@@ -171,7 +171,7 @@ char	**argv;
 		  case 'p':	/* set priority */
 			if (getuid() != Mother)
 				goto badflag;
-			if (scanf(-1, &av[0][2], "%d", &prio) > 0)
+			if (sscanf(&av[0][2], "%d", &prio) > 0)
 				break;
 
 		  default:

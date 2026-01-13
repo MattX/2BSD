@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)ruptime.c	5.3.1 (2.11BSD) 1997/4/18";
+static char sccsid[] = "@(#)ruptime.c	5.3.2 (2.11BSD) 2025/12/26";
 #endif
 
 #include <sys/param.h>
@@ -33,7 +33,6 @@ int	hscmp(), ucmp(), lcmp(), tcmp();
 
 char	*interval();
 time_t	now;
-char	*malloc(), *sprintf();
 int	aflg;
 int 	rflg = 1;
 

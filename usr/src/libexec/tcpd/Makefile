@@ -1,5 +1,4 @@
-# @(#) Makefile 1.20 1996/11/16
-#  Tailored and trimmed version created for 2.11BSD on April 7, 1995.
+# @(#) Makefile 1.21 (2.11BSD) 2025/12/8
 
 REAL_DAEMON_DIR=/usr/libexec
 RANLIB	= ranlib	# have ranlib (BSD-ish UNIX)
@@ -48,17 +47,17 @@ all: config-check tcpd tcpdmatch try-from safe_finger tcpdchk tcpd.0 \
 	hosts5access.0 hosts3access.0 hosts_options.0 tcpdchk.0 tcpdmatch.0
 
 install: all
-	install -s -m 1751 -o root -g staff tcpd /usr/libexec/tcpd
-	install -s -m 751 -o root -g staff tcpdmatch /usr/ucb/tcpdmatch
-	install -s -m 751 -o root -g staff try-from /usr/ucb/try-from
-	install -s -m 751 -o root -g staff safe_finger /usr/ucb/safe_finger
-	install -s -m 751 -o root -g staff tcpdchk /usr/ucb/tcpdchk
-	install -c -m 444 -o bin -g bin hosts3access.0 /usr/man/cat3/hosts_access.0
-	install -c -m 444 -o bin -g bin hosts5access.0 /usr/man/cat5/hosts_access.0
-	install -c -m 444 -o bin -g bin hosts_options.0 /usr/man/cat5/hosts_options.0
-	install -c -m 444 -o bin -g bin tcpd.0 /usr/man/cat8/tcpd.0
-	install -c -m 444 -o bin -g bin tcpdchk.0 /usr/man/cat8/tcpdchk.0
-	install -c -m 444 -o bin -g bin tcpdmatch.0 /usr/man/cat8/tcpdmatch.0
+	install -c -s -m 1755 -o root -g staff tcpd /usr/libexec/tcpd
+	install -c -s -m 755 -o root -g staff tcpdmatch /usr/ucb/tcpdmatch
+	install -c -s -m 755 -o root -g staff try-from /usr/ucb/try-from
+	install -c -s -m 755 -o root -g staff safe_finger /usr/ucb/safe_finger
+	install -c -s -m 755 -o root -g staff tcpdchk /usr/ucb/tcpdchk
+	install -c -m 444 -o root -g staff hosts3access.0 /usr/man/cat3/hosts_access.0
+	install -c -m 444 -o root -g staff hosts5access.0 /usr/man/cat5/hosts_access.0
+	install -c -m 444 -o root -g staff hosts_options.0 /usr/man/cat5/hosts_options.0
+	install -c -m 444 -o root -g staff tcpd.0 /usr/man/cat8/tcpd.0
+	install -c -m 444 -o root -g staff tcpdchk.0 /usr/man/cat8/tcpdchk.0
+	install -c -m 444 -o root -g staff tcpdmatch.0 /usr/man/cat8/tcpdmatch.0
 
 clean:
 	rm -f tcpd miscd safe_finger tcpdmatch tcpdchk try-from *.[oa] *.core \

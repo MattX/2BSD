@@ -1,5 +1,5 @@
 /*
- * ddd.c - double dd (version 2)
+ * ddd.c - double dd 2.1 (2.11BSD) 2025/12/26
  *
  * Copyright 1988 Helsinki University of Technology.
  * All rights reserved.
@@ -34,7 +34,6 @@ extern char *malloc();
 #ifdef BSD
 #include <sys/wait.h>  /* for union wait */
 #include <sys/file.h>  /* for O_RDONLY and O_WRONLY */
-extern char *sprintf();
 #endif
 
 #ifdef SYSV

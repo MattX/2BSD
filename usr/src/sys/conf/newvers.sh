@@ -4,7 +4,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)newvers.sh	1.6 (2.11BSD GTE) 11/26/94
+#	@(#)newvers.sh	1.7 (2.11BSD) 2025/12/26
 #
 if [ ! -r version ]; then echo 0 > version; fi
 touch version

@@ -32,10 +32,12 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)err.c	8.1.1 (2.11BSD GTE) 2/3/95";
-#endif /* LIBC_SCCS and not lint */
+static char sccsid[] = "@(#)err.c	8.1.2 (2.11BSD) 2025/12/27";
+#endif
 
 #include <stdio.h>
+#include <strings.h>
+#include <errno.h>
 
 #ifdef __STDC__
 #include <stdarg.h>
@@ -43,7 +45,6 @@ static char sccsid[] = "@(#)err.c	8.1.1 (2.11BSD GTE) 2/3/95";
 #include <varargs.h>
 #endif
 
-extern	int	errno;
 extern	char *__progname;		/* Program name, from crt0. */
 static	void	putprog(), putcolsp();
 

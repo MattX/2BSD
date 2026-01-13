@@ -9,10 +9,10 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	@(#)Makefile	5.2 (Berkeley) 5/24/88
+#	@(#)Makefile	5.3 (2.11BSD) 2025/11/28
 #
 CFLAGS=	-O -I../src -I../include -DVMUNIX
-SEPFLAG=-i
+LDFLAGS=-i
 ALL=	mconnect mailstats praliases
 SRCS=	mconnect.c mailstats.c praliases.c
 OBJS=	mconnect.o mailstats.o praliases.o
@@ -25,20 +25,14 @@ OBJS=	mconnect.o mailstats.o praliases.o
 
 all: ${ALL}
 
-mail: mail.o
-	${CC} ${SEPFLAG} -o $@ mail.o
-
-rmail: rmail.o
-	${CC} ${SEPFLAG} -o $@ rmail.o
-
 mconnect: mconnect.o
-	${CC} ${SEPFLAG} -o $@ mconnect.o
+	${CC} ${LDFLAGS} -o $@ mconnect.o
 
 mailstats: mailstats.o
-	${CC} ${SEPFLAG} -o $@ mailstats.o
+	${CC} ${LDFLAGS} -o $@ mailstats.o
 
 praliases: praliases.o
-	${CC} ${SEPFLAG} -o $@ praliases.o -ldbm
+	${CC} ${LDFLAGS} -o $@ praliases.o -ldbm
 
 clean: FRC
 	rm -f core ${ALL} ${OBJS}
@@ -47,10 +41,7 @@ depend: FRC
 	mkdep ${CFLAGS} ${SRCS}
 
 install: ${ALL}
-#	install -s -o root -m 4755 mail ${DESTDIR}/bin/mail
-#	install -s -o bin -m 755 rmail ${DESTDIR}/bin/rmail
-	install -s -o bin -m 755 mconnect mailstats praliases \
-		${DESTDIR}/usr/bin
+	install -c -s -o root -m 755 mconnect mailstats praliases /usr/bin
 
 FRC:
 

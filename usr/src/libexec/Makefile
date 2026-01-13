@@ -1,11 +1,9 @@
 #
 # Steven Schultz - put in the public domain 1996/6/25.
 #
-#	@(#)Makefile	1.6 (2.11BSD) 1999/5/7
+#	@(#)Makefile	1.7 (2.11BSD) 2025/11/25
 #
-DESTDIR=
 CFLAGS=	-O
-SEPFLAG= -i
 TAGSFILE=tags
 
 SUBDIR=	acctd comsat ctimed fingerd ftpd getNAME getty identd makekey \
@@ -14,14 +12,14 @@ SUBDIR=	acctd comsat ctimed fingerd ftpd getNAME getty identd makekey \
 all:	${SUBDIR}
 
 ${SUBDIR}: FRC
-	cd $@; make SEPFLAG=${SEPFLAG} ${MFLAGS}
+	cd $@; make ${MFLAGS}
 
 FRC:
 	
 install:
 	-for i in ${SUBDIR}; do \
-		(cd $$i; make SEPFLAG=${SEPFLAG} ${MFLAGS} \
-			DESTDIR=${DESTDIR} install); done
+		(cd $$i; make ${MFLAGS} \
+			install); done
 
 tags:
 	cd libc; make ${MFLAGS} TAGSFILE=../${TAGSFILE} tags

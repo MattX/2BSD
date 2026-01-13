@@ -1,6 +1,6 @@
-#ifndef lint
-static char sccsid[] = "@(#)bigram.c	4.2	(Berkeley)	7/21/83";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)bigram.c	4.3	(2.11BSD)	2026/1/5";
+#endif
 
 /*
  *  bigram < text > bigrams
@@ -10,6 +10,7 @@ static char sccsid[] = "@(#)bigram.c	4.2	(Berkeley)	7/21/83";
  */
 
 #include <stdio.h>
+#include <strings.h>
 
 #define MAXPATH	1024		/* maximum pathname length */
 
@@ -19,9 +20,11 @@ char oldpath[MAXPATH] = " ";
 main ( )
 {
   	register int count, j;
+	char *cp;
 
-     	while ( gets ( path ) != NULL ) {
-
+     	while ( fgets(path, sizeof path, stdin ) != NULL ) {
+		cp = index(path, '\n');
+		if (cp) *cp = '\0';
 		count = prefix_length ( oldpath, path );
 		/*
 		   output post-residue bigrams only

@@ -1,6 +1,6 @@
-#ifndef lint
-static char sccsid[] = "@(#)code.c	4.2	(Berkeley)	7/21/83";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)code.c	4.3	(2.11BSD)	2026/1/5";
+#endif
 
 /*
  * PURPOSE:	sorted list compressor (works with a modified 'find'
@@ -28,6 +28,7 @@ static char sccsid[] = "@(#)code.c	4.2	(Berkeley)	7/21/83";
  */
 
 #include <stdio.h>
+#include <strings.h>
 
 #define MAXPATH 1024		/* maximum pathname length */
 #define	RESET	30		/* switch code */
@@ -41,7 +42,7 @@ main ( argc, argv )
 {
   	int count, oldcount, diffcount;
 	int j, code;
-	char bigram[3];
+	char bigram[3], *cp;
 	FILE *fp;
 
 	oldcount = 0;
@@ -54,7 +55,9 @@ main ( argc, argv )
 	fgets ( bigrams, 257, fp );
 	fwrite ( bigrams, 1, 256, stdout );
 
-     	while ( gets ( path ) != NULL ) {
+     	while ( fgets(path, sizeof path, stdin ) != NULL ) {
+		cp = index(path, '\n');
+		if (cp) *cp = '\0';
 		/*
 		   squelch unprintable chars so as not to botch decoding
 		*/

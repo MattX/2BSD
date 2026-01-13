@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4.1 (2.11BSD) 1996/01/26
+#	@(#)Makefile	5.4.2 (2.11BSD) 2025/11/25
 #
 MDIR=	/usr/man/cat6
 SRCS=	aardvark.6 adventure.6 arithmetic.6 backgammon.6 banner.6 \
@@ -31,7 +31,7 @@ OBJS=	aardvark.0 adventure.0 arithmetic.0 backgammon.0 banner.0 \
 .SUFFIXES: .6 .0
 
 .6.0:
-	${DESTDIR}/usr/man/manroff $*.6 > $*.0
+	/usr/man/manroff $*.6 > $*.0
 
 all: _make_01
 
@@ -41,10 +41,10 @@ clean: FRC
 	rm -f ${OBJS}
 
 install: _make_01
-	install -c -o bin -g bin -m 444 ${OBJS} ${DESTDIR}${MDIR}
-	rm -f ${DESTDIR}${MDIR}/snscore.0
-	ln ${DESTDIR}${MDIR}/snake.0 ${DESTDIR}${MDIR}/snscore.0
-	rm -f ${DESTDIR}${MDIR}/cfscores.0
-	ln ${DESTDIR}${MDIR}/canfield.0 ${DESTDIR}${MDIR}/cfscores.0
+	install -c -o root -g staff -m 444 ${OBJS} ${MDIR}
+	rm -f ${MDIR}/snscore.0
+	ln ${MDIR}/snake.0 ${MDIR}/snscore.0
+	rm -f ${MDIR}/cfscores.0
+	ln ${MDIR}/canfield.0 ${MDIR}/cfscores.0
 FRC:
 

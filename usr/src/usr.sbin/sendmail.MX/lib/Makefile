@@ -1,4 +1,3 @@
-#
 # Copyright (c) 1988 Regents of the University of California.
 # All rights reserved.
 #
@@ -9,7 +8,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	@(#)Makefile	5.1.1 (2.11BSD) 1996/10/24
+#	@(#)Makefile	5.1.2 (2.11BSD) 2025/11/28
 #
 ALL=	sendmail.hf
 SRCS=	sendmail.hf
@@ -19,6 +18,6 @@ clean: FRC
 depend: FRC
 
 install: sendmail.hf
-	install -c -o bin -m 444 sendmail.hf ${DESTDIR}/usr/share/misc/sendmail.hf
+	install -c -o root -m 444 sendmail.hf /usr/share/misc/sendmail.hf
 
 FRC:

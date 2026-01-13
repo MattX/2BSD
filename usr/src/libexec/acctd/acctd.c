@@ -1,7 +1,7 @@
 /*
- * Steven Schultz - sms@moe.2bsd.com
+ * Steven Schultz - sms@2bsd.com
  *
- *	@(#)acctd.c	1.0 (2.11BSD) 1999/2/10
+ *	@(#)acctd.c	1.1 (2.11BSD) 2025/12/25
  *
  * acctd - process accounting daemon
 */
@@ -13,7 +13,6 @@
 #include	<stdlib.h>
 #include	<string.h>
 #include	<syslog.h>
-#include	<varargs.h>
 #include	<sys/types.h>
 #include	<sys/param.h>
 #include	<sys/acct.h>
@@ -453,28 +452,24 @@ reconfig(new)
 */
 
 void
-die(str, va_alist)
-	char	*str;
-	va_dcl
+die(char *str, ...)
 	{
 	va_list ap;
 
 	openlog("acctd", LOG_CONS|LOG_NDELAY|LOG_PID, LOG_DAEMON);
-	va_start(ap);
+	va_start(ap, str);
 	vsyslog(LOG_ERR, str, ap);
 	va_end(ap);
 	exit(1);
 	}
 
 void
-reportit(str, va_alist)
-	char	*str;
-	va_dcl
+reportit(char *str, ...)
 	{
 	va_list ap;
 
 	openlog("acctd", LOG_CONS|LOG_NDELAY|LOG_PID, LOG_DAEMON);
-	va_start(ap);
+	va_start(ap, str);
 	vsyslog(LOG_WARNING, str, ap);
 	va_end(ap);
 	}

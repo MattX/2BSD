@@ -1,15 +1,12 @@
 #
-# px makefile
+#       #(@)Makefile    2.0 (2.11BSD) 2025/11/25
 #
-
-DESTDIR=
 
 AS=	as -V -
 
 DEFS=		-DHZ=60.0
 CFLAGS=		-O -w
-LDFLAGS=	-X
-SEPFLAG=	-i
+LDFLAGS=	-X -i
 
 SRCS=	00int.s 02rel.s 02relset.s 03bool.s 04as.s 05lv.s  \
 	06add.s 07sub.s 10mul.s 12div.s 13mod.s 14neg.s  \
@@ -34,10 +31,10 @@ all: ${ALL}
 	${AS} -o $*.o $*.s
 
 px: as.o ${OBJS}
-	ld ${SEPFLAG} ${LDFLAGS} -o px /lib/crt0.o as.o ${OBJS} -lm -lc
+	ld ${LDFLAGS} -o px /lib/crt0.o as.o ${OBJS} -lm -lc
 
 gather: gather.o
-	cc ${SEPFLAG} -o gather gather.o
+	cc ${LDFLAGS} -o gather gather.o
 
 as.o: E.s ${SRCS}
 	${AS} -o as.o E.s ${SRCS}
@@ -48,8 +45,8 @@ E.s E.h: Edata Emake.ed
 	ed - Edata < Emake.ed
 
 install: ${ALL}
-	install -s px ${DESTDIR}/usr/ucb/px
-	install -s gather ${DESTDIR}/usr/libexec/gather
+	install -c -s -m 755 px /usr/ucb/px
+	install -c -s -m 755 gather /usr/libexec/gather
 
 tags: FRC
 
@@ -57,10 +54,3 @@ FRC:
 
 clean:
 	rm -f ${ALL} core E.h E.s *.o tags
-
-print:
-	@ls -ls | pr
-	@pr README Makefile
-	@pr 0x.h int.c exit.c
-	@pr [0-9][0-9]*.s
-	@pr p*.c

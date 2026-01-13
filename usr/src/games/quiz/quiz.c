@@ -1,5 +1,5 @@
 
-static char sccsid[] = "	quiz.c	4.2	85/01/09	";
+static char sccsid[] = "	quiz.c	4.3 (2.11BSD) 2025/12/25";
 
 #include <stdio.h>
 #include <signal.h>
@@ -24,7 +24,7 @@ int nc = 0;
 char line[150];
 char response[100];
 char *tmp[NF];
-int select[NF];
+int qselect[NF];
 
 readline()
 {
@@ -269,7 +269,7 @@ char *u[];
 	int n;
 	while(readline()){
 		n = segment(line,tmp);
-		if(perm(u,m,tmp+1,n-1,select))
+		if(perm(u,m,tmp+1,n-1,qselect))
 			return(1);
 	}
 	return(0);
@@ -347,7 +347,7 @@ loop:
 	readindex();
 	if(!tflag || na>nl)
 		na = nl;
-	stdout->_flag |= _IONBF;
+	setvbuf(stdout, NULL, _IONBF, 0);
 	for(;;) {
 		i = next();
 		fseek(input,xx[i]+0L,0);
@@ -355,21 +355,21 @@ loop:
 		for(j=0;j<z;j++)
 			line[j] = getc(input);
 		segment(line,tmp);
-		if(*tmp[select[0]] == '\0' || *tmp[select[1]] == '\0') {
+		if(*tmp[qselect[0]] == '\0' || *tmp[qselect[1]] == '\0') {
 			score[i] = 1;
 			continue;
 		}
-		publish(tmp[select[0]]);
+		publish(tmp[qselect[0]]);
 		printf("\n");
 		for(count=0;;count++) {
 			if(query(response)==0) {
-				publish(tmp[select[1]]);
+				publish(tmp[qselect[1]]);
 				printf("\n");
 				if(count==0) wrongs++;
 				score[i] = tflag?-1:1;
 				break;
 			}
-			x = cmp(response,tmp[select[1]]);
+			x = cmp(response,tmp[qselect[1]]);
 			if(x>1) badinfo();
 			if(x==1) {
 				printf("Right!\n");
@@ -429,6 +429,7 @@ done()
 	exit(0);
 }
 instruct(info)
+	char *info;
 {
 	char *t;
 	int i, n;

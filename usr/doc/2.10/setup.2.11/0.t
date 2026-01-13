@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)0.t	2.3 (GTE) 1995/06/13
+.\"	@(#)0.t	2.4 (2.11BSD) 2025/12/10
 .\"
 .EH 'setup.2.11 - %''Installing and Operating 2.11BSD on the PDP-11'
 .OH 'Installing and Operating 2.11BSD on the PDP-11''Setup.2.11 - %'
@@ -13,14 +13,11 @@
 .TL
 Installing and Operating \*(2B on the PDP-11
 .br
-June 13, 1995
+December 10, 2025
 .AU
 Steven Schultz
 .AI
-GTE Government Systems
-112 Lakeview Canyon
-Thousand Oaks CA 91362
-sms@wlv.iipo.gtegsc.com
+sms@2bsd.com
 .de IR
 \\fI\\$1\|\\fP\\$2
 ..
@@ -55,7 +52,15 @@ and reinstalling system software.
 The ``bugs'' address supplied with this release
 will work for some unknown period of time; make sure
 the ``Index:'' line of the bug report indicates that the release is
-``\*(2B''.  See the \fIsendbug\fP(8) program for more details.  All
-fixes that I make, or that are sent to me, will be posted on
-\fIUSENET\fP, in the news group ``comp.bugs.2bsd''.
+``\*(2B''.  See the \fIsendbug\fP(8) program for more details.
+.PP
+Updates are available at the following locations:
+.sp
+ftp://ftp.dfupdate.se/pub/pdp11/2.11BSD
+.sp
+https://www.tuhs.org/Archive/Distributions/UCB/2.11BSD/Patches/
+.sp
+ftp://ftp.2bsd.com/2.11BSD
+.sp
+http://www.2bsd.com/2.11BSD
 .AE

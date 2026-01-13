@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)4.t	2.3 (2.11BSD GTE) 1996/11/27
+.\"	@(#)4.t	2.4 (2.11BSD) 2025/12/10
 .\"
 .de IR
 \fI\\$1\fP\|\\$2
@@ -262,7 +262,7 @@ this constraint automatically.
 .PP
 The generic distribution kernel does not do bad block forwarding.  There is
 unfortunately no way to run bad144 style bad block forwarding on some of your
-disks, but not others.  As a final bug, the hk and xp drivers do not reread
+disks but not others.  As a final bug the hk and xp drivers do not reread
 the bad sector forwarding information when disk packs are changed and so
 will erroneously use bad block forwarding information from the wrong packs!
 .RE
@@ -271,13 +271,10 @@ will erroneously use bad block forwarding information from the wrong packs!
 The space available on a disk varies, not surprisingly, per device.  
 Disklabels make a table giving sizes meaningless since there are no
 predefined partition sizes embedded in the kernel any longer.  The root
-filesystem (\fBa\fP) must be at least 4Mb, preferably 6 to 7Mb if possible.
-The swap area (almost always the \fBb\fP partition) should be about 3Mb or
-so.  If your system has a small amount (less than 2Mb) of memory you will
-need more swap space, perhaps 4 or 5Mb.  It is a rare case where more than
-5 or 6Mb of swap space is required.   The system will run out of other
-resources by the time enough activity is generated to need that much swap
-space.
+filesystem (\fBa\fP) must be at least 4MB, preferably 6 to 7MB if possible.
+The swap area (almost always the \fBb\fP partition) should be 4MB or a little
+more.  It is a rare case where more than
+5 or 6MB of swap space is required.
 .PP
 The system (boot) disk has a swapping area and
 a root file system.  Other drives may use those partitions for data.
@@ -291,9 +288,7 @@ miscellaneous sources, a few locate works of art bring the total for
 a complete system to about 90 Megabytes.
 This overflows RK07, RL02 and RM03 systems,
 but fits easily on most other hardware configurations.  \*(2B is quite
-happy on RD54 or larger.  Simply fitting the distribution isn't enough,
-there must still be space left for user files, objects when compiling
-programs, spooling directories, usw.
+happy on RD54 or larger.
 .PP
 Be aware that the disks have their sizes measured in disk sectors (512
 bytes), while the UNIX file system blocks are 1024 bytes each.  Thus if a
@@ -338,12 +333,6 @@ and can leave dregs.
 The directory should be examined every so often and the old
 files deleted.
 .PP
-The efficiency with which UNIX is able to use the CPU
-is often strongly affected by the configuration of disk controllers.
-For general time-sharing applications,
-the best strategy is to try to split the most actively-used sections
-among several disk arms.
-.PP
 It is critical for good performance to balance disk load.
 There are at least five components of the disk load that you can
 divide between the available disks:
@@ -370,35 +359,6 @@ swapping\(ua	0	2	2
 users	0	0+2	0+2
 archive	x	x	3
 .TE
-.FS
-.IP \(ua
-Note also, that only a single swapping area is supported.  The
-\fIswapon\fP\|(2) system call and multiple swapping areas have \fBnot\fP
-been implemented under \*(2B (yet.  no real need since enough other resources
-are exhausted by the time a 4mb 11/73 needs additional swap space).
-.FE
-.PP
-The most important things to consider are to
-even out the disk load as much as possible, and to do this by
-decoupling file systems (on separate arms) between which heavy copying occurs.
-Note that a long term average balanced load is not important; it is
-much more important to have an instantaneously balanced
-load when the system is busy.
-When placing several busy file systems on the same disk,
-it is helpful to group them together to minimize arm movement,
-with less active file systems off to the side.
-.PP
-Intelligent experimentation with a few file system arrangements can
-pay off in much improved performance.  It is particularly easy to
-move the root, the
-/tmp
-file system and the swapping area.  Note, though, that the disks
-containing the root and swapping area can never be removed while UNIX is
-running.  Place the
-user files and the
-/usr
-directory as space needs dictate and experiment
-with the other, more easily moved file systems.
 .NH 3
 Implementing a layout
 .PP
@@ -570,13 +530,6 @@ The procedure for adding a new user is described in
 You should add accounts for the initial user community, giving
 each a directory and a password, and putting users who will wish
 to share software in the same groups.
-.PP
-Several guest accounts have been provided on the distribution
-system; these accounts are for people at Berkeley, 
-Bell Laboratories, and others
-who have done major work on UNIX in the past.  You can delete these accounts,
-or leave them on the system if you expect that these people would have
-occasion to login as guests on your system.
 .NH 2
 Site tailoring
 .PP
@@ -646,8 +599,7 @@ for networking support.
 To set up the mail facility you should read the instructions in the
 file READ_ME in the directory /usr/src/usr.lib/sendmail and then adjust
 the necessary configuration files.
-You should also set up the file /etc/aliases for your installation,
-creating mail groups as appropriate.  Documents describing 
+Documents describing 
 .IR sendmail 's
 operation and installation are also included on the distribution tape.
 .NH 3
@@ -783,16 +735,6 @@ The device specification should refer to devices
 specified in the L-devices file.
 Listing only ACU causes the \fIuucp\fP daemon, \fIuucico\fP,
 to search for any available auto-call unit in L-devices.
-Our L-dialcodes file is of the form:
-.DS
-ny	1-315-
-nj	1-201-
-bostn	1-617-
-.DE
-while our L-devices file is:
-.DS
-ACU cul0 unused 1200 ventel
-.DE
 Refer to the README file in the \fIuucp\fP source directory
 for more information about installation.
 .PP

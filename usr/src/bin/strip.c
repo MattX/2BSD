@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)strip.c	5.1.1 (2.11BSD GTE) 1/1/94";
+static char sccsid[] = "@(#)strip.c	5.1.2 (2.11BSD) 2025/12/25";
 #endif
 
 #include <a.out.h>
@@ -60,7 +60,7 @@ strip(name)
 	head.e.a_syms = 0;
 	head.e.a_flag |= 1;
 	if (ftruncate(f, size) < 0) {
-		fprintf("strip: "); perror(name);
+		fprintf(stderr, "strip: "); perror(name);
 		status = 1;
 		goto out;
 	}

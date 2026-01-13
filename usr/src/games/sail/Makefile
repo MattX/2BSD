@@ -3,12 +3,12 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.2 (Berkeley) 9/17/85
+#	@(#)Makefile	5.3 (2.11BSD) 2025/12/25
 #
 
 CTAGS = ctags -w
 CFLAGS = -O
-SEPFLAG= -i
+LDFLAGS= -i
 
 CFILES = main.c pl_main.c pl_1.c pl_2.c pl_3.c pl_4.c pl_5.c pl_6.c pl_7.c \
 	dr_main.c dr_1.c dr_2.c dr_3.c dr_4.c dr_5.c lo_main.c \
@@ -23,12 +23,12 @@ LIBS = -lcurses -ltermlib
 
 SAILMASTER = daemon
 LOGFILE = lib/saillog
-TARGET = $(DESTDIR)/usr/games
+TARGET = /usr/games
 
 all: sail sail.0
 
 sail: $(OBJS)
-	$(CC) -o sail ${SEPFLAG} $(OBJS) $(LIBS)
+	$(CC) -o sail ${LDFLAGS} $(OBJS) $(LIBS)
 
 sail.0:	sail.6
 	/usr/man/manroff sail.6 > sail.0
@@ -46,8 +46,8 @@ clean:
 	rm -f $(OBJS) $(JUNKFILES) sail.0
 
 install: sail $(TARGET)/$(LOGFILE) sail.0
-	install -s -m 4755 -o $(SAILMASTER) sail $(TARGET)/sail
-	install -c -o bin -g bin -m 444 sail.0 ${DESTDIR}/usr/man/cat6/sail.0
+	install -c -s -m 4755 -o $(SAILMASTER) sail $(TARGET)/sail
+	install -c -o root -g staff -m 444 sail.0 /usr/man/cat6/sail.0
 
 logfile $(TARGET)/$(LOGFILE):
 	cp /dev/null $(TARGET)/$(LOGFILE)

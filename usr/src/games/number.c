@@ -1,5 +1,6 @@
-
-static char sccsid[] = "	number.c	4.1	82/10/24	";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "	number.c	4.1 (2.11BSD) 2025/12/27";
+#endif
 
 #include <stdio.h>
 
@@ -195,6 +196,7 @@ cprint(s)
 }
 
 print(s)
+	char *s;
 {
 
 	if(flag)

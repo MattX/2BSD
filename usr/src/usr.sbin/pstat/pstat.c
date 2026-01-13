@@ -10,7 +10,7 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)pstat.c	5.9 (2.11BSD) 2024/9/28";
+static char sccsid[] = "@(#)pstat.c	5.10 (2.11BSD) 2025/12/26";
 #endif
 
 /*
@@ -110,7 +110,7 @@ int	ubmapf;
 int	totflg;
 int	allflg;
 int	kflg;
-u_short	getw();
+u_short	pgetw();
 
 main(argc, argv)
 char **argv;
@@ -247,7 +247,7 @@ doinode()
 	u_int ninode, ainode;
 
 	nin = 0;
-	ninode = getw((off_t)nl[SNINODE].n_value);
+	ninode = pgetw((off_t)nl[SNINODE].n_value);
 	xinode = (struct inode *)calloc(ninode, sizeof (struct inode));
 	ainode = nl[SINODE].n_value;
 	if (ninode < 0 || ninode > 10000) {
@@ -307,7 +307,7 @@ printf("   LOC      FLAGS      CNT  DEVICE  RDC WRC  INO   MODE  NLK  UID  SIZE/
 }
 
 u_short
-getw(loc)
+pgetw(loc)
 	off_t loc;
 {
 	u_short word;
@@ -335,7 +335,7 @@ dotext()
 	u_int ntx, ntxca, atext;
 
 	ntx = ntxca = 0;
-	ntext = getw((off_t)nl[SNTEXT].n_value);
+	ntext = pgetw((off_t)nl[SNTEXT].n_value);
 	xtext = (struct text *)calloc(ntext, sizeof (struct text));
 	atext = nl[STEXT].n_value;
 	if (ntext < 0 || ntext > 10000) {
@@ -392,7 +392,7 @@ doproc()
 	register struct proc *pp;
 	register loc, np;
 
-	nproc = getw((off_t)nl[SNPROC].n_value);
+	nproc = pgetw((off_t)nl[SNPROC].n_value);
 	xproc = (struct proc *)calloc(nproc, sizeof (struct proc));
 	aproc = nl[SPROC].n_value;
 	if (nproc < 0 || nproc > 10000) {
@@ -731,7 +731,7 @@ dofile()
 	static char *dtypes[] = { "???", "inode", "socket", "pipe" };
 
 	nf = 0;
-	nfile = getw((off_t)nl[SNFILE].n_value);
+	nfile = pgetw((off_t)nl[SNFILE].n_value);
 	xfile = (struct file *)calloc(nfile, sizeof (struct file));
 	if (nfile < 0 || nfile > 10000) {
 		fprintf(stderr, "number of files is preposterous (%d)\n",
@@ -848,7 +848,7 @@ int nlind;
 
 	switch(nlind) {
 	case SWAPMAP:
-		nswap = getw((off_t)nl[SNSWAP].n_value);
+		nswap = pgetw((off_t)nl[SNSWAP].n_value);
 		printf("%4u kB used, %4u kB free, %4u kB max\n",
 		       (nswap-freetot)/2, freetot/2, freemax/2);
 		break;
@@ -874,7 +874,7 @@ dobuf()
 	u_long l_baddr;
 	int i;
 	
-	nbuf = getw((off_t)nl[SNBUF].n_value);
+	nbuf = pgetw((off_t)nl[SNBUF].n_value);
 	if (nbuf <= 0 || nbuf >= 2000) {
 		fprintf(stderr, "number of buffers is preposterous (%d)\n",
 			nbuf);

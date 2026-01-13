@@ -1,5 +1,5 @@
-#ifndef lint
-static char sccsid[] = "@(#)spell.c	4.2 6/3/86";
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)spell.c	4.3 (2.11BSD) 2025/12/26";
 #endif
 
 #include "spell.h"
@@ -413,7 +413,7 @@ char *ep,*a;
 	int val = 0;
 	char space[20];
 	deriv[lev] = a;
-	if(putw(word,ep,lev))
+	if(sputw(word,ep,lev))
 		return(1);
 	bp = word;
 	pp = space;
@@ -422,7 +422,7 @@ char *ep,*a;
 		*pp++ = '+';
 		while(*pp = *cp++)
 			pp++;
-		if(putw(bp,ep,lev+1)) {
+		if(sputw(bp,ep,lev+1)) {
 			val = 1;
 			break;
 		}
@@ -431,7 +431,7 @@ char *ep,*a;
 	return(val);
 }
 
-putw(bp,ep,lev)
+sputw(bp,ep,lev)
 char *bp,*ep;
 {
 	register i, j;

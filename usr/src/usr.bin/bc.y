@@ -1,6 +1,6 @@
 %{
 #if	!defined(lint) && defined(DOSCCS)
-static	char *sccsid = "@(#)bc.y	4.3.2 (2.11BSD) 2022/9/17";
+static	char *sccsid = "@(#)bc.y	4.3.3 (2.11BSD) 2025/12/25";
 #endif
 	int *getout();
 %}
@@ -499,7 +499,7 @@ routput(p) int *p; {
 		/* part of a bundle */
 		while( *p != 0 ) routput( *p++ );
 	}
-	else printf( p );	 /* character string */
+	else printf( (char *)p );	 /* character string */
 }
 
 output( p ) int *p; {

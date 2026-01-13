@@ -3,11 +3,10 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.3 (Berkeley) 9/7/85
+#	@(#)Makefile	5.4 (2.11BSD) 2025/11/25
 #
-DESTDIR=
 CC = /bin/cc
-SEPFLAG= -i
+LDFLAGS= -i
 CFLAGS = -O
 
 all:	boggle bogdict
@@ -19,14 +18,14 @@ bogdict: comp sfile
 	sed -f sfile $$dict | uniq | ./comp >bogdict
 
 install: all
-	install -s boggle ${DESTDIR}/usr/games/boggle
-	install -m 644 bogdict ${DESTDIR}/usr/games/lib/bogdict
+	install -c -s -m 755 boggle /usr/games/boggle
+	install -m 644 bogdict /usr/games/lib/bogdict
 
 boggle: boggle.c
-	cc ${SEPFLAG} -o boggle ${CFLAGS} boggle.c
+	cc ${LDFLAGS} -o boggle ${CFLAGS} boggle.c
 
 comp: comp.c
-	cc ${SEPFLAG} -o comp ${CFLAGS} comp.c
+	cc ${LDFLAGS} -o comp ${CFLAGS} comp.c
 
 clean:
 	rm -f bogdict boggle comp *.o

@@ -1,5 +1,5 @@
 #if	!defined(lint) && defined(DOSCCS)
-static	char	sccsid[] = "@(#)ansi.c	1.0 (2.11BSD) 2020/1/7";
+static	char	sccsid[] = "@(#)ansi.c	1.1 (2.11BSD) 2025/12/25";
 #endif
 
 #include "c0.h"
@@ -216,7 +216,7 @@ protochk(poff, p)
 		return p;
 	}
 
-perr:	error("call do not match prototype");
+perr:	error("call does not match prototype");
 	return p;
 }
 

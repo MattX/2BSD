@@ -1,6 +1,5 @@
-#@(#)@(#)Makefile	2.6.1 1996/11/27
+# @(#)Makefile	2.6.2  (2.11BSD) 2025/11/25
 
-DESTDIR		=
 CSRCS		=	pop_dele.c pop_dropcopy.c pop_dropinfo.c \
 			pop_get_command.c pop_get_subcommand.c pop_init.c \
 			pop_last.c pop_list.c pop_log.c pop_lower.c \
@@ -35,10 +34,10 @@ MAKEFILE	=	Makefile
 CFLAGS		=	-O -DBIND43
 TARGET		=	popper
 TAR		=	${TARGET}.tar
-INSTALLDIR	=	${DESTDIR}/usr/libexec
+INSTALLDIR	=	/usr/libexec
 MANPAGE		=	popper.8
 CATPAGE		=	popper.0
-MANDIR		=	${DESTDIR}/usr/man/cat8
+MANDIR		=	/usr/man/cat8
 
 all: ${TARGET} ${CATPAGE}
 
@@ -62,7 +61,7 @@ clean:
 
 install: ${TARGET} ${CATPAGE}
 	install -c -m 700 -o root -g staff ${TARGET} ${INSTALLDIR}
-	install -c -o bin -g bin -m 444 ${CATPAGE} ${MANDIR}
+	install -c -o root -g staff -m 444 ${CATPAGE} ${MANDIR}
 
 ${CATPAGE}:	${MANPAGE}
 	nroff -h -man ${MANPAGE} > ${CATPAGE}

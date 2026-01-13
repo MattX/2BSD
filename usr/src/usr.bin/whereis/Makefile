@@ -1,10 +1,10 @@
 #
 # Public Domain.  1996/11/16 - Steven Schultz
 #
-#	@(#)Makefile	1.0 (2.11BSD) 1996/11/16
+#	@(#)Makefile	1.1 (2.11BSD) 2025/11/27
 #
 CFLAGS=	 -O
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	whereis.c
 OBJS=	whereis.o
 MAN=	whereis.0
@@ -13,7 +13,7 @@ MANSRC=	whereis.1
 all: whereis whereis.0
 
 whereis: ${OBJS}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
+	${CC} ${LDFLAGS} -o $@ ${OBJS}
 
 whereis.0: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
@@ -25,8 +25,8 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: whereis
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat1
-	install -s -o root -g bin -m 755 whereis ${DESTDIR}/usr/bin/whereis
+	install -c -o root -g staff -m 444 ${MAN} /usr/man/cat1
+	install -c -s -o root -g staff -m 755 whereis /usr/bin/whereis
 
 lint: ${SRCS}
 	lint -hax ${SRCS}

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)xp.c	2.7 (2.11BSD) 2024/9/29
+ *	@(#)xp.c	2.8 (2.11BSD) 2025/12/16
  */
 
 /*
@@ -470,9 +470,6 @@ xpustart(unit)
 		xpaddr->hpcs1.c[0] = HP_IE | HP_PRESET | HP_GO;
 		xpaddr->hpof = HPOF_FMT22;
 		xd->xp_flags |= DKF_ONLINE;
-#ifdef	XPDEBUG
-		log(LOG_NOTICE, "xp%d preset done\n", unit);
-#endif
 
 /*
  * XXX - The 'c' partition is used below to access the bad block area.  This

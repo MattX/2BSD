@@ -1,5 +1,9 @@
+#if     !defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)link.c    1.1 (2.11BSD) 2025/12/26";
+#endif
+
 # include	"link.h"
-char *sprintf(),*strcpy(), *ctime(), *strsub(), *tack(), *lalloc();
+char *strcpy(), *ctime(), *strsub(), *tack(), *lalloc();
 WORD	getword();
 #include	<signal.h>
 

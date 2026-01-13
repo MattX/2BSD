@@ -1,26 +1,18 @@
-# Makefile for tn3270 and friends...
-# @(#)Makefile	2.12	1996/11/16
+# @(#)Makefile	2.13	(2.11BSD) 2025/11/25
 
 CC	= cc
-SEPFLAG	= -i
+LDFLAGS	= -i
 
-DEFINES = -DDEBUG
-DEFINES =
-
-INCLUDES = -I.
-INCLUDES =
+# DEFINES = -DDEBUG
 
 OPTIMIZE = -O
 
-CFLAGS	= $(OPTIMIZE) $(INCLUDES) $(DEFINES)
+CFLAGS	= $(OPTIMIZE) $(DEFINES)
 
 # Lint flags
 LINTFLAGS	= -hbxaz
-# How to install the bloody thing...
 
-DESTDIR=
-
-BINDIR		= $(DESTDIR)/usr/ucb
+BINDIR		= /usr/ucb
 
 # Names for the terminal libraries...
 LIBCURSES	= -lcurses
@@ -72,14 +64,14 @@ ALLO	= $(MOSTO) mset.o
 all:	${ALLH} ${ALLC} ${ALLS} tn3270 mset
 
 tn3270:	$(MOSTO)
-	${CC} ${CFLAGS} ${SEPFLAG} -o tn3270 $(MOSTO) $(LIBCURSES) $(LIBTERM)
+	${CC} ${CFLAGS} ${LDFLAGS} -o tn3270 $(MOSTO) $(LIBCURSES) $(LIBTERM)
 
 mset:	mset.o map3270.o
-	${CC} ${CFLAGS} ${SEPFLAG} -o mset mset.o map3270.o $(LIBCURSES)
+	${CC} ${CFLAGS} ${LDFLAGS} -o mset mset.o map3270.o $(LIBCURSES)
 
 install: tn3270 mset
-	install -s tn3270 $(BINDIR)
-	install -s mset $(BINDIR)
+	install -c -s -m 755 -o root tn3270 $(BINDIR)
+	install -c -s -m 755 -o root mset $(BINDIR)
 
 clean:
 	rm -f $(ALLO) mset tn3270 m4.out errs Makefile.bak

@@ -1,4 +1,5 @@
-#!/bin/make -f
+#       Makefile        2.0 (2.11BSD) 2025/11/25
+
 # pathalias -- by steve bellovin, as told to peter honeyman
 
 ### configuration section
@@ -8,16 +9,12 @@
 DBM = -ldbm
 # or if you roll your own ...
 # DBM = dbm.o
-###
-# where is getopt (if not in the c library)?
-# GETOPT = getopt.o
 ### end of configuration section 
 
 
 CC = cc
 CFLAGS = -O -DSTATIC=static
-SEPFLAG = -i
-LDFLAGS = $(GETOPT) $(SEPFLAG)
+LDFLAGS = -i
 YFLAGS = -d
 
 OBJ = addlink.o addnode.o getstruct.o local.o main.o mapit.o mapaux.o mem.o \
@@ -55,9 +52,6 @@ arpatxt: arpatxt.o
 clean:
 	rm -f *.o a.out core tags y.tab.? parse.c pathalias arpatxt makedb *.0
 
-clobber: clean
-	rm -f pathalias makedb arpatxt
-
 tags: $(SRC) $(HDRS)
 	ctags -w $(HDRS) $(SRC)
 
@@ -70,7 +64,7 @@ lint:	$(LSRC)
 	lint arpatxt.c
 
 install: pathalias makedb arpatxt pathalias.0
-	install -s pathalias ${DESTDIR}/usr/new
-	install -s makedb ${DESTDIR}/usr/new
-	install -s arpatxt ${DESTDIR}/usr/new
-	install -c -m 444 -o bin -g bin pathalias.0 ${DESTDIR}/usr/new/man/cat1
+	install -c -s -m 755 -o root pathalias /usr/new
+	install -c -s -m 755 -o root makedb /usr/new
+	install -c -s -m 755 -o root arpatxt /usr/new
+	install -c -m 444 -o root -g staff pathalias.0 /usr/new/man/cat1

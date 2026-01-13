@@ -14,10 +14,10 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.1.2 (2.11BSD) 1996/12/1
+#	@(#)Makefile	5.1.3 (2.11BSD) 2025/11/26
 #
 CFLAGS=	-I. -O
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	chpass.c field.c util.c
 OBJS=	chpass.o field.o util.o
 MAN=	chpass.0
@@ -26,29 +26,26 @@ MANSRC=	chpass.1
 all: chpass ${MAN}
 
 chpass: ${OBJS}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS}
 
 chpass.0: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
 
 clean:
-	rm -f ${OBJS} ${MAN} core chpass
-
-cleandir: clean
-	rm -f tags .depend
+	rm -f ${OBJS} ${MAN} core chpass tags
 
 depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: ${MAN} chpass
-	install -s -o root -g bin -m 4755 chpass ${DESTDIR}/bin/chpass
-	rm -f ${DESTDIR}/bin/chfn; ln ${DESTDIR}/bin/chpass ${DESTDIR}/bin/chfn
-	rm -f ${DESTDIR}/bin/chsh; ln ${DESTDIR}/bin/chpass ${DESTDIR}/bin/chsh
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat1
-	rm -f ${DESTDIR}/usr/man/cat1/chfn.0
-	rm -f ${DESTDIR}/usr/man/cat1/chsh.0
-	-ln ${DESTDIR}/usr/man/cat1/chpass.0 ${DESTDIR}/usr/man/cat1/chfn.0
-	-ln ${DESTDIR}/usr/man/cat1/chpass.0 ${DESTDIR}/usr/man/cat1/chsh.0
+	install -c -s -o root -g staff -m 4755 chpass /bin/chpass
+	rm -f /bin/chfn; ln /bin/chpass /bin/chfn
+	rm -f /bin/chsh; ln /bin/chpass /bin/chsh
+	install -c -o root -g staff -m 444 ${MAN} /usr/man/cat1
+	rm -f /usr/man/cat1/chfn.0
+	rm -f /usr/man/cat1/chsh.0
+	-ln /usr/man/cat1/chpass.0 /usr/man/cat1/chfn.0
+	-ln /usr/man/cat1/chpass.0 /usr/man/cat1/chsh.0
 
 lint: ${SRCS}
 	lint ${CFLAGS} ${SRCS}

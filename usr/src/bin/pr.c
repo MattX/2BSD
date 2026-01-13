@@ -1,4 +1,6 @@
-static char *sccsid = "@(#)pr.c	4.5 (Berkeley) 12/12/84";
+#if !defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)pr.c	4.6 (2.11BSD) 2025/12/25";
+#endif
 
 /*
  *   print file with headings
@@ -168,7 +170,6 @@ print(fp, argp)
 char *fp;
 char **argp;
 {
-	extern char *sprintf();
 	struct stat sbuf;
 	register sncol;
 	register char *sheader;

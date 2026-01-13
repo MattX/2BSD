@@ -1,4 +1,7 @@
-static char *sccsid = "@(#)look.c	4.2 (Berkeley) 7/2/81";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)look.c	4.3 (2.11BSD) 2025/12/26";
+#endif
+
 #include <stdio.h>
 #include <ctype.h>
 
@@ -94,7 +97,7 @@ char **argv;
 			return;
 		case -1:
 		case 0:
-			puts(entry,stdout);
+			puts(entry);
 			break;
 		case 1:
 		case 2:
@@ -107,7 +110,7 @@ char **argv;
 		switch(compare(key,word)) {
 		case -1:
 		case 0:
-			puts(entry,stdout);
+			puts(entry);
 			continue;
 		}
 		break;

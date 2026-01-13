@@ -1,4 +1,4 @@
-#	Makefile	4.5	2022/10/2
+#	Makefile	4.6 (2.11BSD) 2025/11/25
 #
 # C Shell with process control; VM/UNIX VAX Makefile
 # Bill Joy UC Berkeley; Jim Kulp IIASA, Austria
@@ -27,7 +27,6 @@ CXREF=	/usr/ucb/cxref
 CTAGS=	/usr/ucb/ctags
 XSTR= /usr/ucb/xstr
 MKSTR=	./mkprstr
-DESTDIR=
 BINDIR=/bin
 CATSECT=0
 MANSECT=1
@@ -63,18 +62,6 @@ TCOBJS=	tc.alloc.o tc.bind.o tc.const.o tc.disc.o \
 	tc.prompt.o tc.sched.o tc.sig.o tc.str.o \
 	tc.vers.o tc.who.o 
 
-PVSRCS= Makefile
-AVSRCS= Fixes MAKEDIFFS NewThings README FAQ WishList \
-	 config_f.h eight-bit.me glob.3 patchlevel.h \
-	 pathnames.h tcsh.man
-VHSRCS=${PVSRCS} ${AVSRCS}
-
-CONFSRCS=config/config.*
-
-ALLSRCS=  ${SHSRCS} ${TWSRCS} ${EDSRCS} ${TCSRCS} ${VHSRCS}
-DISTSRCS= ${PSSRCS} ${TWSRCS} ${EDSRCS} ${TCSRCS} ${AVSRCS}
-
-
 # STRINGS must be last, to keep in sync with mkstr and xstr ouput 
 OBJS= ${SHOBJS} ${TWOBJS} ${EDOBJS} ${TCOBJS} ${ALLOC} ${ERROBJ} ${STRINGS}
 
@@ -106,7 +93,6 @@ BASE=			\
 	sh.exp.o	\
 	sh.hist.o	\
 	sh.init.o	\
-	sh.misc.o	\
 	sh.print.o	\
 	sh.time.o	\
 	tc.const.o	\
@@ -136,6 +122,7 @@ OV2=			\
 
 OV3=			\
 	sh.func.o	\
+	sh.misc.o	\
 	tw.parse.o
 
 OV4=			\
@@ -222,10 +209,10 @@ print:
 
 # tcsh  tcsh.${CATSECT}
 install: all
-	-mv -f ${DESTDIR}${BINDIR}/tcsh  ${DESTDIR}${BINDIR}/tcsh.old
-	install -s -m 555 -o bin -g bin tcsh ${DESTDIR}${BINDIR}/tcsh
-	install -c -m 444 -o bin -g bin  ${STRINGFILE} ${DESTDIR}${STRINGDIR}
-	install -c -m 444 -o bin -g bin tcsh.${CATSECT} ${DESTDIR}${DESTCAT}
+	-mv -f ${BINDIR}/tcsh  ${BINDIR}/tcsh.old
+	install -s -m 755 -o root -g staff tcsh ${BINDIR}/tcsh
+	install -c -m 644 -o root -g staff  ${STRINGFILE} ${STRINGDIR}
+	install -c -m 644 -o root -g staff tcsh.${CATSECT} ${DESTCAT}
 
 tcsh.${CATSECT}:  tcsh.man
 	/usr/man/manroff tcsh.man > tcsh.${CATSECT}

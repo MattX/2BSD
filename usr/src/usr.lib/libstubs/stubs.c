@@ -1,7 +1,10 @@
+#if !defined(lint) && !defined(NOSCCS)
+static char sccsid[] = "@(#)stubs.c       1.1 (2.11BSD) 2025/12/26";
+#endif
+
 #include <paths.h>
 #include <stdio.h>
 #include <sysexits.h>
-#include <varargs.h>
 
 #include <sys/types.h>
 #include <sys/time.h>

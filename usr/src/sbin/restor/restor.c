@@ -1,4 +1,6 @@
 /*
+ * 2025/11/26 - Input file "-" means read from stdin.
+ *
  * 1995/06/09 - standalone restor must be loaded split I/D because the
  *		disklabel handling increased the size of standalone programs.
  *		This is not too much of a problem since the Kernel has been
@@ -7,6 +9,9 @@
  *		Since split I/D is now required the NCACHE parameter is no
  *		longer ifdef'd on STANDALONE (and is always 3 instead of 1).
  */
+#if     !defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)restor.c     2.0 (2.11BSD) 2025/12/26";
+#endif
 
 #include <sys/param.h>
 #ifdef	NONSEPARATE
@@ -28,6 +33,9 @@
 #include <sys/dir.h>
 #include <sys/file.h>
 #include <protocols/dumprestor.h>
+#include <unistd.h>
+#include <time.h>
+#include <errno.h>
 
 #define	MWORD(m,i) (m[(unsigned)(i-1)/MLEN])
 #define	MBIT(i)	(1<<((unsigned)(i-1)%MLEN))
@@ -46,12 +54,12 @@ struct	fs	sblock;
 int	fi;
 ino_t	ino, maxi, curino;
 
-int	mt;
+int	mt = -1, ispipe = 0;
 char	tapename[] = "/dev/rmt1";
 char	*magtape = tapename;
+char	module[] = "Restor";
 #ifdef STANDALONE
 char	mbuf[50];
-char	module[] = "Restor";
 #endif
 
 #ifndef STANDALONE
@@ -103,7 +111,47 @@ struct	cache {
 } cache[NCACHE];
 int	curcache;
 
-extern  long lseek();
+/*
+ * loop reading 'fd' until the buffer is full.  if 0 (end of file) is seen
+ * then return the count of how many bytes have been read.  if an error is
+ * encountered (EINTR can be retried if not running standalone) return -1
+ *
+ * this is necessary in the non-standalone mode to enable reading from 
+ * /dev/stdin which is often a pipe.  Pipes can only hold 4KB before the
+ * writer is suspended.   restor would issue a read() for 10KB, receive only
+ * 4KB and proceed to corrupt the filesystem (or exit with errors).  Looping
+ * until the entire tape record (pipes do not maintain tape record boundaries)
+ * is gathered will allow restor to be used in a pipeline in much the same
+ * way as restore on 4BSD
+*/
+ssize_t mtread(int fd, void *buf, size_t len)
+	{
+	register ssize_t n = 0, r = 0;
+
+	while	(r < len)
+		{
+		n = read (fd, buf + r, len - r);
+		if	(n < 0)
+			{
+#ifndef STANDALONE
+			if	(errno == EINTR)
+				continue;
+			else
+#endif
+				return(-1);
+			}
+		r += n;
+		if	(n == 0)
+			break;
+/*
+ * If not reading from a pipe then return with the amount read even if less
+ * than asked for (a short tape record).
+*/
+		if	(!ispipe)
+			break;
+		}
+	return(r);
+	}
 
 main(argc, argv)
 register char *argv[];
@@ -116,7 +164,7 @@ register char *argv[];
 	mktemp(dirfile);
 	if (argc < 2) {
 usage:
-		printf("Usage: restor x file file..., restor r filesys, or restor t\n");
+		printf("Usage: restor x file..., restor r filesys, or restor t\n");
 		exit(1);
 	}
 	argv++;
@@ -139,7 +187,7 @@ usage:
 			command = *cp;
 			break;
 		default:
-			printf("Bad key character %c\n", *cp);
+			printf("%s: Bad command '%c'\n", module, *cp);
 			goto usage;
 		}
 	}
@@ -151,7 +199,7 @@ usage:
 
 		df = open(dirfile, O_CREAT | O_TRUNC| O_RDWR, 0666);
 		if (df < 0) {
-			printf("restor: %s - cannot create directory temporary\n", dirfile);
+			printf("%s: cannot create %s\n", module, dirfile);
 			exit(1);
 		}
 	}
@@ -171,8 +219,8 @@ char	command;
 int	argc;
 char	*argv[];
 {
-	extern char *ctime();
-	register i, k;
+	int i;
+	register int k;
 	ino_t	d;
 #ifndef STANDALONE
 	int	xtrfile(), skip(), null();
@@ -181,15 +229,26 @@ char	*argv[];
 	register struct dinode *ip, *ip1;
 
 #ifndef STANDALONE
-	if ((mt = open(magtape, 0)) < 0) {
-		printf("%s: cannot open tape\n", magtape);
-		exit(1);
-	}
+	if ((strcmp(magtape, "-") == 0) || strcmp(magtape, "/dev/stdin") == 0)
+	   {
+           mt = STDIN_FILENO;
+	   ispipe = 1;
+	   if (command == 'x' || command == 'R')
+              {
+	      printf("%s: 'x' and 'R' not supported with pipe input\n", module);
+	      return;
+	      }
+	   }
+	else if ((mt = open(magtape, O_RDONLY)) < 0)
+	   {
+           printf("%s: cannot open %s\n", module, magtape);
+           exit(1);
+	   }
 #else
 	do {
 		printf("Tape? ");
 		gets(mbuf);
-		mt = open(mbuf, 0);
+		mt = open(mbuf, O_RDONLY);
 	} while (mt == -1);
 	magtape = mbuf;
 #endif
@@ -197,7 +256,7 @@ char	*argv[];
 #ifndef STANDALONE
 	case 't':
 		if (readhdr(&spcl) == 0) {
-			printf("Tape is not a dump tape\n");
+			printf("Tape not a dump tape\n");
 			exit(1);
 		}
 		printf("Dump   date: %s", ctime(&spcl.c_date));
@@ -205,12 +264,12 @@ char	*argv[];
 		return;
 	case 'x':
 		if (readhdr(&spcl) == 0) {
-			printf("Tape is not a dump tape\n");
+			printf("Tape not a dump tape\n");
 			unlink(dirfile);
 			exit(1);
 		}
 		if (checkvol(&spcl, 1) == 0) {
-			printf("Tape is not volume 1 of the dump\n");
+			printf("Tape not volume 1 of the dump\n");
 			unlink(dirfile);
 			exit(1);
 		}
@@ -239,9 +298,9 @@ getvol:
 			printf("Volume numbers are positive numerics\n");
 			goto getvol;
 		}
-		mt = open(magtape, 0);
+		mt = open(magtape, O_RDONLY);
 		if (readhdr(&spcl) == 0) {
-			printf("tape is not dump tape\n");
+			printf("Tape not dump tape\n");
 			goto newvol;
 		}
 		if (checkvol(&spcl, volno) == 0) {
@@ -309,8 +368,8 @@ done:
 	case 'r':
 	case 'R':
 #ifndef STANDALONE
-		if ((fi = open(*argv, 2)) < 0) {
-			printf("%s: cannot open\n", *argv);
+		if ((fi = open(*argv, O_RDWR)) < 0) {
+			printf("%s: cannot open %s\n", module, *argv);
 			exit(1);
 		}
 #else
@@ -319,7 +378,7 @@ done:
 
 			printf("Disk? ");
 			gets(charbuf);
-			fi = open(charbuf, 2);
+			fi = open(charbuf, O_RDWR);
 		} while (fi == -1);
 #endif
 #ifndef STANDALONE
@@ -335,13 +394,20 @@ done:
 		else
 #endif
 			volno = 1;
-		printf("Last chance before scribbling on %s. ",
+/*
+ * If reading from stdin (via a pipe) the last chance has to be disabled 
+ * because reading a character will consume part of the incoming dump data
+*/
+		if (mt != STDIN_FILENO)
+		   {
+		   printf("Last chance before scribbling on %s. ",
 #ifdef STANDALONE
 								"disk");
 #else
 								*argv);
 #endif
-		while (getchar() != '\n');
+		   while (getchar() != '\n');
+		   }
 		dread((daddr_t)SBLOCK, (char *)&sblock, sizeof(sblock));
 		maxi = (sblock.fs_isize-2)*INOPB;
 		if (readhdr(&spcl) == 0) {
@@ -349,7 +415,7 @@ done:
 			exit(1);
 		}
 		if (checkvol(&spcl, volno) == 0) {
-			printf("Tape is not volume %d\n", volno);
+			printf("Tape not volume %d\n", volno);
 			exit(1);
 		}
 		gethead(&spcl);
@@ -442,7 +508,7 @@ ragain:
 #ifndef STANDALONE
 pass1()
 {
-	register i;
+	register int i;
 	struct dinode *ip;
 	struct direct nulldir;
 	int	putdir(), null();
@@ -544,8 +610,7 @@ eloop:
 }
 
 /*
- * Do the tape i\/o, dealling with volume changes
- * etc..
+ * Do the tape i/o dealing with volume changes, etc..
  */
 readtape(b)
 char *b;
@@ -557,13 +622,23 @@ char *b;
 		for (i = 0; i < NTREC; i++)
 			((struct spcl *)&tbf[i*DEV_BSIZE])->c_magic = 0;
 		bct = 0;
-		if ((i = read(mt, tbf, NTREC*DEV_BSIZE)) < 0) {
+		if ((i = mtread(mt, tbf, NTREC*DEV_BSIZE)) < 0) {
 			printf("Tape read error: inode %u\n", curino);
 			eflag++;
 			for (i = 0; i < NTREC; i++)
 				bzero(&tbf[i*DEV_BSIZE], DEV_BSIZE);
 		}
 		if (i == 0) {
+/*
+ * volume change on a pipe?  Seriously?
+ *
+ * Should never get here as the commands 'R' and 'x' which support multiple
+ * volumes are not allowed if reading from a pipe.
+ *
+ * Not sure what to do except return and let the calling routine complain
+*/
+			if (ispipe)
+			   return;
 			bct = NTREC + 1;
 			volno++;
 loop:
@@ -572,7 +647,7 @@ loop:
 			printf("Mount volume %d\n", volno);
 			while (getchar() != '\n')
 				;
-			if ((mt = open(magtape, 0)) == -1) {
+			if ((mt = open(magtape, O_RDONLY)) == -1) {
 				printf("Cannot open tape!\n");
 				goto loop;
 			}
@@ -681,7 +756,7 @@ char	*b;
 #ifdef STANDALONE
 		printf("disk write error:  block %D\n", bno);
 #else
-		fprintf(stderr, "disk write error:  block %ld\n", bno);
+		printf("%s: disk write error:  block %ld\n", module, bno);
 #endif
 		exit(1);
 	}
@@ -712,9 +787,9 @@ char *buf;
 	lseek(fi, bno*DEV_BSIZE, 0);
 	if (read(fi, cache[j].c_block, DEV_BSIZE) != DEV_BSIZE) {
 #ifdef STANDALONE
-		printf("read error:  block %D\n", bno);
+		printf("read error: block %D\n", bno);
 #else
-		printf("read error:  block %ld\n", bno);
+		printf("read error: block %ld\n", bno);
 #endif
 		exit(1);
 	}
@@ -835,7 +910,7 @@ balloc()
 #ifdef STANDALONE
 		printf("Out of space\n");
 #else
-		fprintf(stderr, "Out of space.\n");
+		printf("Out of space.\n");
 #endif
 		exit(1);
 	}

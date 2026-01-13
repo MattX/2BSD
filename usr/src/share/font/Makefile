@@ -1,7 +1,7 @@
 #
 # Public domain - 1996/10/23 - sms
 #
-#	@(#)Makefile	1.0 (2.11BSD) 1996/10/23
+#	@(#)Makefile	1.1 (2.11BSD) 2025/11/25
 #
 #  Makefile for the troff/nroff fonts
 #
@@ -17,8 +17,8 @@ SRCS= fontlist ftB ftBC ftC ftCE ftCI ftCK ftCW ftFD ftG ftGI ftGM ftGR \
 all:	${SRCS}
 
 install:${SRCS}
-	-mkdir -p ${DESTDIR}/usr/share/font
-	-chmod a+r,a+x ${DESTDIR}/usr/share/font
-	install -c -m 444 ${SRCS} ${DESTDIR}/usr/share/font
+	-mkdir -p /usr/share/font
+	-chmod a+r,a+x /usr/share/font
+	install -c -m 444 ${SRCS} /usr/share/font
 
 clean:

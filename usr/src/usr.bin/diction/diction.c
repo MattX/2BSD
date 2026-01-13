@@ -1,6 +1,6 @@
-#ifndef lint
-static char sccsid[] = "@(#)diction.c	4.2	(Berkeley)	82/11/06";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)diction.c	4.3	(2.11BSD) 2025/12/27";
+#endif
 
 /*
  * diction -- print all sentences containing one of default phrases
@@ -335,7 +335,7 @@ getargc()
 				nflag=0;
 				wordf=fopen(filename,"r");
 				if(wordf == NULL){
-					fprintf("diction can't open %s\n",filename);
+					fprintf(stderr, "diction can't open %s\n",filename);
 					exit(2);
 				}
 				return(getc(wordf));

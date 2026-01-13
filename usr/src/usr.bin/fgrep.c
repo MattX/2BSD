@@ -1,5 +1,5 @@
 #if	defined(DOSCCS) && !defined(lint)
-static char *sccsid = "@(#)fgrep.c	4.3.1 (2.11BSD) 1/1/94";
+static char *sccsid = "@(#)fgrep.c	4.3.2 (2.11BSD) 2025/12/28";
 #endif
 /*
  * fgrep -- print all lines containing any of a set of keywords
@@ -15,11 +15,8 @@ static char *sccsid = "@(#)fgrep.c	4.3.1 (2.11BSD) 1/1/94";
 #include <sys/param.h>
 #include <sys/stat.h>
 
-#ifdef pdp11
+
 #define BLKSIZE 1024
-#else
-#define BLKSIZE 8192
-#endif
 #define	MAXSIZ 6000
 #define QSIZE 400
 struct words {
@@ -155,7 +152,7 @@ char *file;
 			blksize = BLKSIZE;
 		buf = (char *)malloc(2*blksize);
 		if (buf == NULL) {
-			fprintf(stderr, "egrep: no memory for %s\n", file);
+			fprintf(stderr, "fgrep: no memory for %s\n", file);
 			retcode = 2;
 			return;
 		}

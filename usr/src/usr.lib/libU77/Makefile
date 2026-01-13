@@ -3,25 +3,15 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.1 (Berkeley) 6/7/85
+#	@(#)Makefile	5.2 (2.11BSD) 2025/11/27
 #
 # Makefile for f77 system lib, libU77.a
 
 CFLAGS	      = -O
-
-DEST	      = $(DESTDIR)/usr/lib
-
-DESTDIR	      =
-
-EXTHDRS	      =
-
-HDRS	      =
+DEST	      = /usr/lib
 
 LIBRARY	      = libU77.a
-
 LIBRARY_P     = libU77_p.a
-
-MAKEFILE      = Makefile
 
 OBJS	      = access_.o \
 		alarm_.o \
@@ -74,10 +64,6 @@ OBJS	      = access_.o \
 		ttynam_.o \
 		unlink_.o \
 		wait_.o
-
-OLDDIR	      = $(DESTDIR)/usr/old/lib
-
-PRINT	      = pr
 
 SRCS	      = access_.c \
 		alarm_.c \
@@ -156,33 +142,20 @@ Version:	$(SRCS) mkvers
 mkvers:		mkvers.c
 		@$(CC) mkvers.c -o mkvers
 
-clean:;		@rm -f $(OBJS) profiled/*.o $(LIBRARY) $(LIBRARY_P)
+clean:;		@rm -f $(OBJS) Version mkvers profiled/* $(LIBRARY) $(LIBRARY_P)
 
 depend:;	@echo Construct dependencies manually
 
-extract:;	@ar xo $(DEST)/$(LIBRARY); rm -f __.SYMDEF
-		@cd profiled; -ar xo $(DEST)/$(LIBRARY_P); rm -f __.SYMDEF
-
-index:;		@ctags -wx $(HDRS) $(SRCS)
+index:;		@ctags -wx $(SRCS)
 
 install:	$(LIBRARY) $(LIBRARY_P)
-		install -m 644 $(LIBRARY) $(DEST)/$(LIBRARY)
+		install -c -m 644 $(LIBRARY) $(DEST)/$(LIBRARY)
 		ranlib $(DEST)/$(LIBRARY)
-		install -m 644 $(LIBRARY_P) $(DEST)/$(LIBRARY_P)
+		install -c -m 644 $(LIBRARY_P) $(DEST)/$(LIBRARY_P)
 		ranlib $(DEST)/$(LIBRARY_P)
-
-library:        $(LIBRARY) $(LIBRARY_P)
-
-print:;		@$(PRINT) $(HDRS) $(SRCS)
 
 tags:           $(HDRS) $(SRCS); @ctags $(HDRS) $(SRCS)
 
-update:         $(DEST)/$(LIBRARY)
-
-$(DEST)/$(LIBRARY): $(SRCS) $(HDRS) $(EXTHDRS)
-		@-ar xo $(DEST)/$(LIBRARY)
-		@cd profiled; -ar xo $(DEST)/$(LIBRARY_P)
-		@make -f $(MAKEFILE) DEST=$(DEST) install clean
 .c.o:
 		$(CC) -p $(CFLAGS) -c $*.c
 		-ld -x -r $*.o
@@ -192,9 +165,9 @@ $(DEST)/$(LIBRARY): $(SRCS) $(HDRS) $(EXTHDRS)
 		mv a.out $*.o
 
 .f.o:
-		$(FC) -p $(FFLAGS) -c $*.f
+		$(FC) -p -O  -c $*.f
 		-ld -x -r $*.o
 		mv a.out profiled/$*.o
-		$(FC) $(FFLAGS) -c $*.f
+		$(FC) -O -c $*.f
 		-ld -x -r $*.o
 		mv a.out $*.o

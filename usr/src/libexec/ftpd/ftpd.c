@@ -20,7 +20,7 @@ char copyright[] =
 "@(#) Copyright (c) 1985, 1988 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)ftpd.c	5.28.3	(2.11BSD) 2001/4/26";
+static char sccsid[] = "@(#)ftpd.c	5.28.4	(2.11BSD) 2025/12/26";
 #endif
 
 /*
@@ -50,7 +50,6 @@ static char sccsid[] = "@(#)ftpd.c	5.28.3	(2.11BSD) 2001/4/26";
 #include <errno.h>
 #include <strings.h>
 #include <syslog.h>
-#include <varargs.h>
 #include "pathnames.h"
 
 #ifndef MAXHOSTNAMELEN

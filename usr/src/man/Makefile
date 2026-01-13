@@ -14,12 +14,10 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.3 (Berkeley) 7/9/88
+#	@(#)Makefile	5.4 (2.11BSD) 2025/11/25
 #
-DIRS=	man1 man2 man3 man3f man4 man5 man6 \
-	man7 man8
-CDIRS=	cat1 cat2 cat3 cat3f cat4 cat5 cat6 \
-	cat7 cat8
+DIRS=	man1 man2 man3 man3f man4 man5 man6 man7 man8
+CDIRS=	cat1 cat2 cat3 cat3f cat4 cat5 cat6 cat7 cat8
 LCDIRS=	cat1 cat2 cat3 cat4 cat5 cat6 cat7 cat8
 
 all: scriptinstall FRC
@@ -28,12 +26,12 @@ all: scriptinstall FRC
 	done
 
 scriptinstall: FRC
-	install -c -o bin -g bin -m 444 makewhatis.sed ${DESTDIR}/usr/man/makewhatis.sed
-	install -c -o bin -g bin -m 755 manroff ${DESTDIR}/usr/man/manroff
+	install -c -o root -g staff -m 444 makewhatis.sed /usr/man/makewhatis.sed
+	install -c -o root -g staff -m 755 manroff /usr/man/manroff
 
 install: FRC
 	for i in ${DIRS}; do \
-		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); \
+		(cd $$i; make ${MFLAGS} install); \
 	done
 	cp /dev/null whatis_tmp
 	for dirext in /usr/man/cat* ; do \
@@ -44,8 +42,8 @@ install: FRC
 	done
 	sort -u whatis_tmp > whatis.db
 	-rm -f whatis_tmp
-	install -o bin -g bin -m 444 whatis.db ${DESTDIR}/usr/man/whatis
-	install -c -o bin -g bin -m 444 man.template ${DESTDIR}/usr/man/man.template
+	install -c -o root -g staff -m 444 whatis.db /usr/man/whatis
+	install -c -o root -g staff -m 444 man.template /usr/man/man.template
 
 clean: FRC
 	for i in ${DIRS}; do \

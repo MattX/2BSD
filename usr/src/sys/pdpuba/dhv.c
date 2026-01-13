@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)dhv.c	2.5 (2.11BSD) 2025/8/11
+ *	@(#)dhv.c	2.6 (2.11BSD) 2026/1/1
  */
 
 /*
@@ -519,7 +519,7 @@ dhvxint(dhv)
 	ubadr_t base;
 
 	ui = &dhvinfo[dhv];
-	tp0 = &dhv_tty[dhv<<4];
+	tp0 = &dhv_tty[dhv<<3];
 	addr = (struct dhvdevice *)ui->ui_addr;
 	while	((t = addr->dhvcsrh) & DHV_CSH_TI)
 		{

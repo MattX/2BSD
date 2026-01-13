@@ -3,19 +3,11 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.4 (Berkeley) 2/1/86
+#	@(#)Makefile	5.5 (2.11BSD) 2025/11/25
 #
-DESTDIR=
 CFLAGS=	-O
 
-# We don't load these separate I&D (-i) or even shared (-n) since
-# they weren't to begin with and no one has looked to see if they can
-# be loaded that way.  There is a rumor that some of these actually
-# modify their instruction sequnce ...
-SEPFLAG=
-
 # Programs that live in subdirectories, and have makefiles of their own.
-#
 SUBDIR=	chess zork
 
 # Assembly programs that live in the current directory and need explicit
@@ -26,15 +18,15 @@ NSTD=	bj factor moo primes ttt
 all:	${SUBDIR} ${NSTD}
 
 ${SUBDIR}: FRC
-	cd $@; make ${MFLAGS} SEPFLAG=${SEPFLAG}
+	cd $@; make ${MFLAGS}
 
 FRC:
 
 install: ${NSTD}
 	-for i in ${SUBDIR}; do \
-		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
+		(cd $$i; make ${MFLAGS} install); done
 	-for i in ${NSTD}; do \
-		(install -s $$i ${DESTDIR}/usr/games/$$i); done
+		(install -c -s -m 755 $$i /usr/games/$$i); done
 
 clean:
 	rm -f a.out core *.o

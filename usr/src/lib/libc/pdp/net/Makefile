@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.6.1 (2.11 BSD) 4/9/94
+#	@(#)Makefile	5.6.2 (2.11BSD) 2025/11/29
 #
 SRCS=	htonl.s htons.s
 OBJS=	htonl.o htons.o
@@ -38,27 +38,12 @@ clean:
 	rm -f *.o profiled/*.o errs a.out core netlib netlib_p \
 		tags Makefile.bak
 
-depend:
-	for i in ${SRCS}; do \
-	    cc -M ${CFLAGS} $$i | awk ' { if ($$1 != prev) \
-		{ if (rec != "") print rec; rec = $$0; prev = $$1; } \
-		else { if (length(rec $$2) > 78) { print rec; rec = $$0; } \
-		else rec = rec " " $$2 } } \
-		END { print rec } ' >> makedep; done
-	echo '/^# DO NOT DELETE THIS LINE/+2,$$d' >eddep
-	echo '$$r makedep' >>eddep
-	echo 'w' >>eddep
-	cp Makefile Makefile.bak
-	ed - Makefile < eddep
-	rm eddep makedep
-	echo '# DEPENDENCIES MUST END AT END OF FILE' >> Makefile
-	echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY' >> Makefile
-	echo '# see make depend above' >> Makefile
+depend:	${SRCS}
+	mkdep ${CFLAGS} ${SRCS}
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
 
-# DO NOT DELETE THIS LINE -- make depend uses it
+htonl.o: htonl.s DEFS.h
+htons.o: htons.s DEFS.h
 
-htonl.o: htonl.s ./DEFS.h
-htons.o: htons.s ./DEFS.h
-# DEPENDENCIES MUST END AT END OF FILE
-# IF YOU PUT STUFF HERE IT WILL GO AWAY
-# see make depend above
+# IF YOU PUT ANYTHING HERE IT WILL GO AWAY

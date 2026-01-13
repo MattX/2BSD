@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)support.c	5.1 (Berkeley) 5/30/85";
-#endif not lint
+#if  defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)support.c	5.2 (2.11BSD) 2025/12/25";
+#endif
 
 #include	<curses.h>
 #include	"deck.h"
@@ -217,7 +217,7 @@ cdiscard( mycrib )
 	makedeck( d );
 	nc = CARDS;
 	for( i = 0; i < knownum; i++ )  {	/* get all other cards */
-	    remove( known[i], d, nc-- );
+	    cremove( known[i], d, nc-- );
 	}
 	for( i = 0; i < 15; i++ )  sums[i] = 0L;
 	ns = 0;
@@ -226,8 +226,8 @@ cdiscard( mycrib )
 	    for( j = i + 1; j < FULLHAND; j++ )  {
 		cb[1] = chand[j];
 		for( k = 0; k < FULLHAND; k++ )  h[k] = chand[k];
-		remove( chand[i], h, FULLHAND );
-		remove( chand[j], h, FULLHAND - 1 );
+		cremove( chand[i], h, FULLHAND );
+		cremove( chand[j], h, FULLHAND - 1 );
 		for( k = 0; k < nc; k++ )  {
 		    sums[ns] += scorehand( h, d[k], CINHAND, TRUE, FALSE );
 		    if( mycrib )  sums[ns] += adjust( cb, d[k] );
@@ -239,8 +239,8 @@ cdiscard( mycrib )
 	j = 0;
 	for( i = 1; i < 15; i++ )  if(  sums[i] > sums[j]  )  j = i;
 	for( k = 0; k < FULLHAND; k++ )  h[k] = chand[k];
-	remove( h[ undo1[j] ], chand, FULLHAND );
-	remove( h[ undo2[j] ], chand, FULLHAND - 1 );
+	cremove( h[ undo1[j] ], chand, FULLHAND );
+	cremove( h[ undo2[j] ], chand, FULLHAND - 1 );
 	chand[4] = h[ undo1[j] ];
 	chand[5] = h[ undo2[j] ];
 }

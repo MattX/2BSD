@@ -1,6 +1,4 @@
-# @(#)Makefile	1.8 Makefile (2.11BSD) 2019/11/21
-
-DESTDIR=
+# @(#)Makefile	1.9 Makefile (2.11BSD) 2025/11/25
 
 # If you want code inspired by certain emerging standards, add
 #	-DSTD_INSPIRED
@@ -11,7 +9,7 @@ DESTDIR=
 # (and add solar87 to the DATA= line below).
 
 CFLAGS= -O
-SEPFLAG=-i
+LDFLAGS=-i
 LINTFLAGS=	-phbaxc
 CC=		cc
 
@@ -28,17 +26,17 @@ ZDUMAN=		zdump.0
 ZDUMANSRC=	zdump.8
 MAN=		$(ZICMAN) $(ZDUMAN)
 MANSRC=		$(ZICMANSRC) $(ZDUMAN)
-SHARDIR=	${DESTDIR}/usr/share/zoneinfo
-MANDIR=		${DESTDIR}/usr/man/cat8
+SHARDIR=	/usr/share/zoneinfo
+MANDIR=		/usr/man/cat8
 
 all:		zdump zic ${ZICMAN} ${ZDUMAN}
 
 install:	zic $(DATA) $(MAN)
 		(umask 22; ./zic -d ${SHARDIR} $(DATA))
-		install -c -m 444 -o bin -g bin $(ZICMAN) ${MANDIR}/${ZICMAN}
-		install -c -m 444 -o bin -g bin $(ZDUMAN) ${MANDIR}/${ZDUMAN}
-		install -c -s -m 755 -o bin -g bin zic ${DESTDIR}/usr/sbin/zic
-		install -c -s -m 755 -o bin -g bin zdump ${DESTDIR}/usr/sbin/zdump
+		install -c -m 444 -o root -g staff $(ZICMAN) ${MANDIR}/${ZICMAN}
+		install -c -m 444 -o root -g staff $(ZDUMAN) ${MANDIR}/${ZDUMAN}
+		install -c -s -m 755 -o root -g staff zic /usr/sbin/zic
+		install -c -s -m 755 -o root -g staff zdump /usr/sbin/zdump
 
 zdump.0:	$(ZDUMANSRC)
 		/usr/man/manroff $(ZDUMANSRC) > $(ZDUMAN)
@@ -47,10 +45,10 @@ zic.0:		$(ZICMANSRC)
 		/usr/man/manroff $(ZICMANSRC) > $(ZICMAN)
 
 zdump:		$(TZDOBJS)
-		$(CC) $(CFLAGS) $(LFLAGS) $(SEPFLAG) $(TZDOBJS) -o $@
+		$(CC) $(CFLAGS) $(LFLAGS) $(LDFLAGS) $(TZDOBJS) -o $@
 
 zic:		$(TZCOBJS)
-		$(CC) $(CFLAGS) $(LFLAGS) $(SEPFLAG) $(TZCOBJS) -o $@
+		$(CC) $(CFLAGS) $(LFLAGS) $(LDFLAGS) $(TZCOBJS) -o $@
 
 lint:		$(TZCSRCS) $(TZDSRCS)
 		lint $(LINTFLAGS) $(CFLAGS) $(TZCSRCS)

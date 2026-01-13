@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if  defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)crib.c	5.1 (Berkeley) 5/30/85";
-#endif not lint
+static char sccsid[] = "@(#)crib.c	5.2 (2.11BSD) 2025/12/25";
+#endif
 
 # include	<curses.h>
 # include	<signal.h>
@@ -309,12 +307,12 @@ BOOLEAN		mycrib;
 	prompt = (quiet ? "Discard --> " : "Discard a card --> ");
 	cdiscard(mycrib);			/* puts best discard at end */
 	crd = phand[infrom(phand, FULLHAND, prompt)];
-	remove(crd, phand, FULLHAND);
+	cremove(crd, phand, FULLHAND);
 	prhand(phand, FULLHAND, Playwin, FALSE);
 	crib[0] = crd;
 /* next four lines same as last four except for cdiscard() */
 	crd = phand[infrom(phand, FULLHAND - 1, prompt)];
-	remove(crd, phand, FULLHAND - 1);
+	cremove(crd, phand, FULLHAND - 1);
 	prhand(phand, FULLHAND, Playwin, FALSE);
 	crib[1] = crd;
 	crib[2] = chand[4];
@@ -456,7 +454,7 @@ BOOLEAN		mycrib;
 		    if (j < 0)				/* if nothing scores */
 			j = cchose(ch, cnum, sum);
 		    crd = ch[j];
-		    remove(crd, ch, cnum--);
+		    cremove(crd, ch, cnum--);
 		    sum += VAL(crd.rank);
 		    Table[Tcnt++] = crd;
 		    if (k > 0) {
@@ -504,7 +502,7 @@ BOOLEAN		mycrib;
 				msg("Total > 31 -- try again");
 			}
 		    makeknown(&crd, 1);
-		    remove(crd, ph, pnum--);
+		    cremove(crd, ph, pnum--);
 		    i = pegscore(crd, Table, Tcnt, sum);
 		    sum += VAL(crd.rank);
 		    Table[Tcnt++] = crd;

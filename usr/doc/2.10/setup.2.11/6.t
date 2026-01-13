@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)6.t	2.4 (2.11BSD GTE) 1996/11/16
+.\"	@(#)6.t	2.5 (2.11BSD) 2025/12/10
 .\"
 .de IR
 \fI\\$1\fP\|\\$2
@@ -125,50 +125,6 @@ since once the system is going it is easy to
 become complacent.
 Complete and incremental dumps are easily done with
 \fIdump\fP\|(8).
-You should arrange to do a towers-of-hanoi dump sequence; we tune
-ours so that almost all files are dumped on two tapes and kept for at
-least a week in most every case.  We take full dumps every month (and keep
-these indefinitely).
-.PP
-More precisely, we have three sets of dump tapes: 10 daily tapes,
-5 weekly sets of 2 tapes, and fresh sets of three tapes monthly.
-We do daily dumps circularly on the daily tapes with sequence
-`3 2 5 4 7 6 9 8 9 9 9 ...'.
-Each weekly is a level 1 and the daily dump sequence level
-restarts after each weekly dump.
-Full dumps are level 0 and the daily sequence restarts after each full dump
-also.
-.PP
-Thus a typical dump sequence would be:
-.br
-.ne 6
-.KS
-.TS
-center;
-c c c c c
-n n n l l.
-tape name	level number	date	opr	size
-_
-FULL	0	Nov 24, 1979	jkf	137MB
-D1	3	Nov 28, 1979	jkf	29MB
-D2	2	Nov 29, 1979	rrh	34MB
-D3	5	Nov 30, 1979	rrh	19MB
-D4	4	Dec 1, 1979	rrh	22MB
-W1	1	Dec 2, 1979	etc	40MB
-D5	3	Dec 4, 1979	rrh	15MB
-D6	2	Dec 5, 1979	jkf	25MB
-D7	5	Dec 6, 1979	jkf	15MB
-D8	4	Dec 7, 1979	rrh	19MB
-W2	1	Dec 9, 1979	etc	118MB
-D9	3	Dec 11, 1979	rrh	15MB
-D10	2	Dec 12, 1979	rrh	26MB
-D1	5	Dec 15, 1979	rrh	14MB
-W3	1	Dec 17, 1979	etc	71MB
-D2	3	Dec 18, 1979	etc	13MB
-FULL	0	Dec 22, 1979	etc	135MB
-.TE
-.KE
-Weekly dumps are done often enough that daily dumps always fit on one tape.
 .PP
 Dumping of files by name is best done by
 \fItar\fP\|(1)
@@ -181,19 +137,17 @@ using the raw special files and an appropriate
 blocking factor; the number of sectors per track is usually
 a good value to use, consult \fI/etc/disktab\fP.
 .PP
-It is desirable that full dumps of the root file system be
-made regularly.  These dumps should be made in ``bootable`` format,
+A full dump of the root filesystem in ``bootable`` format,
 including the standalone programs mentioned back in chapter 2 (boot,
-mkfs, restor and icheck).  This can easily be done by going to 
-/sys/pdpstand and doing:
+mkfs, restor and icheck) can be made by going to
+/sys/pdpstand and:
 .DS
 make all
  ./maketape /dev/nrmtXX maketape.data
 dump 0u /
 .DE
-This is especially true when only one disk is available.
-Then, if the
-root file system is damaged by a hardware or software failure, you
+If the
+root file system is damaged by a hardware or software failure you
 can rebuild a workable disk doing a restore in the
 same way that the initial root file system was created.
 .PP
@@ -205,51 +159,28 @@ messages of the day, and personal letters.
 .NH 2
 Moving file system data
 .PP
-If you have the equipment,
-the best way to move a file system
+If you have the equipment one way to move a file system
 is to dump it to magtape using
 \fIdump\fP\|(8),
 use
 \fInewfs\fP\|(8)
 to create the new file system,
-and restore the tape, using \fIrestor\fP\|(8).
-If for some reason you don't want to use magtape,
-dump accepts an argument telling where to put the dump;
-you might use another disk.
+and restore the tape using \fIrestor\fP\|(8).
+If you don't want to use magtape \fIdump\fP accepts an argument telling 
+where to put the dump.  The argument may be a filename or the special 
+name ''-'' meaning standard output.  A filesystem can be migrated using a
+pipeline.  For example:
+.sp
+newfs /dev/rXXXa
+dump 0f - / | restor rf /dev/rXXXa
+.PP
 Filesystems may also be moved by piping the output of a \fItar\fP\|(1)
-to another \fItar\fP.
+to another \fItar\fP:
+.PP
 The \fIrestor\fP program accesses the raw device, laying down
 inodes and blocks in the same place they came from as recorded by dump.
 Care must therefore be taken when restoring a dump into
 a file system smaller than the original file system.
-.PP
-If you have to shrink a file system or merge a file system into another,
-existing one, the best bet is to use \fItar\fP\|(1).
-If you
-are playing with the root file system and only have one drive,
-the procedure is more complicated.
-If the only drive is a Winchester disk, this procedure may not be used
-without overwriting the existing root or another partition.
-What you do is the following:
-.IP 1.
-GET A SECOND PACK!!!!
-.IP 2.
-Dump the root file system to tape using
-\fIdump\fP\|(8).
-.IP 3.
-Bring the system down and mount the new pack.
-.IP 4.
-Load the distribution tape and install the new
-root file system as you did when first installing the system.
-.IP 5.
-Boot normally
-using the newly created disk file system.
-.PP
-Note that if you add new disk
-drivers they should also be added to the standalone system in
-\fI/sys/pdpstand\fP.
-If you change the disk partition tables the default disk partition tables
-in \fI/etc/disktab\fP should be modified.
 .NH 2
 Recompiling and reinstalling system software
 .PP

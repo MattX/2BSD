@@ -9,7 +9,7 @@ char *copyright =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char *sccsid = "@(#)exrecover.c	7.9.2 (2.11BSD) 1996/10/26";
+static char *sccsid = "@(#)exrecover.c	7.9.3 (2.11BSD) 2025/12/26";
 #endif
 
 #include <stdio.h>	/* mjm: BUFSIZ: stdio = 512, VMUNIX = 1024 */
@@ -40,13 +40,6 @@ short tfile = -1;	/* ditto */
  * as there is not enough handshaking to guarantee that the file has actually
  * been recovered, but should suffice for most cases.
  */
-
-/*
- * For lint's sake...
- */
-#ifndef lint
-#define	ignorl(a)	a
-#endif
 
 /*
  * This directory definition also appears (obviously) in expreserve.c.
@@ -125,7 +118,7 @@ main(argc, argv)
 	 */
 	b = 0;
 	while (H.Flines > 0) {
-		ignorl(lseek(tfile, (long) blocks[b] * BUFSIZ, 0));
+		lseek(tfile, (long) blocks[b] * BUFSIZ, 0);
 		i = H.Flines < BUFSIZ / sizeof (line) ?
 			H.Flines * sizeof (line) : BUFSIZ;
 		if (read(tfile, (char *) dot, i) != i) {
@@ -402,7 +395,7 @@ findtmp(dir)
 		 */
 		tfile = bestfd;
 		CP(nb, bestnb);
-		ignorl(lseek(tfile, 0l, 0));
+		lseek(tfile, 0l, 0);
 
 		/*
 		 * Gotta be able to read the header or fall through
@@ -500,7 +493,7 @@ nope:
 	 * puts a word LOST in the header block, so that lost lines
 	 * can be made to point at it.
 	 */
-	ignorl(lseek(tfile, (long)(BUFSIZ*HBLKS-8), 0));
+	lseek(tfile, (long)(BUFSIZ*HBLKS-8), 0);
 	ignore(write(tfile, "LOST", 5));
 	return (1);
 }
@@ -546,7 +539,7 @@ scrapbad()
 	 * if the last block is.
 	 */
 	while (bno > 0) {
-		ignorl(lseek(tfile, (long) BUFSIZ * bno, 0));
+		lseek(tfile, (long) BUFSIZ * bno, 0);
 		cnt = read(tfile, (char *) bk, BUFSIZ);
 		while (cnt > 0)
 			if (bk[--cnt] == 0)
@@ -598,39 +591,6 @@ null:
 		fprintf(stderr, "]");
 }
 
-/*
- * Aw shucks, if we only had a (void) cast.
- */
-#ifdef lint
-Ignorl(a)
-	long a;
-{
-
-	a = a;
-}
-
-Ignore(a)
-	char *a;
-{
-
-	a = a;
-}
-
-Ignorf(a)
-	int (*a)();
-{
-
-	a = a;
-}
-
-ignorl(a)
-	long a;
-{
-
-	a = a;
-}
-#endif
-
 int	cntch, cntln, cntodd, cntnull;
 /*
  * Following routines stolen mercilessly from ex.
@@ -655,7 +615,7 @@ putfile()
 			if (--nib < 0) {
 				nib = fp - genbuf;
 				if (write(io, genbuf, nib) != nib)
-					wrerror();
+					syserror();
 				cntch += nib;
 				nib = 511;
 				fp = genbuf;
@@ -668,14 +628,8 @@ putfile()
 	} while (a1 <= addr2);
 	nib = fp - genbuf;
 	if (write(io, genbuf, nib) != nib)
-		wrerror();
+		syserror();
 	cntch += nib;
-}
-
-wrerror()
-{
-
-	syserror();
 }
 
 clrstats()
@@ -763,6 +717,7 @@ syserror()
 	exit(1);
 }
 
+#ifdef notanymore
 /*
  * Must avoid stdio because expreserve uses sbrk to do memory
  * allocation and stdio uses malloc.
@@ -779,3 +734,4 @@ fprintf(fp, fmt, a1, a2, a3, a4, a5)
 	sprintf(buf, fmt, a1, a2, a3, a4, a5);
 	write(2, buf, strlen(buf));
 }
+#endif

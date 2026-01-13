@@ -1,11 +1,10 @@
-# Makefile for ddd
+#       Makefile        2.0 (2.11BSD) 2025/11/25
 
 DEFS = -DBSD
 CFLAGS = -O $(DEFS)
 
 CC = cc
 LINT = lint
-CP = install -s -m 755 
 RM = rm -f
 
 SRC = ddd.c
@@ -30,8 +29,8 @@ lint: $(SRC) $(HEAD)
 	touch lint
 
 install: all
-	$(CP) $(BIN) ${DESTDIR}$(BINDIR)
-	install -m 444 -o bin -g bin $(MAN) ${DESTDIR}$(MANDIR)
+	install -c -s -m 755 $(BIN) $(BINDIR)
+	install -c -m 444 -o root -g staff $(MAN) $(MANDIR)
 
 $(MAN): $(MANSRC)
 	/usr/man/manroff $(MANSRC) > $(MAN)

@@ -1,7 +1,4 @@
-#
-# Makefile for the system autoconfiguration program
-#
-DESTDIR=
+#       Makefile        2.0 (2.11BSD) 2025/11/25
 
 OBJS=	attach.o do_config.o main.o read_dtab.o read_nlist.o uprobe.o	\
 	brauto.o cnauto.o dhauto.o dhuauto.o drauto.o dzauto.o		\
@@ -21,22 +18,10 @@ autoconfig: ${OBJS}
 	${CC} ${OBJS} -o $@
 
 install:
-	install -s -m 700 autoconfig ${DESTDIR}/etc
+	install -s -m 700 autoconfig /etc
 
-depend: 
-	${CC} -M ${CFLAGS} ${SRCS} | \
-	sed -e ':loop' \
-	    -e 's/\.\.\/[^ /]*\/\.\./../' \
-	    -e 't loop' | \
-	awk ' { if ($$1 != prev) { print rec; rec = $$0; prev = $$1; } \
-		else { if (length(rec $$2) > 78) { print rec; rec = $$0; } \
-		       else rec = rec " " $$2 } } \
-	      END { print rec } ' > makedep
-	echo '/^# DO NOT DELETE THIS LINE/+1,$$d' >eddep
-	echo '$$r makedep' >>eddep
-	echo 'w' >>eddep
-	ex - Makefile < eddep
-	rm eddep makedep
+depend:	${SRCS}
+	mkdep ${CFLAGS} ${SRCS}
 
 tags: FRC
 	rm -f tags
@@ -46,6 +31,3 @@ clean: FRC
 	rm -f autoconfig *.o
 
 FRC:
-
-# DO NOT DELETE THIS LINE
-

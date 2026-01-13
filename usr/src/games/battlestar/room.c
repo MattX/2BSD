@@ -4,8 +4,8 @@
  * the terms of the Berkeley Software License Agreement.
  */
 
-#if !defined(lint) && !defined(pdp11)
-static char sccsid[] = "@(#)room.c	1.3 4/24/85";
+#if !defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)room.c	1.4 (2.11BSD) 2025/12/27";
 #endif
 
 #include "externs.h"
@@ -54,8 +54,8 @@ printobjs()
 	for (n = 0; n < NUMOFOBJECTS; n++)
 		if (testbit(p, n) && objdes[n]) {
 			lseek(desc, (off_t) objdes[n], L_SET);
-			read(desc, &buf, sizeof(buf));
-			puts(&buf);
+			read(desc, buf, sizeof(buf));
+			puts(buf);
 		}
 }
 

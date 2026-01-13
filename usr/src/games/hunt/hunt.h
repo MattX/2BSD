@@ -9,7 +9,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)hunt.h      1.1 (2.11BSD) 2020/1/7";
+static char sccsid[] = "@(#)hunt.h      1.2 (2.11BSD) 2025/12/25";
 #endif
 
 # include	<stdio.h>
@@ -300,7 +300,7 @@ extern PLAYER	Monitor[MAXMON], *End_monitor;
  * function types
  */
 
-char	*getenv(), *malloc(), *sprintf(), *strcpy(), *strncpy();
+char	*getenv(), *malloc(), *strcpy(), *strncpy();
 
 IDENT	*get_ident();
 

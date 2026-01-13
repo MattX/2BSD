@@ -1,7 +1,10 @@
+#if     !defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)pass2.c    1.11 (2.11BSD) 2025/12/26";
+#endif
+
 # include	"link.h"
 # define	MAXREG		8
 WORD	getword();
-char *sprintf();
 
 
 /******************** variables with global scope ************************/

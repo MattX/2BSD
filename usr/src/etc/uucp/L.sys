@@ -1,2 +1,2 @@
-moe Any TCP uucp moe.iipo.gtegsc.com login: usms assword: fizzbin
-moe Polled TCP uucp moe.iipo.gtegsc.com
+test Any TCP uucp test.your.domain login: dummy assword: yahoo!
+test Polled TCP uucp test.your.domain

@@ -1,16 +1,16 @@
 #
-# @(#)Makefile  1.1 (2.11BSD) 2020/3/23
+# @(#)Makefile  1.2 (2.11BSD) 2025/11/26
 #
 
 CFLAGS= -O
-SEPFLAG= -i
+LDFLAGS= -i
 MAN=	top.0
 MANSRC=	top.1
 
 all: top ${MAN}
 
 top: top.o psdb.o
-	cc -i -o top top.o psdb.o -lcurses -ltermcap
+	cc ${LDFLAGS} -o top top.o psdb.o -lcurses -ltermcap
 
 top.o: top.c psdb.h
 	cc ${CFLAGS} -c top.c
@@ -22,8 +22,8 @@ top.0: top.1
 	/usr/man/manroff ${MANSRC} > ${MAN}
 
 install: all
-	install -c -s -o root -g kmem -m 2755 top ${DESTDIR}/usr/ucb
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat1
+	install -c -s -o root -g kmem -m 2755 top /usr/ucb
+	install -c -o root -g staff -m 444 ${MAN} /usr/man/cat1
 
 clean:
 	rm -f top.o psdb.o top ${MAN}

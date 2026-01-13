@@ -1,9 +1,8 @@
-#	Makefile	4.3.1 (2.11BSD)	1996/10/23
+#	Makefile	4.3.2 (2.11BSD)	2025/11/25
 #
-DESTDIR=
 CFLAGS=-O
 YFLAGS=-d
-SEPFLAG= -i
+LDFLAGS= -i
 0FILES.c = 0.alloc.c 0.args.c 0.def.c 0.extr.c 0.graph.c 0.list.c 0.parts.c 0.string.c
 0FILES.o = 0.alloc.o 0.args.o 0.def.o 0.extr.o 0.graph.o 0.list.o 0.parts.o 0.string.o
 
@@ -28,19 +27,19 @@ SRCS = $(0FILES.c) $(1FILES.c) $(2FILES.c) \
 all:	structure beautify
 
 install: structure beautify struct
-	-mkdir ${DESTDIR}/usr/libexec/struct
-	chmod 755 ${DESTDIR}/usr/libexec/struct
-	install -s -m 755 structure $(DESTDIR)/usr/libexec/struct/structure
-	install -s -m 755 beautify $(DESTDIR)/usr/libexec/struct/beautify
-	install -c -m 755 struct $(DESTDIR)/usr/bin
+	-mkdir /usr/libexec/struct
+	chmod 755 /usr/libexec/struct
+	install -c -s -m 755 structure /usr/libexec/struct/structure
+	install -c -s -m 755 beautify /usr/libexec/struct/beautify
+	install -c -m 755 struct /usr/bin
 clean:
 	rm -f *.o y.tab.h beauty.c structure beautify
 
 structure: main.o $(0FILES.o) $(1FILES.o) $(2FILES.o) $(3FILES.o) $(4FILES.o)
-	cc ${SEPFLAG} -o structure main.o 0.*.o 1.*.o 2.*.o 3.*.o 4.*.o
+	cc ${LDFLAGS} -o structure main.o 0.*.o 1.*.o 2.*.o 3.*.o 4.*.o
 
 beautify:	beauty.o tree.o lextab.o bdef.o
-	cc ${SEPFLAG} -O beauty.o tree.o lextab.o bdef.o -o beautify -lln
+	cc ${LDFLAGS} -O beauty.o tree.o lextab.o bdef.o -o beautify -lln
 
 lint:
 	lint $(0FILES.c) $(1FILES.c) $(2FILES.c) $(3FILES.c) $(4FILES.c) main.c

@@ -1,5 +1,5 @@
 .rn '' }`
-''' $Header: patch.man,v 2.0.1.2 88/06/22 20:47:18 lwall Locked $
+''' $Header: patch.man,v 2.0.1.3 (2.11BSD) 2025/12/26 20:47:18 sms $
 ''' 
 ''' $Log:	patch.man,v $
 ''' Revision 2.0.1.2  88/06/22  20:47:18  lwall
@@ -380,7 +380,7 @@ will ignore the first and second of three patches.
 .B \-v
 causes
 .I patch
-to print out it's revision header and patch level.
+to print out its version and patch level.
 .TP 5
 .B \-x<number>
 sets internal debugging flags, and is of interest only to

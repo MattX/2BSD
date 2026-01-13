@@ -1,7 +1,9 @@
+.\"     @(#)restor.8      2.0 (2.11BSD) 2025/12/26
+.\"
 .TH RESTOR 8
 .UC
 .SH NAME
-restor \- incremental file system restore
+restor \- incremental filesystem restore
 .SH SYNOPSIS
 .I restor
 key [ argument ... ]
@@ -16,35 +18,43 @@ specifies what is to be done.
 .I Key
 is one of the characters
 .B rRxt
-optionally combined with
-.BR f .
+optionally combined with \fBf\fP.
 .TP
-.B  f
+.B f
 Use the first
 .I argument
-as the name of the tape instead
-of the default.
+as the name of the file to read instead of the default /dev/rmt0.
+The argument may be a special file like /dev/nrmt1 (a tape drive), an ordinary
+file or '-' (the standard input).  The string /dev/stdin is a synonym for '-'.
 .TP
-.B  r or R
+.B r or R
 The tape
-is read and loaded into the file system
+is read and loaded into the filesystem
 specified in
 .I argument.
 This should not be done lightly (see below).
-If the key is
-.B R
+If the key is \fBR\fP
 .I restor
 asks which tape of a multi volume set to start on.
 This allows restor to be interrupted and then
 restarted (an
 .I icheck
 \-s must be done before restarting ).
+.sp
+.B R
+is \fBNOT\fP allowed when the input is from stdin because the concept of
+volume changes on a pipe makes no sense.
 .TP
-.B  x
+.B x
 Each file on the
 tape named by an 
 .I argument
 is extracted.
+.sp
+.B x
+is \fBNOT\fP allowed when the input is from stdin because the concept of
+volume changes on a pipe makes no sense.
+.sp
 The file name has all `mount' prefixes removed;
 for example, /usr/bin/lpr is named /bin/lpr on the tape.
 The file extracted is placed in a file with a numeric name
@@ -86,13 +96,13 @@ the resulting files to their homes.
 .TP
 .B t
 Print the date the tape was written and the date
-the file system was dumped from.
+the filesystem was dumped from.
 .PP
 The
 .B r
 option should only be used to restore
-a complete dump tape onto a clear file system
-or to restore an incremental dump tape onto this.
+a complete dump tape onto a clear filesystem
+or to restore an incremental dump tape into the filesystem.
 Thus
 .PP
 	mkfs /dev/hp0a 4807
@@ -100,6 +110,18 @@ Thus
 	restor r /dev/hp0a
 .PP
 is a typical sequence to restore a complete dump.
+.PP
+Instead of first writing a tape using dump and  restoring the tape as above
+\fIrestor\fP can be used in a pipeline.
+For example to clone the root filesystem to another device.
+.PP
+         newfs rl0a
+         dump 0f - / | restor rf - /dev/rrl0a
+.sp
+When cloning an active (mounted) filesystem you need to run \fIfsck\fP on the 
+target (rrl0a) after \fIrestor\fP to repair the unreferenced files and missing
+blocks inconsistencies.
+.PP
 Another
 .I restor
 can be done to get an incremental dump
@@ -112,7 +134,7 @@ followed by a
 and a
 .I restor
 is used to
-change the size of a file system.
+change the size of a filesystem.
 .SH FILES
 .ta 2i
 /dev/rmt1	default file name
@@ -124,7 +146,7 @@ dump(8), dumpdir(8), mkfs(8)
 There are various diagnostics
 involved with reading the tape and writing the disk.
 There are also diagnostics if the i-list or the free list
-of the file system is not large enough to hold the dump.
+of the filesystem is not large enough to hold the dump.
 .PP
 If the dump extends over more than one tape,
 it may ask you to change tapes.
@@ -137,5 +159,16 @@ be converted automatically by
 There is redundant information on the tape
 that could be used in case of tape reading problems.
 Unfortunately,
-.IR restor " 
-does't use it.
+.IR restor
+doesn't use it.
+.PP
+When reading from a pipe (standard input) \fIrestor\fP will not issue the 
+"Last chance before scribbling on \fIdevice\fP" message and will not wait for
+a response.  This is because getchar() would consume the first byte of data from
+\fIdump\fP thus corrupting the first block of data.
+.PP
+\fBx\fP and \fBR\fP commands are not allowed when reading stdin because  the
+options make no sense when reading from dump input from a pipe \fBAND\fP 
+prompting for a volume number would consume data from the stdin input 
+data stream.
+

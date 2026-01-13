@@ -5,7 +5,7 @@
  */
 
 #if !defined(lint) && !defined(NOSCCS)
-static char sccsid[] = "@(#)printw.c	5.1 (Berkeley) 6/7/85";
+static char sccsid[] = "@(#)printw.c	5.2 (2.11BSD) 2025/12/26";
 #endif
 
 /*
@@ -52,10 +52,10 @@ int	*args; {
 	FILE	junk;
 	char	buf[512];
 
-	junk._flag = _IOWRT + _IOSTRG;
-	junk._ptr = buf;
-	junk._cnt = 32767;
-	_doprnt(fmt, args, &junk);
+	junk._flags = __SWR + __SSTR;
+	junk._bf._base = junk._p = (unsigned char *)buf;
+	junk._bf._size = junk._w = 32767;
+	__svfprintf(&junk, fmt, (char *)args);
 	putc('\0', &junk);
 	return waddstr(win, buf);
 }

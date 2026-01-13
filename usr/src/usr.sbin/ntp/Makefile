@@ -1,4 +1,4 @@
-# @(#) Makefile 1.0 (2.11BSD) 1996/12/1
+# @(#) Makefile 1.1 (2.11BSD) 2025/11/25
 #
 # $Log:	Makefile,v $
 # Revision 3.4.1.7  89/05/18  12:43:32  louie
@@ -55,7 +55,6 @@
 # verify that certain arithmetic operations are done correctly on the
 # host that the code is being compiled on.
 # 
-DESTDIR=
 LDFLAGS= -i
 BINDIR=/usr/sbin
 LIBS=
@@ -130,7 +129,7 @@ all:	${PROGS} man
 	@./ntest
 
 man:	FRC
-	cd man; make ${MFLAGS} DESTDIR=${DESTDIR} all
+	cd man; make ${MFLAGS} all
 
 ntp:	ntp.o ntpsubs.o
 	${CC} ${LDFLAGS} -o ntp ntp.o ntpsubs.o ${LIBS}
@@ -154,14 +153,14 @@ ntpd.o:	patchlevel.h
 
 install: ${PROGS}
 	@./ntest
-	${INSTALL}  ntpd ${DESTDIR}${BINDIR}/ntpd
-	${INSTALL}  ntp ${DESTDIR}${BINDIR}/ntp
-	${INSTALL}  ntpdc ${DESTDIR}${BINDIR}/ntpdc
-	cd man; make ${MFLAGS} DESTDIR=${DESTDIR} install
+	${INSTALL}  ntpd ${BINDIR}/ntpd
+	${INSTALL}  ntp ${BINDIR}/ntp
+	${INSTALL}  ntpdc ${BINDIR}/ntpdc
+	cd man; make ${MFLAGS} install
 
 clean:
 	rm -f *.o *~ ${PROGS} ntest sock_test
-	cd man; make ${MFLAGS} DESTDIR=${DESTDIR} clean
+	cd man; make ${MFLAGS} clean
 
 lint:
 	lint -bac ${DEFINES} ${NTPDSRC}

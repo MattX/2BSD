@@ -3,10 +3,9 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.1 (Berkeley) 6/5/85
+#	@(#)Makefile	5.2 (2.11BSD) 2025/11/27
 #
-DEFS= -DNOSCCS
-CFLAGS=	-O -DCM_N -DCM_GT -DCM_B -DCM_D $(DEFS)
+CFLAGS=	-O -DCM_N -DCM_GT -DCM_B -DCM_D -DNOSCCS
 LD = ld
 SRCS=	termcap.c tgoto.c tputs.c
 OBJS=	termcap.o tgoto.o tputs.o
@@ -14,9 +13,9 @@ TAGSFILE=tags
 
 .c.o:
 	$(CC) $(CFLAGS) -c -p $*.c
-	$(LD) $(LDFLAGS) -x -r -o profiled/$*.o $*.o
+	$(LD) -x -r -o profiled/$*.o $*.o
 	$(CC) $(CFLAGS) -c $*.c
-	$(LD) $(LDFLAGS) -X -r $*.o
+	$(LD) -X -r $*.o
 	mv a.out $*.o
 
 termcap.a termcap_p.a: ${OBJS}
@@ -24,14 +23,14 @@ termcap.a termcap_p.a: ${OBJS}
 	cd profiled; ar cr ../termcap_p.a ${OBJS}
 
 install: termcap.a termcap_p.a
-	install -c termcap.a ${DESTDIR}/usr/lib/libtermcap.a
-	-rm -f ${DESTDIR}/usr/lib/libtermlib.a
-	ln ${DESTDIR}/usr/lib/libtermcap.a ${DESTDIR}/usr/lib/libtermlib.a
-	ranlib ${DESTDIR}/usr/lib/libtermcap.a
-	install -c termcap_p.a ${DESTDIR}/usr/lib/libtermcap_p.a
-	-rm -f ${DESTDIR}/usr/lib/libtermlib_p.a
-	ln ${DESTDIR}/usr/lib/libtermcap_p.a ${DESTDIR}/usr/lib/libtermlib_p.a
-	ranlib ${DESTDIR}/usr/lib/libtermcap_p.a
+	install -c -m 644 -o root termcap.a /usr/lib/libtermcap.a
+	-rm -f /usr/lib/libtermlib.a
+	ln /usr/lib/libtermcap.a /usr/lib/libtermlib.a
+	ranlib /usr/lib/libtermcap.a
+	install -c -m 644 -o root termcap_p.a /usr/lib/libtermcap_p.a
+	-rm -f /usr/lib/libtermlib_p.a
+	ln /usr/lib/libtermcap_p.a /usr/lib/libtermlib_p.a
+	ranlib /usr/lib/libtermcap_p.a
 
 tags:
 	cwd=`pwd`; \
@@ -42,9 +41,3 @@ tags:
 clean:
 	-rm -f *.o profiled/*.o
 	-rm -f termcap.a termcap_p.a
-
-VGRIND=	csh /usr/ucb/vgrind
-vgrind:
-	cp /dev/null index
-	${VGRIND} -h "Termcap library" termcap.c tputs.c tgoto.c
-	${VGRIND} -h "Termcap library" -x index

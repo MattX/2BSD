@@ -1,10 +1,6 @@
-#
-# shar Makefile.  Revised 1997/1/12
-#
-DESTDIR=
-
+#       Makefile        2.0 (2.11BSD) 2025/11/25
 CFLAGS=	-O
-SEPFLAG=-i
+LDFLAGS=-i
 
 SRCS=	shar.c traverse.c
 OBJS=	shar.o traverse.o
@@ -19,20 +15,20 @@ OBJS=	shar.o traverse.o
 
 all: shar traverse shar.0 traverse.0
 
-shar: ${OBJS} Makefile
-	cc ${CFLAGS} ${SEPFLAG} -o shar ${OBJS}
+shar: ${OBJS}
+	cc ${LDFLAGS} -o shar ${OBJS}
 
 traverse: traverse.c
-	cc -o traverse -DSTANDALONE traverse.c
+	cc ${CFLAGS} -o traverse -DSTANDALONE traverse.c
 
 lint:
 	lint -h ${SRCS}
 
 install: shar shar.0
-	install -s shar ${DESTDIR}/usr/bin/shar
-	install -s traverse ${DESTDIR}/usr/bin/traverse
-	install -c -m 444 -o bin -g bin shar.0 ${DESTDIR}/usr/man/cat1
-	install -c -m 444 -o bin -g bin traverse.0 ${DESTDIR}/usr/man/cat3
+	install -c -s -m 755 -o root shar /usr/bin/shar
+	install -c -s -m 755 -o root traverse /usr/bin/traverse
+	install -c -m 444 -o root -g staff shar.0 /usr/man/cat1
+	install -c -m 444 -o root -g staff traverse.0 /usr/man/cat3
 
 tags: ${SRCS}
 	ctags $<

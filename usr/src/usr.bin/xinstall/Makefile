@@ -1,10 +1,10 @@
 #
 # Public Domain.  1996/2/20 - Steven Schultz
 #
-#	@(#)Makefile	1.0 (2.11BSD GTE) 1996/2/20
+#	@(#)Makefile	1.1 (2.11BSD) 2025/11/27
 #
 CFLAGS=	 -O
-SEPFLAG= -i
+LDFLAGS= -i
 VPATH=	/usr/src/bin/ls
 SRCS=	xinstall.c stat_flags.c
 OBJS=	xinstall.o stat_flags.o
@@ -14,7 +14,7 @@ MANSRC=	install.1
 all: xinstall ${MAN}
 
 xinstall: ${OBJS}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
+	${CC} ${LDFLAGS} -o $@ ${OBJS}
 
 install.0: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
@@ -26,8 +26,8 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: all
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat1
-	install -s -o root -g bin -m 755 xinstall ${DESTDIR}/usr/bin/install
+	install -c -o root -g staff -m 444 ${MAN} /usr/man/cat1
+	install -c -s -o root -g staff -m 755 xinstall /usr/bin/install
 
 lint: ${SRCS}
 	lint -hax ${SRCS}

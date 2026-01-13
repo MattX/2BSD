@@ -1,10 +1,10 @@
 #
 # Public Domain.  1996/11/16 - Steven Schultz
 #
-#	@(#)Makefile	1.1 (2.11BSD) 1999/2/19
+#	@(#)Makefile	1.2 (2.11BSD) 2025/11/27
 #
 CFLAGS=	 -O
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	accton.c
 OBJS=	accton.o
 MAN=	accton.0
@@ -13,7 +13,7 @@ MANSRC=	accton.8
 all: accton accton.0
 
 accton: ${OBJS}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS}
 
 accton.0: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
@@ -25,8 +25,8 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: accton
-	install -s -o root -g bin -m 755 accton ${DESTDIR}/usr/sbin/accton
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat8/${MAN}
+	install -c -s -o root -g staff -m 755 accton /usr/sbin/accton
+	install -c -o root -g staff -m 444 ${MAN} /usr/man/cat8/${MAN}
 
 lint: ${SRCS}
 	lint -hax ${SRCS}

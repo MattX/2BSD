@@ -1,5 +1,7 @@
-char rcsid[] =
-	"$Header: patch.c,v 2.0.1.6 88/06/22 20:46:39 lwall Locked $";
+/*
+ * Can't ifdef this out because version.c (-v) uses this string.
+*/
+char rcsid[] = "patch.c 2.0.1.7 (2.11BSD) 2025/12/26";
 
 /* patch - a program to apply diffs to original files
  *
@@ -289,19 +291,6 @@ char **argv;
 	    failtotal += failed;
 	    if (!*rejname) {
 		Strcpy(rejname, outname);
-#ifndef FLEXFILENAMES
-		{
-		    char *rindex();
-		    char *s = rindex(rejname,'/');
-
-		    if (!s)
-			s = rejname;
-		    if (strlen(s) > 13)
-			if (s[12] == '.')	/* try to preserve difference */
-			    s[12] = s[13];	/* between .h, .c, .y, etc. */
-			s[13] = '\0';
-		}
-#endif
 		Strcat(rejname, REJEXT);
 	    }
 	    if (skip_rest_of_patch) {

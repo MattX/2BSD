@@ -32,9 +32,9 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.\"	@(#)disklabel.8	8.3 (2.11BSD) 2022/8/30
+.\"	@(#)disklabel.8	8.4 (2.11BSD) 2025/12/11
 .\"
-.TH DISKLABEL 8 "August 30, 2022"
+.TH DISKLABEL 8 "December 11, 2025"
 .UC 2
 .SH NAME
 disklabel \- read and write disk pack label
@@ -322,6 +322,22 @@ The label is derived from disktab information for ``ra81x'' and
 installed both in-core and on-disk.
 The bootstrap code comes from the file
 .IR /mdec/newboot .
+.SH NOTES
+\fBsize\fP and \fBoffset\fP values of a partition may be specified in four
+ways:
+.sp
+ * Number of sectors:  32678
+ * Number of cylinders:  110c
+ * Number of cylinders and sectors:  29c14s
+ * Number of sectors and cylinders:  22s134c
+ * 
+ * The trailing 's' or 'c' can be left off in the last
+ * two cases.
+ *
+ * The geometry section of the label must have been 
+ * filled in previously.  A warning is issued if the 
+ * cylinder or cylinder+sector forms are used and the 
+ * necessary geometry information is not present.
 .SH SEE ALSO
 disktab(5), disklabel(5)
 .SH DIAGNOSTICS

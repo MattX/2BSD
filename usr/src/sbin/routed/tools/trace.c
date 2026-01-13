@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)trace.c	5.3 (Berkeley) 2/12/86";
-#endif not lint
+static char sccsid[] = "@(#)trace.c	5.4 (2.11BSD) 2025/11/25";
+#endif
 
 #include <sys/param.h>
 #include <sys/protosw.h>
@@ -49,7 +47,7 @@ usage:
 		perror("socket");
 		exit(2);
 	}
-#ifdef vax || pdp11
+#if defined(vax) || defined(pdp11)
 	myaddr.sin_port = htons(myaddr.sin_port);
 #endif
 	if (bind(s, &myaddr, sizeof(myaddr)) < 0) {

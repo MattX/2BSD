@@ -1,10 +1,10 @@
 #
 # Public Domain.  1996/11/16 - Steven Schultz
 #
-#	@(#)Makefile	1.0 (2.11BSD) 1996/11/16
+#	@(#)Makefile	1.1 (2.11BSD) 2025/11/25
 #
 CFLAGS=	 -O
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	reboot.c
 OBJS=	reboot.o
 MAN=	reboot.0
@@ -13,7 +13,7 @@ MANSRC=	reboot.8
 all: reboot reboot.0
 
 reboot: ${OBJS}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS}
 
 reboot.0: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
@@ -25,14 +25,14 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: reboot
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat8
-	-rm -f ${DESTDIR}/usr/man/cat8/fastboot.0 ${DESTDIR}/usr/man/cat8/halt.0
-	ln ${DESTDIR}/usr/man/cat8/reboot.0 ${DESTDIR}/usr/man/cat8/fastboot.0
-	ln ${DESTDIR}/usr/man/cat8/reboot.0 ${DESTDIR}/usr/man/cat8/halt.0
-	install -s -o root -g bin -m 755 reboot ${DESTDIR}/sbin/reboot
-	-rm ${DESTDIR}/sbin/fastboot ${DESTDIR}/sbin/halt
-	ln ${DESTDIR}/sbin/reboot ${DESTDIR}/sbin/halt
-	ln ${DESTDIR}/sbin/reboot ${DESTDIR}/sbin/fastboot
+	install -c -o root -g staff -m 444 ${MAN} /usr/man/cat8
+	-rm -f /usr/man/cat8/fastboot.0 /usr/man/cat8/halt.0
+	ln /usr/man/cat8/reboot.0 /usr/man/cat8/fastboot.0
+	ln /usr/man/cat8/reboot.0 /usr/man/cat8/halt.0
+	install -c -s -o root -g staff -m 755 reboot /sbin/reboot
+	-rm /sbin/fastboot /sbin/halt
+	ln /sbin/reboot /sbin/halt
+	ln /sbin/reboot /sbin/fastboot
 
 lint: ${SRCS}
 	lint -hax ${SRCS}

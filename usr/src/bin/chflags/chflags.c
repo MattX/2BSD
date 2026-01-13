@@ -4,15 +4,15 @@
 */
 
 #if	!defined(LINT) && defined(DOSCCS)
-static char sccsid[] = "@(#)chflags.c 1.1 (2.11BSD) 2025/3/17";
+static char sccsid[] = "@(#)chflags.c 1.2 (2.11BSD) 2025/12/25";
 #endif
 
 #include <stdio.h>
-#include <varargs.h>
 #include <sys/types.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/dir.h>
+#include <stdlib.h>
 
 static	char	*fmsg = "Can't fchdir() back to starting directory";
 static	int	oct, status, fflag, rflag;
@@ -20,7 +20,6 @@ static	u_short	set, clear;
 static	struct	stat st;
 static	void	usage();
 
-extern	long	strtol();
 extern	int	optind, errno;
 extern	u_short	string_to_flags();	/* from ../ls */
 
@@ -162,13 +161,11 @@ recurse(dir, savedir)
 	}
 
 /* VARARGS1 */
-die(fmt, va_alist)
-	char *fmt;
-	va_dcl
+die(char *fmt, ...)
 	{
 	va_list	ap;
 
-	va_start(ap);
+	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	fputc('\n', stderr);
 	va_end(ap);

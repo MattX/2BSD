@@ -1,9 +1,8 @@
 #
-# 	#(@)Makefile	2.0 (2.11BSD) 2025/2/23
+# 	#(@)Makefile	2.1 (2.11BSD) 2025/11/25
 #
-DESTDIR=
 CFLAGS=	-O
-SEPFLAG= -i
+LDFLAGS= -i
 
 # Programs that live in subdirectories, and have makefiles of their own.
 SUBDIR= afio cxref ddd less mkovmake mp mtools welcome qterm zmodem
@@ -16,17 +15,17 @@ SRCS= decompr16.c trace.c
 STD= decompr16 trace 
 
 # Manpage directory
-MANDIR= ${DESTDIR}/usr/local/man
+MANDIR= /usr/local/man
 
 all:	${SUBDIR} ${STD}
 
 ${SUBDIR}: FRC
-	cd $@; make ${MFLAGS} SEPFLAG=${SEPFLAG}
+	cd $@; make ${MFLAGS}
 
 FRC:
 
 ${STD}:
-	cc ${CFLAGS} ${SEPFLAG} -o $@ $@.c
+	cc ${CFLAGS} ${LDFLAGS} -o $@ $@.c
 
 install: ${STD}
 	-mkdir ${MANDIR}
@@ -34,9 +33,9 @@ install: ${STD}
 	-for i in 1 2 3 4 5 6 7 8; do \
 		(mkdir ${MANDIR}/cat$$i; chmod a+r ${MANDIR}/cat$$i); done
 	-for i in ${SUBDIR}; do \
-		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
-	-install -s -o bin -g bin  decompr16 ${DESTDIR}/usr/local/decompr16
-	-install -s -o bin -g kmem -m 2755 trace ${DESTDIR}/usr/local/trace
+		(cd $$i; make ${MFLAGS} install); done
+	-install -s -o root -g staff  decompr16 /usr/local/decompr16
+	-install -s -o root -g kmem -m 2755 trace /usr/local/trace
 	-sh /usr/sbin/makewhatis ${MANDIR}
 
 clean:

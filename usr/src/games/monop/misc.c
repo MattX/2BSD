@@ -1,3 +1,7 @@
+/*
+ * misc.c 1.1 (2.11BSD)  2025/12/25
+*/
+
 # include	"monop.ext"
 # include	<ctype.h>
 # include	<signal.h>
@@ -267,7 +271,7 @@ shell_out() {
 	printline();
 	if (shell == NULL)
 		shell = shell_in();
-	fflush();
+	fflush(NULL);
 	if (!fork()) {
 		signal(SIGINT, SIG_DFL);
 		execsh(shell);

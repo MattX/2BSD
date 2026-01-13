@@ -4,19 +4,19 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)rvsort.c	5.1 (Berkeley) 5/15/85";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)rvsort.c	5.2 (2.11BSD) 2025/12/26";
+#endif
 
 /*
  * Sort troff output for versatec to reduce amount of reverse leading
  */ 
 
-# include <stdio.h>
+#include <stdio.h>
+#include <math.h>
 
 #define NULL 0
 
-double atof();
 char *calloc();
 
 FILE *in,*out;
@@ -251,11 +251,6 @@ getch()
 		return(c);
 	}
 	return(getc(in));
-}
-
-ungetc(c)
-{
-	peekc = c;
 }
 
 error(s)

@@ -1,10 +1,9 @@
 #
 # Public Domain.  1996/3/20 - Steven Schultz
 #
-#	@(#)Makefile	1.0 (2.11BSD GTE) 1996/3/20
+#	@(#)Makefile	1.1 (2.11BSD) 2025/11/27
 #
-DEFS=
-CFLAGS=-O $(DEFS)
+CFLAGS=-O
 TAGSFILE=tags
 
 all: liberrlst.a liberrlst_p.a
@@ -20,8 +19,8 @@ liberrlst_p.a: errlst.c
 	rm -f errlst.o
 
 install: all
-	install -m 644 liberrlst.a $(DESTDIR)/usr/lib
-	install -m 644 liberrlst_p.a $(DESTDIR)/usr/lib
+	install -c -m 644 liberrlst.a /usr/lib
+	install -c -m 644 liberrlst_p.a /usr/lib
 
 tags:
 	ctags -a -f ${TAGSFILE} `pwd`/errlst.c

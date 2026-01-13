@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.1.1	(2.11BSD)	1996/12/1
+#	@(#)Makefile	5.1.2	(2.11BSD)	2025/11/25
 #
 
 # Defined SHARED_DATA to be whatever will make your compiler make initialized
@@ -17,7 +17,7 @@
 # table sizes
 #
 CFLAGS=	-O -I${COMMON}
-SEPFLAG=-i
+LDFLAGS=-i
 
 COMMON=	../common_source
 VPATH=	${COMMON}
@@ -29,7 +29,7 @@ OBJS=	ni.o nii.o n1.o n2.o n3.o n4.o n5.o t6.o n7.o n8.o n9.o t10.o \
 all: troff
 
 troff: ${OBJS} ${LIBC}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS}
 
 hytab.o: ${COMMON}/hytab.c ${COMMON}/textscript
 	${CC} ${SHARED_DATA} -c ${COMMON}/hytab.c
@@ -44,7 +44,7 @@ depend: ${SRCS} FRC
 	mkdep ${CFLAGS} ${SRCS}
 
 install: troff
-	install -s -o bin -g bin -m 751 troff ${DESTDIR}/usr/bin/troff
+	install -c -s -o root -g staff -m 755 troff /usr/bin/troff
 
 lint: ${SRCS} FRC
 	lint ${CFLAGS} ${SRCS}

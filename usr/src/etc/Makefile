@@ -1,15 +1,12 @@
 #
 # Public domain - 1997/1/10 - sms
 #
-#	@(#)Makefile	1.0 (2.11BSD) 1997/1/10
+#	@(#)Makefile	1.1 (2.11BSD) 2025/11/25
 #
-# DESTDIR is defined here to be something which does *NOT* exist - it must be
-#  specified on the command line when doing a "make DESTDIR=/mnt distribution".
-#  This is aimed at avoiding overwriting the system disk's /etc files.
-#
-# Example:
-#	mount /dev/ra1a /mnt
-#	make DESTDIR=/mnt distribution
+# This file is not intended to be run but rather to serve as a guide when
+# (manually) creating a distribution image.  To guard against corrupting a
+# live/running system DESTDIR is defined here to be something which does 
+# *NOT* exist.
 
 DESTDIR=/foobar
 OWN=root
@@ -21,8 +18,10 @@ FILES= aliases crontab disktab dtab fstab ftpusers gettytab group hosts \
 	motd netstart networks ntp.conf passwd phones printcap protocols \
 	rc rc.local remote services shells syslog.conf ttys
 
+# NOP targets
 all install depend lint clean tags:
 
+# this will populate /foobar with prototype /dev and /etc files
 distribution:
 	-@mkdir -p ${DESTDIR}/dev
 	@chmod 755 ${DESTDIR}/dev

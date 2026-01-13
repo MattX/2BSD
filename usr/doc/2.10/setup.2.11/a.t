@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)a.t	2.1 (GTE) 1995/06/16
+.\"	@(#)a.t	2.2 (2.11BSD) 2025/12/10
 .\"
 .de IR
 \fI\\$1\fP\|\\$2
@@ -72,10 +72,12 @@ All of the generic kernels support the following devices:
 l n.
 Device	Number
 -
+RK05 8
 RK06/07	2
+RX02 2
 MSCP (RA) Controllers	2
 MSCP (RA) Disks	3
-RL01/02 Drives	2
+RL01/02 Drives	4
 SMD (XP) Controllers	1
 SMD (XP) Disks	2
 TE16, TU45, TU77 (HT) Tape drives	2
@@ -245,11 +247,11 @@ NHK		2		# RK611, RK06/07
 NRAC		1		# NRAD controllers
 NRAD		2		# RX50, RC25, RD51/52/53, RA60/80/81
 
-NRK		0		# RK05
+NRK		8		# RK05
 
 NRL		2		# RL01/02
 
-NRX		0		# RX02
+NRX		2		# RX02
 
 NSI		0		# SI 9500 driver for CDC 9766 disks
 

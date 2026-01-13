@@ -3,11 +3,13 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static	char	sccsid[] = "@(#)c12.c	2.0 (2.11BSD) 2020/1/7";
+static	char	sccsid[] = "@(#)c12.c	2.1 (2.11BSD) 2025/12/25";
 #endif
 
 #include "c1.h"
 #include <sys/param.h>		/* for MAX */
+
+static char *divcheck = "Divide Check";
 
 union tree *
 optim(tree)
@@ -926,7 +928,7 @@ register int *vp, v;
 			}
 		}
 		if (v==0)
-			werror("divide check");
+			werror(divcheck);
 		else
 			if (type==INT)
 				if (op==DIVIDE || op==UDIV)
@@ -1016,7 +1018,7 @@ register union tree *lp, *rp;
 	case DIVIDE:
 	case LDIV:
 		if (r==0)
-			error("Divide check");
+			error(divcheck);
 		else
 			l /= r;
 		break;
@@ -1024,7 +1026,7 @@ register union tree *lp, *rp;
 	case MOD:
 	case LMOD:
 		if (r==0)
-			error("Divide check");
+			error(divcheck);
 		else
 			l %= r;
 		break;

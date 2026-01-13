@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.4 (Berkeley) 9/5/85
+#	@(#)Makefile	5.5 (2.11BSDs) 2025/11/29
 #
 
 SRCS=	inet_addr.c inet_network.c \
@@ -39,32 +39,28 @@ clean:
 	rm -f inetlib inetlib_p *.o profiled/*.o errs a.out core \
 		tags Makefile.bak
 
-depend:
-	for i in ${SRCS}; do \
-	    cc -M ${CFLAGS} $$i | awk ' { if ($$1 != prev) \
-		{ if (rec != "") print rec; rec = $$0; prev = $$1; } \
-		else { if (length(rec $$2) > 78) { print rec; rec = $$0; } \
-		else rec = rec " " $$2 } } \
-		END { print rec } ' >> makedep; done
-	echo '/^# DO NOT DELETE THIS LINE/+2,$$d' >eddep
-	echo '$$r makedep' >>eddep
-	echo 'w' >>eddep
-	cp Makefile Makefile.bak
-	ed - Makefile < eddep
-	rm eddep makedep
-	echo '# DEPENDENCIES MUST END AT END OF FILE' >> Makefile
-	echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY' >> Makefile
-	echo '# see make depend above' >> Makefile
+depend:	${SRCS}
+	mkdep ${CFLAGS} ${SRCS}
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
 
-# DO NOT DELETE THIS LINE -- make depend uses it
-
-inet_addr.o: inet_addr.c /usr/include/sys/types.h /usr/include/ctype.h
+inet_addr.o: inet_addr.c /usr/include/sys/types.h /usr/include/sys/select.h
+inet_addr.o: /usr/include/sys/types.h /usr/include/ctype.h
 inet_addr.o: /usr/include/netinet/in.h
-inet_network.o: inet_network.c /usr/include/sys/types.h /usr/include/ctype.h
-inet_netof.o: inet_netof.c /usr/include/sys/types.h /usr/include/netinet/in.h
-inet_ntoa.o: inet_ntoa.c /usr/include/sys/types.h /usr/include/netinet/in.h
-inet_lnaof.o: inet_lnaof.c /usr/include/sys/types.h /usr/include/netinet/in.h
-inet_maddr.o: inet_maddr.c /usr/include/sys/types.h /usr/include/netinet/in.h
-# DEPENDENCIES MUST END AT END OF FILE
-# IF YOU PUT STUFF HERE IT WILL GO AWAY
-# see make depend above
+inet_network.o: inet_network.c /usr/include/sys/types.h
+inet_network.o: /usr/include/sys/select.h /usr/include/sys/types.h
+inet_network.o: /usr/include/netinet/in.h /usr/include/ctype.h
+inet_netof.o: inet_netof.c /usr/include/sys/param.h
+inet_netof.o: /usr/include/sys/localopts.h /usr/include/sys/stddef.h
+inet_netof.o: /usr/include/machine/machparam.h /usr/include/sys/types.h
+inet_netof.o: /usr/include/sys/select.h /usr/include/sys/types.h
+inet_netof.o: /usr/include/signal.h /usr/include/sys/types.h
+inet_netof.o: /usr/include/netinet/in.h /usr/include/arpa/inet.h
+inet_ntoa.o: inet_ntoa.c /usr/include/sys/types.h /usr/include/sys/select.h
+inet_ntoa.o: /usr/include/sys/types.h /usr/include/netinet/in.h
+inet_lnaof.o: inet_lnaof.c /usr/include/sys/types.h /usr/include/sys/select.h
+inet_lnaof.o: /usr/include/sys/types.h /usr/include/netinet/in.h
+inet_maddr.o: inet_maddr.c /usr/include/sys/types.h /usr/include/sys/select.h
+inet_maddr.o: /usr/include/sys/types.h /usr/include/netinet/in.h
+
+# IF YOU PUT ANYTHING HERE IT WILL GO AWAY

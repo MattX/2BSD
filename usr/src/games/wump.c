@@ -1,7 +1,7 @@
+#if     !defined(lint) && defined(DOSCCS)
+static char sccsid[] = "wump.c	4.2 (2.11BSD) 2025/12/25";
+#endif
 
-static char sccsid[] = "	wump.c	4.1	82/10/24	";
-
-#
 #include <stdio.h>
 
 /*
@@ -388,11 +388,9 @@ int *p1, *p2;
 #include <sgtty.h>
 drain()
 {
-	register FILE *port = stdin;
-	register int iodes = fileno(port);
+	register int iodes = fileno(stdin);
 	struct sgttyb arg;
 
-	port->_cnt = 0;
-	port->_ptr = port->_base;
+	fpurge(stdin);
 	if(gtty(iodes,&arg) != -1) stty(iodes,&arg);
 }

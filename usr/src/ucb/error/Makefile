@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.1 (Berkeley) 5/31/85
+#	@(#)Makefile	5.2 (2.11BSD) 2025/11/26
 #
 #
 #	error.h			error header file
@@ -16,33 +16,24 @@
 #
 
 HDRS = error.h
-PHDRS = $(HDRS)
 SRCS = errormain.c errorinput.c errorpi.c errorsubr.c errorfilter.c errortouch.c
-PSRCS = $(SRCS)
 OBJS = errormain.o errorinput.o errorpi.o errorsubr.o errorfilter.o errortouch.o
 
-DFLAGS = -DDEBUG
-SEPFLAG= -i
+LDFLAGS= -i
 CFLAGS =  -O $(DFLAGS)
 
-LINTFLAGS = $(DFLAGS)
+LINTFLAGS = -haxc
 
 error:	$(OBJS)
-	$(CC) ${SEPFLAG} $(CFLAGS) $(OBJS) -o error
+	$(CC) ${LDFLAGS} $(OBJS) -o error
 
 $(OBJS): $(HDRS)
 
 install: error
-	install -s error $(DESTDIR)/usr/ucb
+	install -c -s -m 755 -o root error /usr/ucb
 
 clean:
 	rm -f error $(OBJS)
 
 lint:	
 	lint $(LINTFLAGS) $(SRCS)
-
-psrcs:
-	echo $(PHDRS) $(PSRCS)
-
-print:
-	print $(PHDRS) $(PSRCS)

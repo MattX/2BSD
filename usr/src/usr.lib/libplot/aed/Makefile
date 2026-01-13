@@ -2,7 +2,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.2 (2.11BSD GTE) 1/2/94
+#	@(#)Makefile	5.3 (2.11BSD) 2025/11/27
 #
 CFLAGS=	-O
 OBJS=	arc.o box.o circle.o close.o cont.o dot.o erase.o label.o \

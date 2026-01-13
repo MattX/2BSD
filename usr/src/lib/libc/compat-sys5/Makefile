@@ -1,10 +1,10 @@
-#	Makefile	1.6	1996/1/11
+#	Makefile	1.7 (2.11BSD) 2025/12/25
 #
 CFLAGS=	-O ${DEFS}
 # strchr and strrchr.c are not used.  The assembly versions in pdp/gen are
 # used instead.
-SRCS=	memccpy.c memchr.c memcmp.c memcpy.c memset.c tmpnam.c
-OBJS=	memccpy.o memchr.o memcmp.o memcpy.o memset.o tmpnam.o
+SRCS=	memccpy.c memchr.c memcmp.c memcpy.c memset.c
+OBJS=	memccpy.o memchr.o memcmp.o memcpy.o memset.o
 TAGSFILE=tags
 
 .c.o:

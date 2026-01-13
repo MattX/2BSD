@@ -11,7 +11,7 @@
  */
 
 #if     defined(DOSCCS) && !defined(lint)
-static char sccsid[] = "@(#)gcore.c    1.3 (2.11BSD) 2024/9/20";
+static char sccsid[] = "@(#)gcore.c    1.4 (2.11BSD) 2025/12/26";
 #endif
 
 #include <sys/param.h>
@@ -20,7 +20,8 @@ static char sccsid[] = "@(#)gcore.c    1.3 (2.11BSD) 2024/9/20";
 #include <sys/file.h>
 #include <stdio.h>
 #include <nlist.h>
-#include <varargs.h>
+#include <stdlib.h>
+#include <strings.h>
 
 #define NLIST	"/unix"
 #define MEM	"/dev/mem"
@@ -36,10 +37,6 @@ struct nlist nl[] = {
 	int	mem, cor, nproc, sflag;
 	struct	proc	*pbuf;
 	char	*corefile, *program_name;
-
-extern	int	optind, opterr;
-extern	char	*optarg, *rindex();
-extern	off_t	lseek();
 
 main(argc, argv)
 	int	argc;
@@ -187,17 +184,16 @@ usage()
 
 /* VARARGS */
 void
-error(va_alist)
-	va_dcl
+error(char *fmt, ...)
 	{
 	va_list ap;
 	register char	*cp;
 
 	(void)fprintf(stderr, "%s: ", program_name);
 
-	va_start(ap);
-	cp = va_arg(ap, char *);
-	(void)vfprintf(stderr, cp, ap);
+	va_start(ap, fmt);
+	cp = fmt;
+	(void)vfprintf(stderr, fmt, ap);
 	va_end(ap);
 	if	(*cp)
 		{
@@ -211,16 +207,15 @@ error(va_alist)
 
 /* VARARGS */
 void
-warning(va_alist)
-	va_dcl
+warning(char *fmt, ...)
 	{
 	va_list ap;
 	register char *cp;
 
 	(void)fprintf(stderr, "%s: warning: ", program_name);
 
-	va_start(ap);
-	cp = va_arg(ap, char *);
+	va_start(ap, fmt);
+	cp = fmt;
 	(void)vfprintf(stderr, cp, ap);
 	va_end(ap);
 	if	(*cp)

@@ -1,3 +1,5 @@
+#       Makefile        2.0 (2.11BSD) 2025/11/29
+#
 # Compile time flags:
 #	BSD4_2		- We're a 4.2 BSD UNIX (or later, includes Ultrix)
 #				4.2BSD accounting
@@ -25,7 +27,6 @@ DEFS= -DBSD4_2
 # -lresolv needed below for pyramids
 LIBS=
 CFLAGS= -O ${DEFS}
-DESTDIR=/usr/lib/news
 HFILES=nntpxmit.h get_tcp_conn.h llist.h sysexits.h nntp.h
 SRC=nntpxmit.c remote.c llist.c get_tcp_conn.c
 OBJ=nntpxmit.o remote.o llist.o get_tcp_conn.o
@@ -49,8 +50,7 @@ shlock: shlock.c
 	cc ${CFLAGS} -o shlock shlock.c
 
 install: nntpxmit shlock
-	cp nntpxmit shlock ${DESTDIR}
-	cd ${DESTDIR}; chmod 755 nntpxmit shlock
+	install -c -s -m 755 nntpxmit shlock /usr/new/lib/news
 	@echo "You'll have to edit nntpsend for local config."
 
 lint:
@@ -58,14 +58,3 @@ lint:
 
 clean:
 	rm -f nntpxmit shlock ${OBJ}
-
-dist: nntpxmit.tar
-
-nntpxmit.tar: ${FILES}
-	tar cvhf nntpxmit.tar ${FILES}
-
-# two for Phil Lapsley
-distrib: clean
-
-check:;
-

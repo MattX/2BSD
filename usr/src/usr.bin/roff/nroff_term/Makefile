@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	4.8	(2.11BSD) 2020/3/24
+#	@(#)Makefile	4.9	(2.11BSD) 2025/11/25
 #
 # Possible options:
 #	make		compile source for all terminal tables below
@@ -11,7 +11,7 @@
 #	make install	move tables to ${DEST}
 #	make clean	remove tab*.o files lying around
 CFLAGS=	-I../common_source
-DEST=	${DESTDIR}/usr/share/term
+DEST=	/usr/share/term
 SRCS=	tab300-12.c tab300.c tab302-12.c tab302.c tab37.c tab382-12.c \
 	tab382.c tab450-12.c tab450.c tab833-12.c tab833.c tabepson.c \
 	tabitoh.c tabitoh12.c tablpr.c tabnec-t.c tabnec.c tabnec12.c \
@@ -73,7 +73,7 @@ install: ${ALL}
 	-mkdir -p ${DEST}
 	chmod 755 ${DEST}
 	for file in tab*.tab; do \
-		install -c -o bin -g bin -m 755 $$file ${DEST}/`basename $$file`; \
+		install -c -o root -g staff -m 755 $$file ${DEST}/`basename $$file`; \
 	done
 	rm -f ${DEST}/tabtn300.tab; ln ${DEST}/tablpr.tab ${DEST}/tabtn300.tab
 	rm -f ${DEST}/tabcrt.tab; ln ${DEST}/tablpr.tab ${DEST}/tabcrt.tab
@@ -83,7 +83,7 @@ install: ${ALL}
 	rm -f ${DEST}/tabdtc12.tab; ln ${DEST}/tab302-12.tab ${DEST}/tabdtc12.tab
 	rm -f ${DEST}/tabipsi.tab; ln ${DEST}/tab450.tab ${DEST}/tabipsi.tab
 	rm -f ${DEST}/tabipsi12.tab; ln ${DEST}/tab450-12.tab ${DEST}/tabipsi12.tab
-	install -c -o bin -g bin -m 644 README ${DEST}/README
+	install -c -o root -g staff -m 644 README ${DEST}/README
 
 lint: FRC
 	lint ${CFLAGS} ${SRCS}

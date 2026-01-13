@@ -3,13 +3,12 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	2.1.1	(2.11BSD)	1996/11/16
+#	@(#)Makefile	2.2	(2.11BSD) 2025/11/25
 #
 # optional flags are: MEASURE TESTING DEBUG
 
 CFLAGS= -O -DMEASURE
-SEPFLAG= -i
-DESTDIR=
+LDFLAGS= -i
 MACHINE= pdp
 LIBS=
 PROGRS=	timed timedc
@@ -39,14 +38,14 @@ cksum.o:
 	rm -f cksum.s
 
 timed: 	${OBJDS} ${COMMO}
-	cc ${SEPFLAG} ${CFLAGS} ${OBJDS} ${COMMO} ${LIBS} -o timed 
+	cc ${LDFLAGS} ${CFLAGS} ${OBJDS} ${COMMO} ${LIBS} -o timed 
 
 timedc: ${OBJCS} ${COMMO}
-	cc ${SEPFLAG} ${CFLAGS} ${OBJCS} ${COMMO} ${LIBS} -o timedc
+	cc ${LDFLAGS} ${CFLAGS} ${OBJCS} ${COMMO} ${LIBS} -o timedc
 
 install: ${PROGRS}
-	install -s timed ${DESTDIR}/usr/sbin
-	install -s -o root -m 4511 timedc ${DESTDIR}/usr/sbin
+	install -c -s -m 755 timed /usr/sbin
+	install -c -s -o root -m 4555 timedc /usr/sbin
 
 clean:
 	rm -f a.out core *.o Makefile.bak errs ${PROGRS}

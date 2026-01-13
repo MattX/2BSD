@@ -3,27 +3,16 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.5 (2.11BSD) 12/25/2018
+#	@(#)Makefile	5.6 (2.11BSD) 2025/11/27
 #
 # Makefile for f77 math & startup lib, libF77.a
 
 CFLAGS	      = -O
-
-DEST	      = $(DESTDIR)/usr/lib
-
-DESTDIR	      =
-
-EXTHDRS	      =
-
-FFLAGS	      = -O
-
+DEST	      = /usr/lib
 HDRS	      = opcodes.h
 
 LIBRARY	      = libF77.a
-
 LIBRARY_P     = libF77_p.a
-
-MAKEFILE      = Makefile
 
 OBJS1	      = abort_.o \
 		besj0_.o \
@@ -154,12 +143,6 @@ OBJS2=		long_.o \
 		z_log.o \
 		z_sin.o \
 		z_sqrt.o
-
-OLDDIR	      = $(DESTDIR)/usr/old/lib
-
-OPTIONS	      = -DUCBVAX
-
-PRINT	      = pr
 
 SRCS	      = abort_.c \
 		besj0_.c \
@@ -315,51 +298,36 @@ Version:	$(SRCS) mkvers
 mkvers:		mkvers.c
 		@$(CC) mkvers.c -o mkvers
 
-clean:;		@rm -f $(OBJS1) $(OBJS2) profiled/*.o $(LIBRARY) $(LIBRARY_P) \
-		Version profiled/Version
+clean:;		@rm -f $(OBJS1) $(OBJS2) Version mkvers profiled/* $(LIBRARY) $(LIBRARY_P)
 
 depend:;	@echo Construct dependencies manually
-
-extract:;	@ar xo $(DEST)/$(LIBRARY); rm -f __.SYMDEF
-		@cd profiled; -ar xo $(DEST)/$(LIBRARY_P); rm -f __.SYMDEF
 
 index:;		@ctags -wx $(HDRS) $(SRCS)
 
 install:	$(LIBRARY) $(LIBRARY_P)
-		install -m 644 $(LIBRARY) $(DEST)/$(LIBRARY)
+		install -c -m 644 $(LIBRARY) $(DEST)/$(LIBRARY)
 		ranlib $(DEST)/$(LIBRARY)
-		install -m 644 $(LIBRARY_P) $(DEST)/$(LIBRARY_P)
+		install -c -m 644 $(LIBRARY_P) $(DEST)/$(LIBRARY_P)
 		ranlib $(DEST)/$(LIBRARY_P)
 
-library:        $(LIBRARY) $(LIBRARY_P)
-
-print:;		@$(PRINT) $(HDRS) $(SRCS)
-
 tags:           $(HDRS) $(SRCS); @ctags $(HDRS) $(SRCS)
-
-update:         $(DEST)/$(LIBRARY)
-
-$(DEST)/$(LIBRARY): $(SRCS) $(HDRS) $(EXTHDRS)
-		@-ar xo $(DEST)/$(LIBRARY)
-		@cd profiled; -ar xo $(DEST)/$(LIBRARY_P)
-		@make -f $(MAKEFILE) DEST=$(DEST) install clean
 
 #trapov_.o \
 #trapov_.c \
 #trapov_.o:	trapov_.c
-#		cc -S $(OPTIONS) trapov_.c;
+#		cc -S -DUCBVAX trapov_.c;
 #		(echo "g/.set	L[0-9][0-9]*,0x0$$/s/0x0/0xf10/"; echo "x") \
 #			| ex - trapov_.s;
 #		as trapov_.s -o trapov_.o;
 #		mv trapov_.o profiled/trapov_.o
 #		rm trapov_.s
-#		cc -S $(OPTIONS) trapov_.c
+#		cc -S -DUCBVAX trapov_.c
 #		(echo "g/.set	L[0-9][0-9]*,0x0$$/s/0x0/0xf10/"; echo "x") \
 #			| ex - trapov_.s
 #		as trapov_.s -o trapov_.o
 #		rm trapov_.s
 
-#	'Usef' is part of a kuldge to get around a bug in the C compiler.
+#	'Usef' is part of a kludge to get around a bug in the C compiler.
 #	C (sec. 9.10 of C ref manual) should round the return value of
 #	functions of type float from double to float.  It doesn't, so f77
 #	truncates it losing a half bit of accuracy.  See file Test_float
@@ -388,4 +356,3 @@ $(DEST)/$(LIBRARY): $(SRCS) $(HDRS) $(EXTHDRS)
 		$(CC) $(CFLAGS) -c $*.c
 		-ld -x -r $*.o
 		mv a.out $*.o
-

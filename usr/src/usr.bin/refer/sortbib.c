@@ -1,5 +1,5 @@
-#ifndef lint
-static char *sccsid = "@(#)sortbib.c	4.1 (Berkeley) 5/6/83";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)sortbib.c	4.2 (2.11BSD) 2025/12/26";
 #endif
 
 #include <stdio.h>
@@ -132,7 +132,7 @@ deliver(fp, tfp)	/* deliver sorted entries out of database(s) */
 FILE *fp[], *tfp;
 {
 	char str[BUF], buff[BUF*8];	/* for tempfile & databases */
-	char cmd[80], *sprintf();	/* for using system sort command */
+	char cmd[80];	/* for using system sort command */
 	long int offset;
 	int i, length;
 

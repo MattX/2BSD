@@ -9,7 +9,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)setfiles.c      1.1 (2.11BSD) 2020/1/7";
+static char sccsid[] = "@(#)setfiles.c      1.2 (2.11BSD) 2025/12/23";
 #endif
 
 #include "phant.h"
@@ -108,6 +108,7 @@ char	stbuf[128];
 #endif
 	if (getuid() != UID)
 		fprintf(stderr,"Warning: UID (%d) is not equal to current uid.\n",UID);
+	exit(0);
 }
 
 buildchar(stat)				/* put in some default values */

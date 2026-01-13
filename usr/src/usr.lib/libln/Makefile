@@ -1,4 +1,4 @@
-#	@(#)Makefile	4.2	5/30/85
+#	@(#)Makefile	4.3 (2.11BSD) 2025/11/27
 #
 CFLAGS = -O
 SRCS=	allprint.c main.c reject.c yyless.c yywrap.c
@@ -11,10 +11,10 @@ libln.a: ${OBJS}
 	ar rc libln.a ${OBJS}
 
 install: all
-	install libln.a ${DESTDIR}/usr/lib
-	rm -f ${DESTDIR}/usr/lib/libl.a
-	ln ${DESTDIR}/usr/lib/libln.a ${DESTDIR}/usr/lib/libl.a
-	ranlib ${DESTDIR}/usr/lib/libln.a
+	install -c -m 644 -o root libln.a /usr/lib
+	rm -f /usr/lib/libl.a
+	ln /usr/lib/libln.a /usr/lib/libl.a
+	ranlib /usr/lib/libln.a
 
 tags:
 	cwd=`pwd`; \

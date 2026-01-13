@@ -13,7 +13,9 @@
 %left STAR PLUS QUEST
 
 %{
-static char *sccsid = "@(#)egrep.y	4.4 (Berkeley) 5/29/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)egrep.y	4.5 (2.11BSD) 2025/12/28";
+#endif
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>

@@ -1,10 +1,10 @@
 #!/bin/sh
 # How far away are we from catastrophe (running out of memory)?
 #
-# If we run out of text bytes, it might be time to change this to an
-# overlaid binary.
-# If we run out of data bytes, launch a desparte search to reduce array sizes
-# or coalless strings.  The Makfile already strips over 2000 bytes of error
+# with the introduction of ANSI compliant stdio efl needs to be overlaid.
+#
+# If we run out of data bytes, launch a desperate search to reduce array sizes
+# or coalesce strings.  The Makefile already strips over 2000 bytes of error
 # messages and stores them externally, so the low hanging fruit has
 # already been picked.
 

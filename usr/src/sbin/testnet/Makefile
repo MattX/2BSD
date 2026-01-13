@@ -1,17 +1,17 @@
 #
 # Public Domain.  1996/11/16 - Steven Schultz
 #
-#	@(#)Makefile	1.0 (2.11BSD) 1996/11/16
+#	@(#)Makefile	1.1 (2.11BSD) 2025/11/25
 #
 CFLAGS=	 -O
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	testnet.c
 OBJS=	testnet.o
 
 all: testnet
 
 testnet: ${OBJS}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS}
 
 clean:
 	rm -f ${OBJS} testnet tags 
@@ -20,7 +20,7 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: testnet
-	install -s -o root -g bin -m 755 testnet ${DESTDIR}/sbin/testnet
+	install -c -s -o root -g staff -m 755 testnet /sbin/testnet
 
 lint: ${SRCS}
 	lint -hax ${SRCS}

@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)snake.c	5.2 (2.11BSD) 2020/1/7";
+static char sccsid[] = "@(#)snake.c	5.3 (2.11BSD) 2025/12/25";
 #endif
 
 /*
@@ -657,19 +657,19 @@ snap()
 	if (! stretch(&money)) if (! stretch(&finish)) delay(10);
 	if(you.line < 3){
 		point(&p,you.col,0);
-		remove(&p);
+		sremove(&p);
 	}
 	if(you.line > lcnt-4){
 		point(&p,you.col,lcnt-1);
-		remove(&p);
+		sremove(&p);
 	}
 	if(you.col < 10){
 		point(&p,0,you.line);
-		remove(&p);
+		sremove(&p);
 	}
 	if(you.col > ccnt-10){
 		point(&p,ccnt-1,you.line);
-		remove(&p);
+		sremove(&p);
 	}
 	fflush(stdout);
 }
@@ -684,13 +684,13 @@ struct point *ps;{
 				pchar(&p,'v');
 			delay(10);
 			for (;p.line > you.line;p.line--)
-				remove(&p);
+				sremove(&p);
 		} else {
 			for (p.line = you.line-1;p.line >= ps->line;p.line--)
 				pchar(&p,'^');
 			delay(10);
 			for (;p.line < you.line;p.line++)
-				remove(&p);
+				sremove(&p);
 		}
 		return(1);
 	} else if(abs(ps->line-you.line) < 3){
@@ -700,13 +700,13 @@ struct point *ps;{
 				pchar(&p,'>');
 			delay(10);
 			for (;p.col > you.col;p.col--)
-				remove(&p);
+				sremove(&p);
 		} else {
 			for (p.col = you.col-1;p.col >= ps->col;p.col--)
 				pchar(&p,'<');
 			delay(10);
 			for (;p.col < you.col;p.col++)
-				remove(&p);
+				sremove(&p);
 		}
 		return(1);
 	}
@@ -818,7 +818,7 @@ pushsnake()
 	return(0);
 }
 	
-remove(sp)
+sremove(sp)
 struct point *sp;
 {
 	int j;

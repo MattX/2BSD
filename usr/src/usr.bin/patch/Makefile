@@ -1,11 +1,8 @@
-#
-# patch Makefile.  Revised 1997/1/12
-#
-DESTDIR=
+#       Makefile        2.0 (2.11BSD) 2025/11/25
 
 DEFS=	
 CFLAGS=	-O ${DEFS}
-SEPFLAG=-i
+LDFLAGS=-i
 
 HDRS=	EXTERN.h INTERN.h common.h config.h inp.h patchlevel.h pch.h \
 	util.h version.h
@@ -18,11 +15,11 @@ OBJS=	patch.o pch.o inp.o util.o version.o
 	/usr/man/manroff $*.man > $*.0
 
 patch: ${OBJS} patch.0
-	cc ${SEPFLAG} ${OBJS} -o patch
+	cc ${LDFLAGS} ${OBJS} -o patch
 
 install: patch patch.0
-	install patch ${DESTDIR}/usr/bin
-	install -m 444 -o bin -g bin patch.0 ${DESTDIR}/usr/man/cat1
+	install patch /usr/bin
+	install -m 444 -o root -g staff patch.0 /usr/man/cat1
 
 clean:
 	rm -f *.o *.orig core tags patch *.0

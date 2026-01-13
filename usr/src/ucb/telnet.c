@@ -5,7 +5,7 @@
  */
 
 #if	defined(DOSCCS) && !defined(lint)
-static char sccsid[] = "@(#)telnet.c	5.18 (2.11BSD) 2025/3/26";
+static char sccsid[] = "@(#)telnet.c	5.19 (2.11BSD) 2026/1/5";
 #endif
 
 /*
@@ -1936,7 +1936,7 @@ setescape(argc, argv)
 	char *argv[];
 {
 	register char *arg;
-	char buf[50];
+	char buf[4];
 
 	printf(
 	    "Deprecated usage - please use 'set escape%s%s' in the future.\n",
@@ -1945,7 +1945,8 @@ setescape(argc, argv)
 		arg = argv[1];
 	else {
 		printf("new escape character: ");
-		gets(buf);
+		fgets(buf, sizeof (buf), stdin);
+		if (arg = index(buf, '\n')) *arg = '\0';
 		arg = buf;
 	}
 	if (arg[0] != '\0')
@@ -2033,6 +2034,7 @@ tn(argc, argv)
 	char *argv[];
 {
 	register struct hostent *host = 0;
+	char *cp;
 
 	if (connected) {
 		printf("?Already connected to %s\n", hostname);
@@ -2041,7 +2043,9 @@ tn(argc, argv)
 	if (argc < 2) {
 		(void) strcpy(line, "Connect ");
 		printf("(to) ");
-		gets(&line[strlen(line)]);
+		fgets(&line[strlen(line)], sizeof(line) - strlen(line), stdin);
+		cp = index(line, '\n');
+		if (cp) *cp = '\0';
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -2283,6 +2287,7 @@ command(top)
 	int top;
 {
 	register struct cmd *c;
+	char *cp;
 
 	setcommandmode();
 	if (!top) {
@@ -2293,11 +2298,14 @@ command(top)
 	}
 	for (;;) {
 		printf("%s> ", prompt);
-		if (gets(line) == 0) {
+		if (fgets(line, sizeof (line), stdin) == 0) {
 			if (feof(stdin))
 				quit();
 			break;
 		}
+		cp = index(line, '\n');
+		if (cp) *cp = '\0';
+
 		if (line[0] == 0)
 			break;
 		makeargv();

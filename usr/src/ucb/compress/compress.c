@@ -1,127 +1,20 @@
-#ifndef lint
-static char sccsid[] = "@(#)compress.c	@(#)compress.c	5.9 (Berkeley) 5/11/86";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)compress.c	@(#)compress.c	5.9.1 (2.11BSD) 2026/1/1";
+#endif
 
 /* 
  * Compress - data compression program 
  */
-#define	min(a,b)	((a>b) ? b : a)
-
-/*
- * machine variants which require cc -Dmachine:  pdp11, z8000, pcxt
- */
-
-/*
- * Set USERMEM to the maximum amount of physical user memory available
- * in bytes.  USERMEM is used to determine the maximum BITS that can be used
- * for compression.
- *
- * SACREDMEM is the amount of physical memory saved for others; compress
- * will hog the rest.
- */
-#ifndef SACREDMEM
-#define SACREDMEM	0
-#endif
-
-#ifndef USERMEM
-# define USERMEM 	450000	/* default user memory */
-#endif
-
-#ifdef interdata		/* (Perkin-Elmer) */
-#define SIGNED_COMPARE_SLOW	/* signed compare is slower than unsigned */
-#endif
-
-#ifdef pdp11
-# define BITS 	12	/* max bits/code for 16-bit machine */
-# define NO_UCHAR	/* also if "unsigned char" functions as signed char */
-# undef USERMEM 
-#endif /* pdp11 */	/* don't forget to compile with -i */
-
-#ifdef z8000
-# define BITS 	12
-# undef vax		/* weird preprocessor */
-# undef USERMEM 
-#endif /* z8000 */
-
-#ifdef pcxt
-# define BITS   12
-# undef USERMEM
-#endif /* pcxt */
-
-#ifdef USERMEM
-# if USERMEM >= (433484+SACREDMEM)
-#  define PBITS	16
-# else
-#  if USERMEM >= (229600+SACREDMEM)
-#   define PBITS	15
-#  else
-#   if USERMEM >= (127536+SACREDMEM)
-#    define PBITS	14
-#   else
-#    if USERMEM >= (73464+SACREDMEM)
-#     define PBITS	13
-#    else
-#     define PBITS	12
-#    endif
-#   endif
-#  endif
-# endif
-# undef USERMEM
-#endif /* USERMEM */
-
-#ifdef PBITS		/* Preferred BITS for this memory size */
-# ifndef BITS
-#  define BITS PBITS
-# endif BITS
-#endif /* PBITS */
-
-#if BITS == 16
-# define HSIZE	69001		/* 95% occupancy */
-#endif
-#if BITS == 15
-# define HSIZE	35023		/* 94% occupancy */
-#endif
-#if BITS == 14
-# define HSIZE	18013		/* 91% occupancy */
-#endif
-#if BITS == 13
-# define HSIZE	9001		/* 91% occupancy */
-#endif
-#if BITS <= 12
-# define HSIZE	5003		/* 80% occupancy */
-#endif
-
-#ifdef M_XENIX			/* Stupid compiler can't handle arrays with */
-# if BITS == 16			/* more than 65535 bytes - so we fake it */
-#  define XENIX_16
-# else
-#  if BITS > 13			/* Code only handles BITS = 12, 13, or 16 */
-#   define BITS	13
-#  endif
-# endif
-#endif
+#define min(a,b)        ((a>b) ? b : a)
+#define BITS 	12	/* max bits/code for 16-bit machine */
+#define HSIZE	5003	/* 80% occupancy */
 
 /*
  * a code_int must be able to hold 2**BITS values of type int, and also -1
  */
-#if BITS > 15
-typedef long int	code_int;
-#else
 typedef int		code_int;
-#endif
-
-#ifdef SIGNED_COMPARE_SLOW
-typedef unsigned long int count_int;
-typedef unsigned short int count_short;
-#else
-typedef long int	  count_int;
-#endif
-
-#ifdef NO_UCHAR
- typedef char	char_type;
-#else
- typedef	unsigned char	char_type;
-#endif /* UCHAR */
+typedef long int	count_int;
+typedef	unsigned char	char_type;
 char_type magic_header[] = { "\037\235" };	/* 1F 9D */
 
 /* Defines for third byte of header */
@@ -254,16 +147,12 @@ char_type magic_header[] = { "\037\235" };	/* 1F 9D */
  * Add variable bit length output.
  *
  */
-static char rcs_ident[] = "$Header: compress.c,v 4.0 85/07/30 12:50:00 joe Release $";
 
 #include <stdio.h>
 #include <ctype.h>
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#ifdef notdef
-#include <sys/ioctl.h>
-#endif
 
 #define ARGVAL() (*++(*argv) || (--argc && *++argv))
 
@@ -271,53 +160,16 @@ int n_bits;				/* number of bits/code */
 int maxbits = BITS;			/* user settable max # bits/code */
 code_int maxcode;			/* maximum code, given n_bits */
 code_int maxmaxcode = 1 << BITS;	/* should NEVER generate this code */
-#ifdef COMPATIBLE		/* But wrong! */
-# define MAXCODE(n_bits)	(1 << (n_bits) - 1)
-#else
-# define MAXCODE(n_bits)	((1 << (n_bits)) - 1)
-#endif /* COMPATIBLE */
+#define MAXCODE(n_bits)	((1 << (n_bits)) - 1)
 
-#ifdef XENIX_16
-count_int htab0[8192];
-count_int htab1[8192];
-count_int htab2[8192];
-count_int htab3[8192];
-count_int htab4[8192];
-count_int htab5[8192];
-count_int htab6[8192];
-count_int htab7[8192];
-count_int htab8[HSIZE-65536];
-count_int * htab[9] = {
-	htab0, htab1, htab2, htab3, htab4, htab5, htab6, htab7, htab8 };
-
-#define htabof(i)	(htab[(i) >> 13][(i) & 0x1fff])
-unsigned short code0tab[16384];
-unsigned short code1tab[16384];
-unsigned short code2tab[16384];
-unsigned short code3tab[16384];
-unsigned short code4tab[16384];
-unsigned short * codetab[5] = {
-	code0tab, code1tab, code2tab, code3tab, code4tab };
-
-#define codetabof(i)	(codetab[(i) >> 14][(i) & 0x3fff])
-
-#else	/* Normal machine */
-
-#ifdef sel	/* gould base register braindamage */
-/*NOBASE*/
-count_int htab [HSIZE];
-unsigned short codetab [HSIZE];
-/*NOBASE*/
-#else
-count_int htab [HSIZE];
-unsigned short codetab [HSIZE];
-#endif sel
-
-#define htabof(i)	htab[i]
-#define codetabof(i)	codetab[i]
-#endif	/* XENIX_16 */
 code_int hsize = HSIZE;			/* for dynamic table sizing */
 count_int fsize;
+
+count_int htab [HSIZE];
+unsigned short codetab [HSIZE];
+
+#define htabof(i)       htab[i]
+#define codetabof(i)    codetab[i]
 
 /*
  * To save much memory, we overlay the table used by compress() with those
@@ -329,13 +181,8 @@ count_int fsize;
  */
 
 #define tab_prefixof(i)	codetabof(i)
-#ifdef XENIX_16
-# define tab_suffixof(i)	((char_type *)htab[(i)>>15])[(i) & 0x7fff]
-# define de_stack		((char_type *)(htab2))
-#else	/* Normal machine */
-# define tab_suffixof(i)	((char_type *)(htab))[i]
-# define de_stack		((char_type *)&tab_suffixof(1<<BITS))
-#endif	/* XENIX_16 */
+#define tab_suffixof(i)	((char_type *)(htab))[i]
+#define de_stack		((char_type *)&tab_suffixof(1<<BITS))
 
 code_int free_ent = 0;			/* first unused entry */
 int exit_stat = 0;			/* per-file status */
@@ -444,10 +291,6 @@ register int argc; char **argv;
     }
 #endif
     
-#ifdef COMPATIBLE
-    nomagic = 1;	/* Original didn't have a magic number */
-#endif /* COMPATIBLE */
-
     filelist = fileptr = (char **)(malloc(argc * sizeof(*argv)));
     *filelist = NULL;
 
@@ -463,10 +306,7 @@ register int argc; char **argv;
 	zcat_flg = 1;
     }
 
-#ifdef BSD4_2
-    /* 4.2BSD dependent - take it out if not */
     setlinebuf( stderr );
-#endif /* BSD4_2 */
 
     /* Argument Processing
      * All flags are optional.
@@ -621,14 +461,6 @@ register int argc; char **argv;
 
 		/* Generate output filename */
 		strcpy(ofname, *fileptr);
-#ifndef BSD4_2		/* Short filenames */
-		if ((cp=rindex(ofname,'/')) != NULL)	cp++;
-		else					cp = ofname;
-		if (strlen(cp) > 12) {
-		    fprintf(stderr,"%s: filename too long to tack on .Z\n",cp);
-		    continue;
-		}
-#endif  /* BSD4_2		Long filenames allowed */
 		strcat(ofname, ".Z");
 	    }
 	    /* Check for overwrite of existing file */
@@ -701,7 +533,7 @@ register int argc; char **argv;
 		block_compress = maxbits & BLOCK_MASK;
 		maxbits &= BIT_MASK;
 		maxmaxcode = 1 << maxbits;
-		fsize = 100000;		/* assume stdin large for USERMEM */
+		fsize = 100000;
 		if(maxbits > BITS) {
 			fprintf(stderr,
 			"stdin: compressed with %d bits, can only handle %d bits\n",
@@ -743,26 +575,20 @@ long int out_count = 0;			/* # of codes output (for debugging) */
  */
 
 compress() {
-    register long fcode;
+    long fcode;
     register code_int i = 0;
     register int c;
-    register code_int ent;
-#ifdef XENIX_16
-    register code_int disp;
-#else	/* Normal machine */
-    register int disp;
-#endif
-    register code_int hsize_reg;
+    code_int ent;
+    int disp;
+    code_int hsize_reg;
     register int hshift;
 
-#ifndef COMPATIBLE
     if (nomagic == 0) {
 	putchar(magic_header[0]); putchar(magic_header[1]);
 	putchar((char)(maxbits | block_compress));
 	if(ferror(stdout))
 		writeerr();
     }
-#endif /* COMPATIBLE */
 
     offset = 0;
     bytes_out = 3;		/* includes 3-byte header mojo */
@@ -784,11 +610,7 @@ compress() {
     hsize_reg = hsize;
     cl_hash( (count_int) hsize_reg);		/* clear hash table */
 
-#ifdef SIGNED_COMPARE_SLOW
-    while ( (c = getchar()) != (unsigned) EOF ) {
-#else
     while ( (c = getchar()) != EOF ) {
-#endif
 	in_count++;
 	fcode = (long) (((long) c << maxbits) + ent);
  	i = ((c << hshift) ^ ent);	/* xor hashing */
@@ -815,11 +637,7 @@ nomatch:
 	output ( (code_int) ent );
 	out_count++;
  	ent = c;
-#ifdef SIGNED_COMPARE_SLOW
-	if ( (unsigned) free_ent < (unsigned) maxmaxcode) {
-#else
 	if ( free_ent < maxmaxcode ) {
-#endif
  	    codetabof (i) = free_ent++;	/* code -> hashtable */
 	    htabof (i) = fcode;
 	}
@@ -877,10 +695,8 @@ nomatch:
 
 static char buf[BITS];
 
-#ifndef vax
 char_type lmask[9] = {0xff, 0xfe, 0xfc, 0xf8, 0xf0, 0xe0, 0xc0, 0x80, 0x00};
 char_type rmask[9] = {0x00, 0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff};
-#endif /* vax */
 
 output( code )
 code_int  code;
@@ -902,15 +718,6 @@ code_int  code;
 		    (col+=6) >= 74 ? (col = 0, '\n') : ' ' );
 #endif /* DEBUG */
     if ( code >= 0 ) {
-#ifdef vax
-	/* VAX DEPENDENT!! Implementation on other machines is below.
-	 *
-	 * Translation: Insert BITS bits from the argument starting at
-	 * offset bits from the beginning of buf.
-	 */
-	0;	/* Work around for pcc -O bug with asm and if stmt */
-	asm( "insv	4(ap),r11,r10,(r9)" );
-#else /* not a vax */
 /* 
  * byte/bit numbering on the VAX is simulated by the following code
  */
@@ -936,7 +743,6 @@ code_int  code;
 	/* Last bits. */
 	if(bits)
 	    *bp = code;
-#endif /* vax */
 	offset += n_bits;
 	if ( offset == (n_bits << 3) ) {
 	    bp = buf;
@@ -1053,11 +859,7 @@ decompress() {
 	/*
 	 * Generate output characters in reverse order
 	 */
-#ifdef SIGNED_COMPARE_SLOW
-	while ( ((unsigned long)code) >= ((unsigned long)256) ) {
-#else
 	while ( code >= 256 ) {
-#endif
 	    *stackp++ = tab_suffixof(code);
 	    code = tab_prefixof(code);
 	}
@@ -1136,37 +938,24 @@ getcode() {
     }
     r_off = offset;
     bits = n_bits;
-#ifdef vax
-    asm( "extzv   r10,r9,(r8),r11" );
-#else /* not a vax */
 	/*
 	 * Get to the first byte.
 	 */
 	bp += (r_off >> 3);
 	r_off &= 7;
 	/* Get first part (low order bits) */
-#ifdef NO_UCHAR
-	code = ((*bp++ >> r_off) & rmask[8 - r_off]) & 0xff;
-#else
 	code = (*bp++ >> r_off);
-#endif /* NO_UCHAR */
 	bits -= (8 - r_off);
 	r_off = 8 - r_off;		/* now, offset into code word */
 	/* Get any 8 bit parts in the middle (<=1 for up to 16 bits). */
 	if ( bits >= 8 ) {
-#ifdef NO_UCHAR
-	    code |= (*bp++ & 0xff) << r_off;
-#else
 	    code |= *bp++ << r_off;
-#endif /* NO_UCHAR */
 	    r_off += 8;
 	    bits -= 8;
 	}
 	/* high order bits. */
 	code |= (*bp & rmask[bits]) << r_off;
-#endif /* vax */
     offset += n_bits;
-
     return code;
 }
 
@@ -1411,28 +1200,11 @@ cl_block ()		/* table clear for block compress */
 cl_hash(hsize)		/* reset code table */
 	register count_int hsize;
 {
-#ifndef XENIX_16	/* Normal machine */
 	register count_int *htab_p = htab+hsize;
-#else
-	register j;
-	register long k = hsize;
-	register count_int *htab_p;
-#endif
 	register long i;
 	register long m1 = -1;
 
-#ifdef XENIX_16
-    for(j=0; j<=8 && k>=0; j++,k-=8192) {
-	i = 8192;
-	if(k < 8192) {
-		i = k;
-	}
-	htab_p = &(htab[j][i]);
-	i -= 16;
-	if(i > 0) {
-#else
 	i = hsize - 16;
-#endif
  	do {				/* might use Sys V memset(3) here */
 		*(htab_p-16) = m1;
 		*(htab_p-15) = m1;
@@ -1452,10 +1224,6 @@ cl_hash(hsize)		/* reset code table */
 		*(htab_p-1) = m1;
 		htab_p -= 16;
 	} while ((i -= 16) >= 0);
-#ifdef XENIX_16
-	}
-    }
-#endif
     	for ( i += 16; i > 0; i-- )
 		*--htab_p = m1;
 }
@@ -1480,28 +1248,9 @@ long int num, den;
 
 version()
 {
-	fprintf(stderr, "%s, Berkeley 5.9 5/11/86\n", rcs_ident);
-	fprintf(stderr, "Options: ");
-#ifdef vax
-	fprintf(stderr, "vax, ");
-#endif
-#ifdef NO_UCHAR
-	fprintf(stderr, "NO_UCHAR, ");
-#endif
-#ifdef SIGNED_COMPARE_SLOW
-	fprintf(stderr, "SIGNED_COMPARE_SLOW, ");
-#endif
-#ifdef XENIX_16
-	fprintf(stderr, "XENIX_16, ");
-#endif
-#ifdef COMPATIBLE
-	fprintf(stderr, "COMPATIBLE, ");
-#endif
+	fputs("compress 2.11BSD 5.9.1 2026/1/1\nOptions:", stderr);
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG, ");
-#endif
-#ifdef BSD4_2
-	fprintf(stderr, "BSD4_2, ");
+	fputs("DEBUG, ", stderr);
 #endif
 	fprintf(stderr, "BITS = %d\n", BITS);
 }

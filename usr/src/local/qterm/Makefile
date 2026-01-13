@@ -1,12 +1,10 @@
-#
 # Copyright (c) 1990 Michael A. Cooper.
 # This software may be freely distributed provided it is not sold for 
 # profit and the author is credited appropriately.
 #
-# $Header: /src/common/usc/bin/qterm/RCS/Makefile,v 5.1 1991/02/20 02:31:50 mcooper Exp $
-#
-# Makefile for QTerm
-#
+#if     !defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)Makefile    5.2 (2.11BSD) 2025/12/24";
+#endif
 
 #
 # DIR is the main/top-level directory.
@@ -30,18 +28,9 @@ MAN = $(DIR)/man/cat1
 #
 TABFILE = $(DIR)/lib/qtermtab
 
-#
-# Add "-DUSG5" to DEFS below, if your system is Unix System V.
-# Add "-DHAS_VARARGS" if your system supports varargs.
-# Add "-DOPT_COMPAT" if you want compatibility with old command line options.
-#
-DEFS 	= -DTABFILE=\"$(TABFILE)\" -DOPT_COMPAT -DHAS_VARARGS
+DEFS 	= -DTABFILE=\"$(TABFILE)\" -DOPT_COMPAT
 
-#
-# On some System V systems you will need to add "-lPW" to LIBS.
-#
 LIBS	= -lc
-
 
 CONFIGFILES	= Makefile qterm.1 options.3
 CFILES 		= qterm.c options.c

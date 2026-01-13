@@ -3,17 +3,16 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.18 (2.11BSD) 2020/3/4
+#	@(#)Makefile	5.19 (2.11BSD) 2025/11/25
 #
-DESTDIR=
 CFLAGS=	-O
-SEPFLAG= -i
+LDFLAGS= -i
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
-SUBDIR=	Mail compress dbx error ex finger fp ftp indent lock man \
+SUBDIR=	Mail compress error ex finger ftp indent lock man \
 	more msgs netstat pascal rdist rlogin sendbug talk tftp \
-	tn3270 top tset vgrind vlp window
+	tn3270 top tset vgrind window
 
 # Shell scripts that need only be installed and are never removed.
 #
@@ -23,7 +22,7 @@ CSHSCRIPT= which
 # explicit make lines.
 #
 STD=	apply biff checknr colcrt colrm ctags expand fold \
-	from gprof grep head last lastcomm leave logger mkstr \
+	from grep head last lastcomm leave logger mkstr \
 	printenv ruptime rwho sccs script soelim strings strcompact \
 	symcompact symdump symorder tail tcopy telnet unexpand unifdef users \
 	whois what wc xstr yes
@@ -43,27 +42,27 @@ KMEM=	gcore vmstat w
 all:	${SUBDIR} ${STD} ${NSTD} ${KMEM} ${SETUID}
 
 ${SUBDIR}: FRC
-	cd $@; make ${MFLAGS} SEPFLAG=${SEPFLAG}
+	cd $@; make ${MFLAGS}
 
 ${STD} ${KMEM} ${SETUID}:
-	cc ${CFLAGS} ${SEPFLAG} -o $@ $@.c
+	cc ${CFLAGS} ${LDFLAGS} -o $@ $@.c
 
 install: ${STD} ${NSTD} ${KMEM} ${SETUID}
 	-for i in ${SUBDIR}; do \
-		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
+		(cd $$i; make ${MFLAGS} install); done
 	-for i in ${CSHSCRIPT}; do \
-		(install -m 755 -c $$i.csh ${DESTDIR}/usr/ucb/$$i); done
+		(install -m 755 -c $$i.csh /usr/ucb/$$i); done
 	-for i in ${STD} ${NSTD}; do \
-		(install -s $$i ${DESTDIR}/usr/ucb/$$i); done
+		(install -c -s -m 755 $$i /usr/ucb/$$i); done
 	-for i in ${KMEM}; do \
-		(install -g kmem -m 2755 -s $$i ${DESTDIR}/usr/ucb/$$i); done
+		(install -g kmem -m 2755 -c -s $$i /usr/ucb/$$i); done
 	-for i in ${SETUID}; do \
-		(install -o root -m 4755 -s $$i ${DESTDIR}/usr/ucb/$$i); done
-	rm -f ${DESTDIR}/usr/ucb/uptime ${DESTDIR}/usr/ucb/f
-	ln ${DESTDIR}/usr/ucb/w ${DESTDIR}/usr/ucb/uptime
-	ln ${DESTDIR}/usr/ucb/finger ${DESTDIR}/usr/ucb/f
-	rm -f ${DESTDIR}/usr/ucb/u
-	ln ${DESTDIR}/usr/ucb/users ${DESTDIR}/usr/ucb/u
+		(install -o root -m 4755 -c -s $$i /usr/ucb/$$i); done
+	rm -f /usr/ucb/uptime /usr/ucb/f
+	ln /usr/ucb/w /usr/ucb/uptime
+	ln /usr/ucb/finger /usr/ucb/f
+	rm -f /usr/ucb/u
+	ln /usr/ucb/users /usr/ucb/u
 
 clean:
 	rm -f a.out core *.s *.o
@@ -93,13 +92,13 @@ depend:
 # Files listed in ${NSTD} have explicit make lines given below.
 
 clear:
-	${CC} -o clear ${SEPFLAG} ${CFLAGS} clear.c -ltermlib
+	${CC} -o clear ${LDFLAGS} ${CFLAGS} clear.c -ltermlib
 
 ul:
-	${CC} -o ul ${SEPFLAG} ${CFLAGS} ul.c -ltermlib
+	${CC} -o ul ${LDFLAGS} ${CFLAGS} ul.c -ltermlib
 
 vacation: vacation.c
-	${CC} -o vacation ${SEPFLAG} ${CFLAGS} vacation.c -ldbm
+	${CC} -o vacation ${LDFLAGS} ${CFLAGS} vacation.c -ldbm
 
 # DO NOT DELETE THIS LINE -- make depend uses it
 

@@ -14,10 +14,9 @@
 # WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#)Makefile	5.4.1 (2.11BSD GTE) 1995/04/13
-#
+# @(#)Makefile	5.4.2 (2.11BSD) 2025/11/27
 
-CFLAGS=	-O ${DEFS}
+CFLAGS=	-O
 SRCS=	login.c logout.c logwtmp.c dkcksum.c
 OBJS=	login.o logout.o logwtmp.o dkcksum.o
 
@@ -48,10 +47,10 @@ depend:
 	mkdep ${CFLAGS} ${SRCS}
 
 install: all
-	install -o bin -g bin -m 644 libutil.a ${DESTDIR}/usr/lib
-	ranlib -t ${DESTDIR}/usr/lib/libutil.a
-	install -o bin -g bin -m 644 libutil_p.a ${DESTDIR}/usr/lib
-	ranlib -t ${DESTDIR}/usr/lib/libutil_p.a
+	install -c -o root -g staff -m 644 libutil.a /usr/lib
+	ranlib -t /usr/lib/libutil.a
+	install -c -o root -g staff -m 644 libutil_p.a /usr/lib
+	ranlib -t /usr/lib/libutil_p.a
 
 tags:
 	ctags ${SRCS}

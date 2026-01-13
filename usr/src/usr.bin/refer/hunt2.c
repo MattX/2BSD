@@ -1,5 +1,5 @@
-#ifndef lint
-static char *sccsid = "@(#)hunt2.c	4.3 (Berkeley) 7/29/85";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)hunt2.c	4.4 (2.11BSD) 2025/12/26";
 #endif
 
 #include "refer..c"
@@ -25,7 +25,6 @@ union ptr {
 	long lp;
 	extern int lmaster, colevel, reached;
 	long getl(); 
-	unsigned getw(); 
 	extern int iflong;
 
 # if D1

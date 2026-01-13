@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)printjob.c	5.2.3 (2.11BSD GTE) 1996/12/23";
+static char sccsid[] = "@(#)printjob.c	5.2.4 (2.11BSD) 2025/12/26";
 #endif
 
 /*
@@ -55,7 +55,7 @@ char	length[10] = "-l";	/* page length in lines */
 char	pxwidth[10] = "-x";	/* page width in pixels */
 char	pxlength[10] = "-y";	/* page length in pixels */
 char	indent[10] = "-i0";	/* indentation size in characters */
-char	tmpfile[] = "errsXXXXXX"; /* file name for filter output */
+char	ptmpfile[] = "errsXXXXXX"; /* file name for filter output */
 
 printjob()
 {
@@ -82,7 +82,7 @@ printjob()
 	signal(SIGQUIT, abortpr);
 	signal(SIGTERM, abortpr);
 
-	(void) mktemp(tmpfile);
+	(void) mktemp(ptmpfile);
 
 	/*
 	 * uses short form file names
@@ -200,7 +200,7 @@ again:
 			if (TR != NULL)		/* output trailer */
 				(void) write(ofd, TR, strlen(TR));
 		}
-		(void) unlink(tmpfile);
+		(void) unlink(ptmpfile);
 		exit(0);
 	}
 	goto again;
@@ -570,7 +570,7 @@ start:
 	if ((child = dofork(DORETURN)) == 0) {	/* child */
 		dup2(fi, 0);
 		dup2(fo, 1);
-		n = open(tmpfile, O_WRONLY|O_CREAT|O_TRUNC, 0664);
+		n = open(ptmpfile, O_WRONLY|O_CREAT|O_TRUNC, 0664);
 		if (n >= 0)
 			dup2(n, 2);
 		for (n = 3; n < NOFILE; n++)
@@ -937,8 +937,8 @@ sendmail(user, bombed)
 			printf("\ncould not be printed without an account on %s\n", host);
 			break;
 		case FILTERERR:
-			if (stat(tmpfile, &stb) < 0 || stb.st_size == 0 ||
-			    (fp = fopen(tmpfile, "r")) == NULL) {
+			if (stat(ptmpfile, &stb) < 0 || stb.st_size == 0 ||
+			    (fp = fopen(ptmpfile, "r")) == NULL) {
 				printf("\nwas printed but had some errors\n");
 				break;
 			}
@@ -997,7 +997,7 @@ dofork(action)
  */
 abortpr()
 {
-	(void) unlink(tmpfile);
+	(void) unlink(ptmpfile);
 	kill(0, SIGINT);
 	if (ofilter > 0)
 		kill(ofilter, SIGCONT);

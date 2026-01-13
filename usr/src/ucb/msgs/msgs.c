@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)msgs.c	5.2 (Berkeley) 4/10/86";
-#endif not lint
+static char sccsid[] = "@(#)msgs.c	5.3 (2.11BSD) 2026/1/7";
+#endif
 
 /*
  * msgs - a user bulletin board program
@@ -35,7 +33,6 @@ static char sccsid[] = "@(#)msgs.c	5.2 (Berkeley) 4/10/86";
  *	<num>	print message number <num>
  */
 
-#define V7		/* will look for TERM in the environment */
 #define OBJECT		/* will object to messages without Subjects */
 /* #define REJECT	/* will reject messages without Subjects
 			   (OBJECT must be defined also) */
@@ -50,6 +47,7 @@ static char sccsid[] = "@(#)msgs.c	5.2 (Berkeley) 4/10/86";
 #include <pwd.h>
 #include <sgtty.h>
 #include <setjmp.h>
+#include <strings.h>
 #include "msgs.h"
 
 #define CMODE	0666		/* bounds file creation mode */
@@ -365,7 +363,7 @@ int argc; char *argv[];
 		if (nextmsg > lastmsg+1) {
 			printf("Warning: bounds have been reset (%d, %d)\n",
 				firstmsg, lastmsg);
-			ftruncate(fileno(msgsrc), 0L);
+			truncate(fname, 0L);
 			newrc = YES;
 		}
 		else if (!rcfirst)
@@ -394,7 +392,6 @@ int argc; char *argv[];
 		fflush(msgsrc);
 	}
 
-#ifdef V7
 	if (totty) {
 		struct winsize win;
 		if (ioctl(fileno(stdout), TIOCGWINSZ, &win) != -1)
@@ -406,7 +403,7 @@ int argc; char *argv[];
 			}
 		}
 	}
-#endif
+
 	Lpp -= 6;	/* for headers, etc. */
 
 	already = NO;
@@ -671,7 +668,7 @@ char *buf;
 ask(prompt)
 char *prompt;
 {
-	char	inch;
+	char	inch, *cp;
 	int	n, cmsg;
 	off_t	oldpos;
 	FILE	*cpfrom, *cpto;
@@ -679,7 +676,11 @@ char *prompt;
 	printf("%s ", prompt);
 	fflush(stdout);
 	intrpflg = NO;
-	gets(inbuf);
+
+	fgets(inbuf, sizeof inbuf, stdin);
+	cp = index(inbuf, '\n');
+	if (cp) *cp = '\0';
+
 	if (intrpflg)
 		inbuf[0] = 'x';
 

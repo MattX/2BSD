@@ -3,20 +3,13 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.5 (Berkeley) 4/25/86
+#	@(#)Makefile	5.5 (2.11BSD) 2025/11/27
 #
 
 # Makefile for f77 I/O lib, libI77.a
 
 CFLAGS	      = -O
-
-DEST	      = $(DESTDIR)/usr/lib
-
-DESTDIR	      =
-
-EXTHDRS	      =
-
-FFLAGS	      = -O
+DEST	      = /usr/lib
 
 HDRS	      = f_errno.h \
 		fio.h \
@@ -26,10 +19,7 @@ HDRS	      = f_errno.h \
 		nmlio.h
 
 LIBRARY	      = libI77.a
-
 LIBRARY_P     = libI77_p.a
-
-MAKEFILE      = Makefile
 
 OBJS	      = backspace.o \
 		c_dfe.o \
@@ -65,10 +55,6 @@ OBJS	      = backspace.o \
 		wsfe.o \
 		wsli.o \
 		wsnmle.o
-
-OLDDIR	      = $(DESTDIR)/usr/old/lib
-
-PRINT	      = pr
 
 SRCS	      = backspace.c \
 		c_dfe.c \
@@ -130,34 +116,20 @@ Version:	$(SRCS) mkvers
 mkvers:		mkvers.c
 		@$(CC) mkvers.c -o mkvers
 
-clean:;		@rm -f $(OBJS) profiled/*.o $(LIBRARY) $(LIBRARY_P) libI66.o
+clean:;		@rm -f $(OBJS) mkvers Version profiled/* $(LIBRARY) $(LIBRARY_P) libI66.o
 
 depend:;	@echo Construct dependencies manually
-
-extract:;	@ar xo $(DEST)/$(LIBRARY); rm -f __.SYMDEF
-		@cd profiled; -ar xo $(DEST)/$(LIBRARY_P); rm -f __.SYMDEF
 
 index:;		@ctags -wx $(HDRS) $(SRCS)
 
 install:	$(LIBRARY) $(LIBRARY_P) libI66.o
-		install -m 644 $(LIBRARY) $(DEST)/$(LIBRARY)
+		install -c -m 644 $(LIBRARY) $(DEST)/$(LIBRARY)
 		ranlib $(DEST)/$(LIBRARY)
-		install -m 644 $(LIBRARY_P) $(DEST)/$(LIBRARY_P)
+		install -c -m 644 $(LIBRARY_P) $(DEST)/$(LIBRARY_P)
 		ranlib $(DEST)/$(LIBRARY_P)
-		install -m 644 -c libI66.o $(DEST)/libI66.a
-
-library:        $(LIBRARY) $(LIBRARY_P)
-
-print:;		@$(PRINT) $(HDRS) $(SRCS)
+		install -c -m 644 -c libI66.o $(DEST)/libI66.a
 
 tags:           $(HDRS) $(SRCS); @ctags $(HDRS) $(SRCS)
-
-update:         $(DEST)/$(LIBRARY)
-
-$(DEST)/$(LIBRARY): $(SRCS) $(HDRS) $(EXTHDRS)
-		@-ar xo $(DEST)/$(LIBRARY)
-		@cd profiled; -ar xo $(DEST)/$(LIBRARY_P)
-		@make -f $(MAKEFILE) DEST=$(DEST) install clean
 
 f_errlist.o:	f_errlist.c
 		$(CC) $(CFLAGS) -c f_errlist.c

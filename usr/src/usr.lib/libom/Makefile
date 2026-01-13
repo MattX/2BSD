@@ -1,12 +1,7 @@
-#	@(#)Makefile	4.2	6/5/85
+#	@(#)Makefile	4.3	(2.11BSD) 2025/11/25
 #
-SCCSID = "@(#)Makefile 4.2 6/5/85"
 
 CFLAGS=-O
-
-DESTDIR=
-
-INSTALL= install
 
 SRCS=	asin.c atan.c hypot.c jn.c j0.c j1.c pow.c gamma.c \
 	log.c sin.c sqrt.c tan.c tanh.c sinh.c erf.c exp.c floor.c
@@ -29,10 +24,10 @@ libom.a libom_p.a : $(FILES)
 	ar cru libom.a $(FILES)
 
 install: libom.a libom_p.a
-	${INSTALL} libom.a ${DESTDIR}/usr/lib
-	ranlib ${DESTDIR}/usr/lib/libom.a
-	${INSTALL} libom_p.a ${DESTDIR}/usr/lib
-	ranlib ${DESTDIR}/usr/lib/libom_p.a
+	install -c -m 644 -o root libom.a /usr/lib
+	ranlib /usr/lib/libom.a
+	install -c -m 644 -o root libom_p.a /usr/lib
+	ranlib /usr/lib/libom_p.a
 
 tags:
 	cwd=`pwd`; \

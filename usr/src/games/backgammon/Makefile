@@ -3,10 +3,9 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.4 (Berkeley) 1/11/86
+#	@(#)Makefile	5.5 (2.11BSD) 2025/11/25
 #
-DESTDIR=
-SEPFLAG= -i
+LDFLAGS= -i
 CFLAGS= -O -DV7 -w
 OBJS= allow.o board.o check.o extra.o fancy.o init.o main.o move.o\
 	odds.o one.o save.o subs.o table.o text.o message.o
@@ -21,12 +20,12 @@ all: backgammon teachgammon backgammon.doc
 #	Backgammon program
 backgammon: $(OBJS)
 	-rm -f backgammon
-	cc ${SEPFLAG} -o backgammon $(OBJS) -ltermlib
+	cc ${LDFLAGS} -o backgammon $(OBJS) -ltermlib
 
 #	Backgammon rules and tutorial
 teachgammon: ${TOBJS}
 	-rm -f teachgammon
-	cc ${SEPFLAG} -o teachgammon $(TOBJS) -ltermlib
+	cc ${LDFLAGS} -o teachgammon $(TOBJS) -ltermlib
 
 #	Header files back.h and tutor.h
 allow.o board.o check.o extra.o fancy.o main.o move.o odds.o one.o save.o\
@@ -44,8 +43,8 @@ backgammon.doc: backgammon.src
 
 #	Installation
 install: all
-	install -s backgammon ${DESTDIR}/usr/games/backgammon
-	install -s teachgammon ${DESTDIR}/usr/games/teachgammon
+	install -c -s -m 755 backgammon /usr/games/backgammon
+	install -c -s -m 755 teachgammon /usr/games/teachgammon
 
 clean:
 	rm -f ${OBJS} ${TOBJS} backgammon teachgammon backgammon.doc errs

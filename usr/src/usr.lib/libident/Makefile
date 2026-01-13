@@ -1,13 +1,12 @@
 #
 # Place in the public domain 1996/12/13 - sms.
 #
-# @(#)Makefile 1.0 (2.11BSD) 1996/12/13
+# @(#)Makefile 1.1 (2.11BSD) 2025/11/25
 #
 
-DESTDIR=
-LIBDIR=$(DESTDIR)/usr/lib
-INCDIR=$(DESTDIR)/usr/include
-MANDIR=$(DESTDIR)/usr/man/cat3
+LIBDIR=/usr/lib
+INCDIR=/usr/include
+MANDIR=/usr/man/cat3
 
 CFLAGS=-O -DSIGRETURNTYPE=int -DHAVE_ANSIHEADERS
 
@@ -48,7 +47,7 @@ install: all
 	install -c -m 644 libident_p.a $(LIBDIR)/libident_p.a
 	ranlib $(LIBDIR)/libident.a $(LIBDIR)/libident_p.a
 	install -c -m 444  ident.h $(INCDIR)/ident.h
-	install -c -o bin -g bin -m 444 ident.0 $(MANDIR)/ident.0
+	install -c -o root -g staff -m 444 ident.0 $(MANDIR)/ident.0
 
 clean:
 	-rm -f libident.a libident_p.a ident-tester lookup-tester *.o ident.0

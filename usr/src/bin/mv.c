@@ -9,8 +9,8 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)mv.c	5.3.1 (2.11BSD) 1996/1/5";
-#endif not lint
+static char sccsid[] = "@(#)mv.c	5.3.2 (2.11BSD) 2025/12/25";
+#endif
 
 /*
  * mv file1 file2
@@ -33,7 +33,6 @@ static char sccsid[] = "@(#)mv.c	5.3.1 (2.11BSD) 1996/1/5";
 #define	ISDEV(st) \
 	(((st).st_mode&S_IFMT) == S_IFCHR || ((st).st_mode&S_IFMT) == S_IFBLK)
 
-char	*sprintf();
 char	*dname();
 struct	stat s1, s2;
 int	iflag = 0;	/* interactive mode */
@@ -250,7 +249,7 @@ cleanup:
 
 /*VARARGS*/
 query(prompt, a1, a2)
-	char *a1;
+	char *prompt, *a1, *a2;
 {
 	register int i, c;
 

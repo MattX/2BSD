@@ -1,29 +1,26 @@
-# @(#)Makefile 2.0 (2.11BSD) 2018/12/29
+# @(#)Makefile 2.1 (2.11BSD) 2025/11/25
 FORTUNES=	scene obscene
 SOURCE=		fortune.c strfile.h strfile.c unstr.c $(FORTUNES)
 TFILES=		Troff.mac Troff.sed Do_troff
 LIBDIR=		/usr/games/lib
 BINDIR=		/usr/games
-OWN=		arnold
-GRP=		arpa
 DEFS=
-SEPFLAG= -i
+LDFLAGS= -i
 CFLAGS=		-O $(DEFS)
 SFLAGS=		-r
 TDEV=		-Pver
-TROFF=		ditroff $(TDEV)
-DESTDIR=
+TROFF=		troff $(TDEV)
 
 all: fortune strfile unstr fortunes.dat
 
 fortune: fortune.o
-	$(CC) ${SEPFLAG} $(CFLAGS) -o fortune fortune.o
+	$(CC) ${LDFLAGS} $(CFLAGS) -o fortune fortune.o
 
 strfile: strfile.o
-	$(CC) ${SEPFLAG} $(CFLAGS) -o strfile strfile.o
+	$(CC) ${LDFLAGS} $(CFLAGS) -o strfile strfile.o
 
 unstr: unstr.o
-	$(CC) ${SEPFLAG} $(CFLAGS) -o unstr unstr.o
+	$(CC) ${LDFLAGS} $(CFLAGS) -o unstr unstr.o
 
 fortune.o strfile.o unstr.o: strfile.h
 
@@ -41,10 +38,10 @@ lint:
 	lint -hxb $(DEFS) unstr.c 2>&1 > unstr.lint
 
 install: all install.data
-	install -s -m 4711 -o daemon fortune $(DESTDIR)$(BINDIR)
+	install -c -s -m 4711 -o daemon fortune $(BINDIR)
 
 install.data: fortunes.dat
-	install -m 600 -o daemon fortunes.dat $(DESTDIR)$(LIBDIR)
+	install -m 600 -o daemon fortunes.dat $(LIBDIR)
 
 troff: troff.scene troff.obscene
 

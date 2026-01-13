@@ -1,73 +1,100 @@
-.\" Copyright (c) 1980 Regents of the University of California.
-.\" All rights reserved.  The Berkeley software License Agreement
-.\" specifies the terms and conditions for redistribution.
+.\" Copyright (c) 1990, 1991, 1993
+.\"	The Regents of the University of California.  All rights reserved.
 .\"
-.\"	@(#)ferror.3s	6.3 (Berkeley) 5/14/86
+.\" This code is derived from software contributed to Berkeley by
+.\" Chris Torek and the American National Standards Committee X3,
+.\" on Information Processing Systems.
 .\"
-.TH FERROR 3S  "May 14, 1986"
-.UC 4
-.SH NAME
-ferror, feof, clearerr, fileno \- stream status inquiries
-.SH SYNOPSIS
-.B #include <stdio.h>
-.PP
-.B feof(stream)
-.br
-.SM
-.B FILE
-.B *stream;
-.PP
-.B ferror(stream)
-.br
-.SM
-.B FILE
-.B *stream
-.PP
-.B clearerr(stream)
-.br
-.SM
-.B FILE
-.B *stream
-.PP
-.B fileno(stream)
-.br
-.SM
-.B FILE
-.B *stream;
-.SH DESCRIPTION
-.I Feof
-returns non-zero when end of file is read on the named input
-.IR stream ,
-otherwise zero.
-Unless cleared by
-.IR clearerr ,
-the end-of-file indication lasts until
-the stream is closed.
-.PP
-.I Ferror
-returns non-zero when an error has occurred reading or writing
-the named
-.IR stream ,
-otherwise zero.
-Unless cleared by
-.IR clearerr ,
-the error indication lasts until
-the stream is closed.
-.PP
-.I Clearerr
-resets the error and end-of-file indicators on the named
-.IR stream .
-.PP
-.I Fileno
-returns the integer file descriptor
-associated with the
-.IR stream ,
-see
-.IR open (2).
-.PP
-Currently all of these functions
-are implemented as macros;
-they cannot be redeclared.
-.SH "SEE ALSO"
-fopen(3S),
-open(2)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)ferror.3	8.3 (2.11BSD) 2025/12/26
+.\"
+.Dd April 19, 1994
+.Dt FERROR 3
+.Os
+.Sh NAME
+.Nm clearerr ,
+.Nm feof ,
+.Nm ferror ,
+.Nm fileno
+.Nd check and reset stream status
+.Sh SYNOPSIS
+.Fd #include <stdio.h>
+.Ft void
+.Fn clearerr "FILE *stream"
+.Ft int
+.Fn feof "FILE *stream"
+.Ft int
+.Fn ferror "FILE *stream"
+.Ft int
+.Fn fileno "FILE *stream"
+.Sh DESCRIPTION
+The function
+.Fn clearerr
+clears the end-of-file and error indicators for the stream pointed
+to by
+.Fa stream .
+.Pp
+The function
+.Fn feof
+tests the end-of-file indicator for the stream pointed to by
+.Fa stream ,
+returning non-zero if it is set.
+The end-of-file indicator can only be cleared by the function
+.Fn clearerr .
+.Pp
+The function
+.Fn ferror
+tests the error indicator for the stream pointed to by
+.Fa stream ,
+returning non-zero if it is set.
+The error indicator can only be reset by the
+.Fn clearerr
+function.
+.Pp
+The function
+.Fn fileno
+examines the argument
+.Fa stream
+and returns its integer descriptor.
+.Sh ERRORS
+These functions should not fail and do not set the external
+variable
+.Va errno .
+.Sh SEE ALSO
+.Xr open 2 ,
+.Xr stdio 3
+.Sh STANDARDS
+The functions
+.Fn clearerr ,
+.Fn feof ,
+and
+.Fn ferror
+conform to
+.St -ansiC .

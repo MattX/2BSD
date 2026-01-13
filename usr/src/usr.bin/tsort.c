@@ -1,4 +1,7 @@
-static char *sccsid = "@(#)tsort.c	4.2 (Berkeley) 10/20/82";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)tsort.c	4.3 (2.11BSD) 2025/12/26";
+#endif
+
 /*	topological sort
  *	input is sequence of pairs of items (blank-free strings)
  *	nonidentical pair is a directed edge in graph
@@ -83,6 +86,7 @@ char **argv;
 		printf("%s\n",i->name);
 		i->live = DEAD;
 	}
+	return 0;
 }
 
 /*	is i present on j's predecessor list?

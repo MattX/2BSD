@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)rsh.c	5.4 (Berkeley) 8/28/85";
-#endif not lint
+static char sccsid[] = "@(#)rsh.c	5.5 (2.11BSD) 2025/12/26";
+#endif
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -26,15 +24,13 @@ static char sccsid[] = "@(#)rsh.c	5.4 (Berkeley) 8/28/85";
 #include <signal.h>
 #include <pwd.h>
 #include <netdb.h>
+#include <strings.h>
 
 /*
  * rsh - remote shell
  */
-/* VARARGS */
-int	error();
-char	*index(), *rindex(), *malloc(), *getpass(), *sprintf(), *strcpy();
 
-struct	passwd *getpwuid();
+int	error();
 
 int	errno;
 int	options;
@@ -124,7 +120,7 @@ another:
 	cc = 0;
 	for (ap = argv; *ap; ap++)
 		cc += strlen(*ap) + 1;
-	cp = args = malloc(cc);
+	cp = args = (char *)malloc(cc);
 	for (ap = argv; *ap; ap++) {
 		(void) strcpy(cp, *ap);
 		while (*cp)

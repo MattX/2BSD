@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.4.1	(2.11BSD)	1996/12/1
+#	@(#)Makefile	5.4.2	(2.11BSD)	2025/11/27
 #
 # make file for intermachine communications package
 #
@@ -36,12 +36,12 @@
 #				writes on local side
 #	BUFSIZ			buffer sizing from stdio, must be fed
 #				explicitly to remcap.c if not 1024
-ADM=	usr/adm
+ADM=	/usr/adm
 OWNER=	uucp
 GROUP=	daemon
 CONFIG=	-DHAYES
 CFLAGS=	-O -DDEFBR=1200 -DDEFFS=BUFSIZ -DACULOG -DPRISTINE
-SEPFLAG=-i
+LDFLAGS=-i
 SRCS=	acu.c acutab.c cmds.c cmdtab.c cu.c hunt.c log.c partab.c remcap.c \
 	remote.c tip.c tipout.c uucplock.c value.c vars.c
 OBJS=	acu.o acutab.o cmds.o cmdtab.o cu.o hunt.o log.o partab.o remcap.o \
@@ -50,7 +50,7 @@ OBJS=	acu.o acutab.o cmds.o cmdtab.o cu.o hunt.o log.o partab.o remcap.o \
 all: aculib tip
 
 tip: ${OBJS}
-	${CC} ${SEPFLAG} -o $@ ${OBJS} aculib/aculib.a
+	${CC} ${LDFLAGS} -o $@ ${OBJS} aculib/aculib.a
 
 remcap.o: remcap.c
 	${CC} -c -DBUFSIZ=1024 ${CFLAGS} remcap.c
@@ -77,12 +77,12 @@ depend: FRC
 
 install: aculib tip
 	cd aculib; make ${MFLAGS} install
-	install -s -o ${OWNER} -g ${GROUP} -m 4711 tip ${DESTDIR}/usr/bin/tip
-	rm -f ${DESTDIR}/usr/bin/cu
-	ln ${DESTDIR}/usr/bin/tip ${DESTDIR}/usr/bin/cu
-	touch ${DESTDIR}/${ADM}/aculog
-	chown ${OWNER}.${GROUP} ${DESTDIR}/${ADM}/aculog
-	chmod 600 ${DESTDIR}/${ADM}/aculog
+	install -c -s -o ${OWNER} -g ${GROUP} -m 4755 tip /usr/bin/tip
+	rm -f /usr/bin/cu
+	ln /usr/bin/tip /usr/bin/cu
+	touch ${ADM}/aculog
+	chown ${OWNER}.${GROUP} ${ADM}/aculog
+	chmod 600 ${ADM}/aculog
 	@echo "create /etc/remote and /etc/phones"
 
 lint: FRC

@@ -9,7 +9,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	%W% (Berkeley) %G%
+#       @(#)Makefile    2.0 (2.11BSD) 2025/11/28
 #
 # Uncomment these two lines to enable string extractions
 CC=	./mkstrcc
@@ -28,14 +28,8 @@ OVLY3=	alias.o err.o domain.o stats.o usersmtp.o
 OBJS=	${BASE} ${OVLY1} ${OVLY2} ${OVLY3}
 
 CFLAGS=	-O -I. -I../include -DVMUNIX -DMXDOMAIN -DNOSCCS
-# CFLAGS=	-O -I. -I../include -DVMUNIX -DNOSCCS
-SEPFLAG=-i
+LDFLAGS=-i
 ASMSED=	../include/asm.sed
-
-GET=	sccs get
-DELTA=	sccs delta
-WHAT=	what
-PRT=	sccs prt
 
 .c.o:
 	$(CC) -S ${CFLAGS} $*.c
@@ -44,7 +38,7 @@ PRT=	sccs prt
 	rm -f $*.s _xx.s
 
 sendmail: ${OBJS} Version.o
-	cc ${SEPFLAG} ${COPTS} -o sendmail Version.o ${BASE} \
+	cc ${LDFLAGS} ${COPTS} -o sendmail Version.o ${BASE} \
 		-Z ${OVLY1} -Z ${OVLY2} -Z ${OVLY3} -Y -ldbm -lstubs; \
 	size sendmail; ls -l sendmail; ${WHAT} < Version.o
 
@@ -53,25 +47,19 @@ dsendmail: ${OBJS} Version.o
 	size sendmail; ls -l sendmail; ${WHAT} < Version.o
 
 install: sendmail 
-	install -c -s -o root -g kmem -m 6755 sendmail ${DESTDIR}/usr/sbin
-	install -c -o bin -m 644 /dev/null ${DESTDIR}/etc/sendmail.fc
-	install -c -o bin -m 666 /dev/null ${DESTDIR}/var/log/sendmail.st
-	rm -f ${DESTDIR}/usr/bin/newaliases
-	ln -s ../sbin/sendmail ${DESTDIR}/usr/bin/newaliases
-	rm -f ${DESTDIR}/usr/bin/mailq
-	ln -s ../sbin/sendmail ${DESTDIR}/usr/bin/mailq
+	install -c -s -o root -g kmem -m 6755 sendmail /usr/sbin
+	install -c -o root -m 644 /dev/null /etc/sendmail.fc
+	install -c -o root -m 666 /dev/null /var/log/sendmail.st
+	rm -f /usr/bin/newaliases
+	ln -s ../sbin/sendmail /usr/bin/newaliases
+	rm -f /usr/bin/mailq
+	ln -s ../sbin/sendmail /usr/bin/mailq
 	-if [ -s sendmail.sr ]; then \
-		install -c -o bin -m 644 sendmail.sr \
-			$(DESTDIR)/usr/share/misc/sendmail.sr; \
+		install -c -o root -m 644 sendmail.sr \
+			/usr/share/misc/sendmail.sr; \
 	fi
 
-version: newversion ${OBJS} Version.c
-
-newversion:
-	@rm -f SCCS/p.version.c version.c
-	@${GET} -e SCCS/s.version.c
-	@${DELTA} -s SCCS/s.version.c
-	@${GET} -t -s SCCS/s.version.c
+version: ${OBJS} Version.c
 
 Version.c: version.c
 	@echo generating Version.c from version.c
@@ -79,7 +67,6 @@ Version.c: version.c
 	@chmod 644 Version.c
 	@echo "" >> Version.c
 	@echo "# ifdef COMMENT" >> Version.c
-#	@${PRT} SCCS/s.version.c >> Version.c
 	@echo "" >> Version.c
 	@echo "code versions:" >> Version.c
 	@echo "" >> Version.c

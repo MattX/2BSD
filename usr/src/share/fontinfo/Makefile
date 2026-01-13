@@ -1,8 +1,6 @@
 # Public domain - 1996/10/22 - sms
 #
-#	@(#)Makefile	1.0 (2.11BSD) 1996/10/22
-#
-#  Makefile for fontinfo files.
+#	@(#)Makefile	1.1 (2.11BSD) 2025/11/25
 #
 
 SRCS= apl basker.b basker.i basker.r bocklin bodoni.b bodoni.i bodoni.r \
@@ -16,8 +14,8 @@ SRCS= apl basker.b basker.i basker.r bocklin bodoni.b bodoni.i bodoni.r \
 all:	${SRCS}
 
 install:${SRCS}
-	-mkdir -p ${DESTDIR}/usr/share/fontinfo
-	-chmod a+r,a+x ${DESTDIR}/usr/share/fontinfo
-	install -c -m 444 ${SRCS} ${DESTDIR}/usr/share/fontinfo
+	-mkdir -p /usr/share/fontinfo
+	-chmod a+r,a+x /usr/share/fontinfo
+	install -c -m 444 ${SRCS} /usr/share/fontinfo
 
 clean:

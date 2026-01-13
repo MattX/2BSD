@@ -1,10 +1,9 @@
 #
 # Public Domain.  1996/6/25 - Steven Schultz
 #
-#	@(#)Makefile	1.0 (2.11BSD GTE) 1996/6/25
+#	@(#)Makefile	1.1 (2.11BSD) 2025/11/27
 #
-DEFS=
-CFLAGS=-O $(DEFS)
+CFLAGS=-O
 TAGSFILE=tags
 
 all: libstubs.a libstubs_p.a
@@ -20,8 +19,8 @@ libstubs_p.a: stubs.c
 	rm -f stubs.o
 
 install: all
-	install -m 644 libstubs.a $(DESTDIR)/usr/lib
-	install -m 644 libstubs_p.a $(DESTDIR)/usr/lib
+	install -c -m 644 libstubs.a /usr/lib
+	install -c -m 644 libstubs_p.a /usr/lib
 
 tags:
 	ctags -a -f ${TAGSFILE} `pwd`/stubs.c

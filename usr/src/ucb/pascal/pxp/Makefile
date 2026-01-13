@@ -1,8 +1,6 @@
 #
-# pxp makefile
+#       #(@)Makefile    2.0 (2.11BSD) 2025/11/25
 #
-
-DESTDIR=
 
 ED=	-ed
 AS=	as -V -
@@ -10,8 +8,7 @@ EYACC=	../eyacc/eyacc
 
 DEFS=		-DPXP
 CFLAGS=		-O -w
-LDFLAGS=	-X
-SEPFLAG=	-i
+LDFLAGS=	-X -i
 
 HDRS=	0.h opcode.h tree.h yy.h
 
@@ -44,15 +41,15 @@ all: pxp
 
 pxp: y.tab.h ${OBJS} ${OBJS2}
 	${CC} ${CFLAGS} ${DEFS} -c Version.c
-	${CC} ${SEPFLAG} ${LDFLAGS} -o pxp ${OBJS} ${OBJS2} Version.o
+	${CC} ${LDFLAGS} -o pxp ${OBJS} ${OBJS2} Version.o
 
 y.tab.c y.tab.h: pas.y
 	${EYACC} -v pas.y
 	${ED} - y.tab.c < gram.ex
 
 install: pxp how_pxp
-	install -s pxp ${DESTDIR}/usr/ucb/pxp
-	install -c how_pxp ${DESTDIR}/usr/share/pascal/how_pxp
+	install -c -s -m 755 pxp /usr/ucb/pxp
+	install -c -m 644 how_pxp /usr/share/pascal/how_pxp
 
 tags: FRC
 	ctags ${HDRS} ${SRCS}
@@ -61,11 +58,3 @@ FRC:
 
 clean:
 	rm -f pi1.2strings a.out core y.tab.c y.output *.o x* tags
-
-print:
-	@ls -ls | pr
-	@pr READ_ME Makefile
-	@pr 0.h main.c pas.y
-	@pr yy.h yy*.c
-	@pr [a-ln-x]*.c
-	@pr treen.s yycopy.s

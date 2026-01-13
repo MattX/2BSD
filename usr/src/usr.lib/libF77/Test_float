@@ -1,4 +1,6 @@
 #!	/bin/csh -f 
+
+#       Test_float       2.0 (2.11BSD) 2025/11/27
 #
 #	this tests if C rounds the return value to single precision in
 #	functions of type float. (see sec. 9.10 of C ref. manual).
@@ -49,4 +51,4 @@ cat << 'EOT' >! /tmp/test_fltf.f
 'EOT'
 pushd /tmp
 f77 test_fltc.c test_fltf.f -o test_flt
-test_flt
+./test_flt

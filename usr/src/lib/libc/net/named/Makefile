@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	6.4 (Berkeley) 6/6/87
+#	@(#)Makefile	6.5 (2.11BSD) 2025/11/25
 #
 
 OBJS=	gethnamadr.o sethostent.o
@@ -12,7 +12,6 @@ SRCS=	gethnamadr.c sethostent.c
 
 CFLAGS= -O ${DEFS}
 TAGSFILE= tags
-DESTDIR=
 
 .c.o:
 	${CC} -p -c ${CFLAGS} $*.c

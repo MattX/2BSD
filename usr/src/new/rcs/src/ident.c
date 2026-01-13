@@ -1,12 +1,9 @@
-/*
- *                     RCS identification operation
- */
-#ifndef lint
-static char rcsid[]=
-"$Header: /arthur/src/local/bin/rcs/src/RCS/ident.c,v 4.4 87/10/23 17:09:57 narten Exp $Purdue CS";
+#if     !defined(lint) && defined(DOSCCS)
+char copyright[] =
+static char sccsid[] = "@(#)ident.c 6.2.1 (2.11BSD) 2025/12/26";
 #endif
+
 /*****************************************************************************
- *****************************************************************************
  *
  * Copyright (C) 1982 by Walter F. Tichy
  *                       Purdue University
@@ -56,7 +53,7 @@ static char rcsid[]=
 */
 
 #include  "rcsbase.h"
-#define fflsbuf _flsbuf
+#define fflsbuf __swbuf
 /* redefinition of _flsbuf in putc not needed */
 #ifndef lint
 static char rcsbaseid[] = RCSBASE;

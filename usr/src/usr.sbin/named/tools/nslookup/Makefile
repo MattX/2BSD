@@ -14,11 +14,10 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.20.2 (2.11BSD) 1996/12/1
+#	@(#)Makefile	5.20.3 (2.11BSD) 2025/11/28
 #
 CFLAGS=	-O
-RES=
-LIBS=	-ll ${RES}
+LIBS=	-ll
 CSRCS=	main.c getinfo.c debug.c send.c skip.c list.c subr.c res_debug.c
 SRCS=	${CSRCS} commands.c
 OBJS=	main.o getinfo.o debug.o send.o skip.o list.o subr.o commands.o \
@@ -39,9 +38,9 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: nslookup nslookup.0
-	install -s -o bin -g bin -m 755 nslookup ${DESTDIR}/usr/bin/nslookup
-	install -c -o bin -g bin -m 444 nslookup.help ${DESTDIR}/usr/share/misc/nslookup.help
-	install -c -o bin -g bin -m 444 nslookup.0 ${DESTDIR}/usr/man/cat1/nslookup.0
+	install -c -s -o root -g staff -m 755 nslookup /usr/bin/nslookup
+	install -c -o root -g staff -m 444 nslookup.help /usr/share/misc/nslookup.help
+	install -c -o root -g staff -m 444 nslookup.0 /usr/man/cat1/nslookup.0
 
 nslookup.0: nslookup.8
 	/usr/man/manroff nslookup.8 > nslookup.0

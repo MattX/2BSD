@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)logger.c	6.2.1 (2.11BSD) 1997/10/2";
+static char sccsid[] = "@(#)logger.c	6.2.2 (2.11BSD) 2025/12/26";
 #endif
 
 #include <stdio.h>
@@ -78,7 +78,7 @@ main(argc, argv)
 				argc--;
 				if (freopen(*++argv, "r", stdin) == NULL)
 				{
-					fprintf("logger: ");
+					fprintf(stderr, "logger: ");
 					perror(*argv);
 					exit(1);
 				}

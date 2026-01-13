@@ -3,18 +3,21 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.1 (Berkeley) 6/4/85
+#	@(#)Makefile	5.2 (2.11BSD) 2025/11/26
 #
 #
 CFLAGS=-O
-SEPFLAG= -i
+LDFLAGS=-i
 SRCS = msgs.c msgs.h Makefile
-msgs: msgs.c msgs.h
-	cc ${SEPFLAG} $(CFLAGS) -o msgs msgs.c -ltermlib
+OBJS = msgs.o
+
+all: msgs
+
+msgs: ${OBJS}
+	cc ${LDFLAGS} -o msgs ${OBJS} -ltermlib
+
 install: msgs
-	install -s msgs ${DESTDIR}/usr/ucb
+	install -c -s -m 755 -o root msgs /usr/ucb
+
 clean:
-	-rm -f msgs
-sources: $(SRCS)
-$(SRCS):
-	sccs get $@
+	-rm -f msgs ${OBJS}

@@ -1,5 +1,7 @@
+	@(#)README	5.4 (2.11BSD) 2026/1/1
 
-	@(#)README	5.3 (Berkeley) 9/17/85
+Rip out all the non-pdp11 conditionals.  If someone want to port this version 
+to those systems then: have fun!
 
 Compress version 4.0 improvements over 3.0:
 	o compress() speedup (10-50%) by changing division hash to xor

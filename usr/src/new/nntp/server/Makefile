@@ -1,6 +1,4 @@
-#
-# Makefile for NNTP server
-#
+#       Makefile        2.0 (2.11BSD) 2025/11/29
 
 SRVROBJ = main.o serve.o access.o access_inet.o access_dnet.o active.o \
 	ahbs.o globals.o group.o help.o ihave.o list.o misc.o netaux.o \
@@ -25,8 +23,6 @@ CFLAGS	= -O
 
 # Where nntpd is going to live
 
-DESTDIR	= /news/lib
-
 all:	nntpd
 
 nntpd: ${SRVROBJ} ${SRVRINC}
@@ -35,21 +31,14 @@ nntpd: ${SRVROBJ} ${SRVRINC}
 ${SRVROBJ}: ${SRVRINC}
 
 install: nntpd
-	cp nntpd ${DESTDIR}/nntpd
-	chmod 711 ${DESTDIR}/nntpd
+	cp nntpd /usr/new/lib/nntpd
+	chmod 711 /usr/new/lib/nntpd
 
 lint:
 	lint ${SRVRSRC}
 
 clean:
 	-rm -f *.o nntpd make*.out a.out
-
-distrib: clean
-	rm -rf SCCS save tags
-
-check:
-	sccs check
-	sccs prt -y *.[ch] > /dev/null
 
 tags:	${SRVRSRC} ${SRVRINC}
 	ctags ${SRVRSRC} ${SRVRINC}

@@ -1,27 +1,25 @@
 #
 # Public domain - 1996/10/26 - sms
 #
-#	@(#)Makefile	1.3 (2.11BSD) 1999/7/21
+#	@(#)Makefile	1.4 (2.11BSD) 2025/11/25
 #
-DESTDIR=
 CFLAGS=	-O
-SEPFLAG= -i
 
-SUBDIR= XNSrouted badsect clri dcheck dmesg dump dumpfs fsck gt307 icheck \
+SUBDIR= badsect clri dcheck dmesg dump fsck gt307 icheck \
 	ifconfig init mkfs mknod mkpasswd mount ncheck newfs \
 	quotacheck reboot restor route routed savecore \
-	shutdown slattach swapon testnet tunefs umount
+	shutdown slattach testnet umount
 
 all:	${SUBDIR}
 
 ${SUBDIR}: FRC
-	cd $@; make ${MFLAGS} SEPFLAG=${SEPFLAG} all
+	cd $@; make ${MFLAGS} all
 
 FRC:
 
 install: FRC
 	-for i in ${SUBDIR}; do \
-		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
+		(cd $$i; make ${MFLAGS} install); done
 
 clean:
 	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} clean); done

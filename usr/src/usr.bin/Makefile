@@ -1,20 +1,20 @@
-#	Makefile	1.9 (2.11BSD GTE) 1997/7/26
+#	Makefile	2.0 (2.11BSD) 2025/11/25
 #
-DESTDIR=
 CFLAGS=	-O
-SEPFLAG= -i
+LDFLAGS= -i
 
-# Programs that live in subdirectories, and have makefiles of their own.
-#
-SUBDIR=	at calendar dc diction diff3 eqn fstat f77 find graph id learn \
-	lex lint \
+# Programs that live in subdirectories, and have makefiles of their own.  eqn
+# must be built before neqn.
+
+SUBDIR=	at calendar dc diction diff3 efl eqn fstat f77 find graph id learn \
+	lex \
 	m4 neqn plot printf prof ranlib ratfor refer roff spell struct tbl \
 	mkerrlst patch \
 	renice shar tip uucp uname whereis yacc xargs xinstall
 
 # Shell scripts that need only be installed and are never removed.
 #
-SCRIPT=	lorder mkdep nohup
+SCRIPT=	lorder mkdep nohup lint
 
 # C source that lives in the current directory
 #
@@ -42,21 +42,21 @@ KMEM=	iostat
 all: ${SUBDIR} ${STD} ${NSTD} ${KMEM}
 
 ${SUBDIR}: FRC
-	cd $@; make ${MFLAGS} SEPFLAG=${SEPFLAG}
+	cd $@; make ${MFLAGS}
 
 FRC:
 
 ${STD} ${KMEM}:
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ $@.c
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $@.c
 
 install: ${STD} ${NSTD} ${KMEM}
 	-for i in ${SUBDIR}; do \
-		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
+		(cd $$i; make ${MFLAGS} install); done
 	-for i in ${SCRIPT}; do \
-		(install -c -m 555 $$i.sh ${DESTDIR}/usr/bin/$$i); done
+		(install -c -o root -g staff -m 555 $$i.sh /usr/bin/$$i); done
 	-for i in ${KMEM}; do \
-		(install -s -g kmem -m 2755 $$i ${DESTDIR}/usr/bin/$$i); done
-	install -s ${STD} ${NSTD} ${DESTDIR}/usr/bin
+		(install -c -s -g kmem -m 2755 $$i /usr/bin/$$i); done
+	install -c -s -o root -g staff -m 755 ${STD} ${NSTD} /usr/bin
 
 clean:
 	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} clean); done
@@ -74,7 +74,7 @@ bc egrep:
 	${YACC} ${YFLAGS} $@.y
 	${CC} -c ${CFLAGS} y.tab.c
 	mv y.tab.o $@.o
-	${CC} ${SEPFLAG} -o $@ $@.o
+	${CC} ${LDFLAGS} -o $@ $@.o
 	rm -f $@.o
 
 # DO NOT DELETE THIS LINE -- make depend uses it

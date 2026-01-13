@@ -14,11 +14,11 @@
 # WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#)Makefile	5.2.2 (2.11BSD) 1996/12/1
+# @(#)Makefile	5.2.3 (2.11BSD) 2025/11/26
 #
 
-SEPFLAG= -i
-CFLAGS=	-O -DSECSPERDAY=86400 -DDAYSPERNYEAR=365 ${SEPFLAG}
+LDFLAGS= -i
+CFLAGS=	-O -DSECSPERDAY=86400 -DDAYSPERNYEAR=365
 SRCS=	finger.c lprint.c net.c sprint.c util.c
 OBJS=	finger.o lprint.o net.o sprint.o util.o
 MAN=	finger.0
@@ -26,7 +26,7 @@ MAN=	finger.0
 all: finger ${MAN}
 
 finger: ${OBJS}
-	${CC} -o $@ ${CFLAGS} ${OBJS}
+	${CC} -o $@ ${LDFLAGS} ${OBJS}
 
 clean:
 	rm -f ${OBJS} core finger ${MAN}
@@ -39,8 +39,8 @@ depend: ${SRCS}
 
 # install: ${MAN}
 install: finger ${MAN}
-	install -s -o bin -g bin -m 755 finger ${DESTDIR}/usr/ucb
-	install -c -o bin -g bin -m 444 finger.0 ${DESTDIR}/usr/man/cat1
+	install -c -s -o root -g staff -m 755 finger /usr/ucb
+	install -c -o root -g staff -m 444 finger.0 /usr/man/cat1
 
 ${MAN}: finger.1
 	/usr/man/manroff finger.1 > ${MAN}

@@ -14,26 +14,25 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	4.9.1 (2.11BSD) 1996/12/1
+#	@(#)Makefile	4.9.2 (2.11BSD) 2025/11/25
 #
 CFLAGS=	-O
-RES=
 SRCS=	nsquery.c nstest.c
-OBJS=
+OBJS=	nsquery.o nstest.o
 
 all: nsquery nstest nslookup
 
 nsquery: nsquery.o
-	${CC} ${CFLAGS} -i -o $@ nsquery.o ${RES}
+	${CC} ${CFLAGS} -i -o $@ nsquery.o
 
 # test programs and utilities
 nstest: nstest.o
 	@echo "The resolver routines in libc must be compiled with the -DDEBUG"
 	@echo "option or nstest will not have any output."
-	${CC} ${CFLAGS} -i -o $@ nstest.o ${RES}
+	${CC} ${CFLAGS} -i -o $@ nstest.o
 
 nslookup: FRC
-	cd nslookup; make ${MFLAGS} RES=${RES}
+	cd nslookup; make ${MFLAGS}
 
 clean: FRC
 	cd nslookup; make ${MFLAGS} clean
@@ -44,9 +43,9 @@ depend: ${SRCS}
 	mkdep -p ${CFLAGS} ${SRCS}
 
 install: ${MAN}
-	cd nslookup; make ${MFLAGS} DESTDIR=${DESTDIR} install
-	install -s -m 555 nsquery ${DESTDIR}/usr/bin
-	install -s -m 555 nstest ${DESTDIR}/usr/bin
+	cd nslookup; make ${MFLAGS} install
+	install -c -s -m 555 nsquery /usr/bin
+	install -c -s -m 555 nstest /usr/bin
 
 lint: ${SRCS}
 	cd nslookup; make ${MFLAGS} lint

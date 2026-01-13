@@ -1,4 +1,7 @@
-static char *sccsid = "@(#)od.c	5.13 (2.11BSD) 2001/11/19";
+#if     defined(DOSCCS) && !defined(lint)
+static char *sccsid = "@(#)od.c	5.14 (2.11BSD) 2025/12/25";
+#endif
+
 /*
  * od -- octal, hex, decimal, character dump of data in a file.
  *

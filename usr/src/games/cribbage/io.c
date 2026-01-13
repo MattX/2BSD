@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)io.c	5.2 (2.11BSD) 2020/1/7";
+static char sccsid[] = "@(#)io.c	5.2 (2.11BSD) 2025/12/25";
 #endif
 
 # include	<curses.h>
@@ -435,10 +435,10 @@ int	*args;
     /*
      * Do the printf into Msgbuf
      */
-    junk._flag = _IOWRT + _IOSTRG;
-    junk._ptr = &Msgbuf[Newpos];
-    junk._cnt = 32767;
-    _doprnt(fmt, args, &junk);
+    junk._flags = __SWR + __SSTR;
+    junk._bf._base = junk._p = (unsigned char *)&Msgbuf[Newpos];
+    junk._bf._size = junk._w = 32767;
+    __svfprintf(&junk, fmt, (char *)args);
     putc('\0', &junk);
     Newpos = strlen(Msgbuf);
 }

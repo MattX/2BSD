@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if  defined(DOSCCS) && !defined(lint)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)test.c	5.1 (Berkeley) 5/30/85";
-#endif not lint
+static char sccsid[] = "@(#)test.c	5.2 (2.11BSD) 2025/12/25";
+#endif
 
 #include	<stdio.h>
 #include	"deck.h"
@@ -57,8 +55,8 @@ main( argc, argv )
 		hand[1] = jc;
 		for( k = 0; k < CARDS; k++ )  d[k] = deck[k];
 		n = CARDS;
-		remove( ic, d, n-- );
-		remove( jc, d, n-- );
+		cremove( ic, d, n-- );
+		cremove( jc, d, n-- );
 		sum = 0;
 		sum2 = 0;
 		for( k = 0; k < n - 1; k++ )  {			/* 3rd card */

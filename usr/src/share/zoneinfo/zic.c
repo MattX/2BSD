@@ -1,5 +1,5 @@
 /*
- *	@(#)zic.c	1.1 zic.c 3/4/87
+ *	@(#)zic.c	1.2 (2.11BSD) 2025/12/26
  */
 
 #include "stdio.h"
@@ -26,7 +26,6 @@ extern char *	irealloc();
 extern char *	optarg;
 extern int	optind;
 extern char *	scheck();
-extern char *	sprintf();
 
 static		addtt();
 static		addtype();

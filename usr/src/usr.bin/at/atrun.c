@@ -9,7 +9,7 @@ char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)atrun.c	5.5 (2.11BSD) 9/18/2021";
+static char sccsid[] = "@(#)atrun.c	5.6 (2.11BSD) 2025/12/27";
 #endif
 
 /*
@@ -528,7 +528,7 @@ int uid;
 	
 
 	if ((pwdinfo = getpwuid(uid)) == 0) {
-		perror(uid);
+		fprintf(stderr, "getpwuid(%d) returned NULL\n", uid);
 		exit(1);
 	}
 	return(pwdinfo->pw_name);

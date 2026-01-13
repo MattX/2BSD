@@ -7,7 +7,7 @@
 #  All rights reserved.  The Berkeley software License Agreement
 #  specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile.m4	5.10.6 (2.11BSD GTE) 1996/10/24
+#	@(#)Makefile.m4	5.10.7 (2.11BSD) 2025/12/10
 #
 #
 #  SENDMAIL Makefile.
@@ -21,7 +21,6 @@ XSTR=/usr/ucb/xstr
 EXTRACT=extract.o
 
 LIBS=	m4LIBS
-DESTDIR=
 
 OBJS1=	conf.o main.o collect.o parseaddr.o alias.o deliver.o \
 	savemail.o err.o readcf.o stab.o headers.o recipient.o \
@@ -30,14 +29,14 @@ OBJS1=	conf.o main.o collect.o parseaddr.o alias.o deliver.o \
 OBJS2=	sysexits.o arpadate.o convtime.o
 OBJS=	$(OBJS1) $(OBJS2) $(EXTRACT) Version.o str.o
 
-SBASE=	conf.o parseaddr.o alias.o deliver.o headers.o \
+SBASE=	conf.o parseaddr.o deliver.o headers.o \
 	recipient.o srvrsmtp.o queue.o util.o \
 	envelope.o sysexits.o convtime.o Version.o \
 	$(EXTRACT) str.o
 SOV1=	main.o readcf.o macro.o
 SOV2=	daemon.o savemail.o usersmtp.o err.o clock.o stats.o trace.o stab.o \
 	arpadate.o
-SOV3=	collect.o
+SOV3=	alias.o collect.o
 
 SRCS=	\
 	conf.c deliver.c main.c parseaddr.c err.c alias.c savemail.c \
@@ -52,7 +51,7 @@ O=	-O
 COPTS=
 CCONFIG=-I../`include' m4CONFIG
 CFLAGS=	$O $(COPTS) $(CCONFIG)
-SEPFLAG=-i
+LDFLAGS=-i
 LINT=	lint
 XREF=	ctags -x
 INSTALL=install -c -s -o root
@@ -66,17 +65,17 @@ OBJMODE=755
 all: $(ALL)
 
 sendmail: $(OBJS)
-	ld $(SEPFLAG) $(COPTS) /lib/crt0.o -o sendmail \
+	ld $(LDFLAGS) $(COPTS) /lib/crt0.o -o sendmail \
 		-Z $(SOV1) -Z $(SOV2) -Z $(SOV3) -Y $(SBASE) $(LIBS) -lstubs -lc
 	chmod $(OBJMODE) sendmail
 	size sendmail; ls -l sendmail
 
 install: all
-	$(INSTALL) -m 4755 -o root sendmail $(DESTDIR)/usr/sbin
-	cp /dev/null $(DESTDIR)/etc/sendmail.fc
+	$(INSTALL) -m 4755 -o root sendmail /usr/sbin
+	cp /dev/null /etc/sendmail.fc
 	-if [ -s sendmail.sr ]; then \
 		install -c -o bin -m 644 sendmail.sr \
-			$(DESTDIR)/usr/share/misc/sendmail.sr; \
+			/usr/share/misc/sendmail.sr; \
 	fi
 
 tags: FRC

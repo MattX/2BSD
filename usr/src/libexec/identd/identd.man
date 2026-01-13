@@ -1,12 +1,12 @@
-.\" @(#)identd.8 1.9 92/02/11 Lysator
+.\" @(#)identd.8 1.11 (2.11BSD) 2025/11/25
 .\" Copyright (c) 1992 Peter Eriksson, Lysator, Linkoping University.
 .\" This software has been released into the public domain.
 .\"
 .TH IDENTD 8 "27 May 1992"
 .SH NAME
-identd, in.identd \- TCP/IP IDENT protocol server
+identd \- TCP/IP IDENT protocol server
 .SH SYNOPSIS
-.B xDESTDIRx/[in.]identd
+.B /usr/libexec/identd
 .RB [ \-i | \-w | \-b ]
 .RB [ \-t<seconds> ]
 .RB [ \-u<uid> ]

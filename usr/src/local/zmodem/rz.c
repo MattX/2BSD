@@ -1,9 +1,7 @@
-#define VERSION "3.02 6-04-89"
+#define VERSION "3.03 (2.11BSD) 2025/12/27"
 #define PUBDIR "/usr/spool/uucppublic"
 
-/*% cc -compat -M2 -Ox -K -i -DMD % -o rz; size rz;
-<-xtx-*> cc386 -Ox -DMD rz.c -o $B/rz;  size $B/rz
- *
+/*
  * rz.c By Chuck Forsberg
  *
  *	cc -O rz.c -o rz		USG (3.0) Unix
@@ -93,28 +91,6 @@
  *  USG UNIX (3.0) ioctl conventions courtesy  Jeff Martin
  */
 
-#ifdef vax11c
-#include <types.h>
-#include <stat.h>
-#define LOGFILE "rzlog.tmp"
-#include <stdio.h>
-#include <signal.h>
-#include <setjmp.h>
-#include <ctype.h>
-#include <errno.h>
-#define OS "VMS"
-#define BUFREAD
-extern int errno;
-#define SS_NORMAL SS$_NORMAL
-
-#ifndef PROGNAME
-#define PROGNAME "rz"
-#endif
-
-
-#else
-
-
 #define SS_NORMAL 0
 #define LOGFILE "/tmp/rzlog"
 #include <stdio.h>
@@ -122,9 +98,6 @@ extern int errno;
 #include <setjmp.h>
 #include <ctype.h>
 #include <errno.h>
-extern int errno;
-FILE *popen();
-#endif
 
 #define OK 0
 #define FALSE 0
@@ -400,6 +373,7 @@ usage()
  */
 /* VARARGS1 */
 vfile(f, a, b, c, d)
+char *f;
 long a, b, c, d;
 {
 	if (Verbose > 2) {

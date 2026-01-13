@@ -1,5 +1,5 @@
 /*
- * savecore, 1.2 (2.11BSD) 2025/8/30
+ * savecore.c 1.3 (2.11BSD) 2025/9/6
  */
 
 #include	<sys/param.h>
@@ -329,7 +329,6 @@ save_core()
  * partition is smaller than physical memory.  The core image will be 
  * incomplete but usable (since kernel tables are in low memory)
 */
-printf("n: %d physmem:%u\n", n, physmem);
 		if (n == 0)
 		   break;
 		Write(ofd, cp, n);

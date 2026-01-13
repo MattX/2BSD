@@ -1,3 +1,5 @@
+#       @(#)Makefile    2.0 (2.11BSD) 2025/11/28
+
 #/* Copyright 1988,1990,1993,1994 by Paul Vixie
 # * All rights reserved
 # *
@@ -15,10 +17,7 @@
 # * Paul Vixie          <paul@vix.com>          uunet!decwrl!vixie!paul
 # */
 
-# Makefile for vixie's cron
-#
 # $Id: Makefile,v 2.9 1994/01/15 20:43:43 vixie Exp $
-#
 # vix 03mar88 [moved to RCS, rest of log is in there]
 # vix 30mar87 [goodbye, time.c; hello, getopt]
 # vix 12feb87 [cleanup for distribution]
@@ -45,12 +44,11 @@
 #
 #	there's more configuration info in config.h; edit that first!
 
-DESTROOT	=	$(DESTDIR)/usr
+DESTROOT	=	/usr
 DESTSBIN	=	$(DESTROOT)/sbin
 DESTBIN		=	$(DESTROOT)/bin
 DESTMAN		=	$(DESTROOT)/man
 INCLUDE		=	-I.
-LIBS		=
 OPTIM		=	-O
 #<<lint flags of choice?>>
 LINTFLAGS	=	-hbxa $(INCLUDE)
@@ -73,16 +71,16 @@ CRONTAB_OBJ	=	crontab.o misc.o entry.o env.o compat.o
 all:	cron crontab
 
 lint:
-	lint $(LINTFLAGS) $(LINT_CRON) $(LIBS) \
+	lint $(LINTFLAGS) $(LINT_CRON) \
 		|grep -v "constant argument to NOT" 2>&1
-	lint $(LINTFLAGS) $(LINT_CRONTAB) $(LIBS) \
+	lint $(LINTFLAGS) $(LINT_CRONTAB) \
 		|grep -v "constant argument to NOT" 2>&1
 
 cron:	$(CRON_OBJ)
-	$(CC) $(LDFLAGS) -o cron $(CRON_OBJ) $(LIBS)
+	$(CC) $(LDFLAGS) -o cron $(CRON_OBJ)
 
 crontab:	$(CRONTAB_OBJ)
-	$(CC) $(LDFLAGS) -o crontab $(CRONTAB_OBJ) $(LIBS)
+	$(CC) $(LDFLAGS) -o crontab $(CRONTAB_OBJ)
 
 install:	all
 	$(INSTALL) -c -m  111 -o root -s cron    $(DESTSBIN)/cron

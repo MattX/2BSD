@@ -3,11 +3,10 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.19.10 (2.11BSD GTE) 1997/3/27
+#	@(#)Makefile	5.19.11 (2.11BSD) 2025/11/25
 #
-DESTDIR=
 CFLAGS=	-O
-SEPFLAG= -i
+LDFLAGS= -i
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
@@ -21,7 +20,7 @@ SCRIPT=	false true
 # C programs that live in the current directory and do not need
 # explicit make lines.
 #
-STD=	cat cc chgrp chmod cmp cp date dd du echo ed grep hostid \
+STD=	cat cc chgrp chmod cmp cp date dd du echo ed hostid \
 	kill ln mkdir mt mv nice od pagesize pr \
 	pwd rm rmail rmdir size sync tar tee time who
 
@@ -53,30 +52,30 @@ BINS=	${STD} ${NSTD} ${SETUID} ${OPERATOR} ${KMEM} ${TTY} strip
 all:	${SUBDIR} ${BINS}
 
 ${SUBDIR}: FRC
-	cd $@; make ${MFLAGS} SEPFLAG=${SEPFLAG}
+	cd $@; make ${MFLAGS}
 
 FRC:
 
 
 ${STD} ${SETUID} ${KMEM} ${OPERATOR} ${TTY} strip:
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ $@.c
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $@.c
 
 install: ${BINS}
-	install -s -m 751 -g staff ${STD} ${NSTD} ${DESTDIR}/bin
+	install -c -s -m 755 -o root -g staff ${STD} ${NSTD} /bin
 	-for i in ${SUBDIR}; do \
-		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
-	-for i in ${SCRIPT}; do (install -c $$i.sh ${DESTDIR}/bin/$$i); done
+		(cd $$i; make ${MFLAGS} install); done
+	-for i in ${SCRIPT}; do (install -c -m 755 $$i.sh /bin/$$i); done
 	-for i in ${SETUID}; do \
-		(install -o root -m 4751 -s $$i ${DESTDIR}/bin/$$i); done
+		(install -c -o root -m 4755 -s $$i /bin/$$i); done
 	-for i in ${OPERATOR}; do \
-		(install -g operator -m 2751 -s $$i ${DESTDIR}/bin/$$i); done
+		(install -c -o root -g operator -m 2755 -s $$i /bin/$$i); done
 	-for i in ${KMEM}; do \
-		(install -g kmem -m 2751 -s $$i ${DESTDIR}/bin/$$i); done
+		(install -c -o root -g kmem -m 2755 -s $$i /bin/$$i); done
 	-for i in ${TTY}; do \
-		(install -g tty -m 2751 -s $$i ${DESTDIR}/bin/$$i); done
-	-install -s -m 751 -g staff strip ${DESTDIR}/bin/xstrip
-	-mv ${DESTDIR}/bin/xstrip ${DESTDIR}/bin/strip
-	rm -f ${DESTDIR}/bin/e; ln ${DESTDIR}/bin/ed ${DESTDIR}/bin/e
+		(install -c -o root -g tty -m 2755 -s $$i /bin/$$i); done
+	-install -c -s -m 755 -g staff strip /bin/xstrip
+	-mv /bin/xstrip /bin/strip
+	rm -f /bin/e; ln /bin/ed /bin/e
 
 clean:
 	rm -f ${BINS} expr.c a.out core *.s *.o errs
@@ -103,7 +102,7 @@ depend: expr.c
 # Files listed in ${NSTD} have explicit make lines given below.
 
 expr: expr.o
-	${CC} ${CFLAGS} ${SEPFLAG} -o expr expr.o
+	${CC} ${LDFLAGS} -o expr expr.o
 
 # DO NOT DELETE THIS LINE -- make depend uses it
 

@@ -15,19 +15,18 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
+#if	!defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1987 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif /* not lint */
 
-#ifndef lint
-static char sccsid[] = "@(#)apropos.c	5.6 (Berkeley) 6/29/88";
-#endif /* not lint */
+static char sccsid[] = "@(#)apropos.c	5.7 (2.11BSD) 2026/1/7";
+#endif
 
 #include <sys/param.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <stdlib.h>
 #include <strings.h>
 
 #define	DEF_PATH	"/usr/man:/usr/new/man:/usr/local/man"
@@ -43,13 +42,12 @@ main(argc, argv)
 	int argc;
 	char **argv;
 {
-	extern char *optarg;
-	extern int optind;
 	register char *beg, *end, **C;
 	int ch, foundman = NO, *found, isapropos;
 	int a_match(), w_match(), (*match)();
 	char *manpath = NULL, buf[MAXLINELEN + 1], fname[MAXPATHLEN + 1];
-	char wbuf[MAXLINELEN + 1], *getenv(), *malloc();
+	char wbuf[MAXLINELEN + 1];
+	char *cp;
 
 	myname = (beg = rindex(*argv, '/')) ? beg + 1 : *argv;
 	if (!strcmp(myname, "apropos")) {
@@ -104,7 +102,8 @@ main(argc, argv)
 			continue;
 
 						/* for each file found */
-		for (foundman = YES; gets(buf);) {
+		for (foundman = YES; fgets(buf, sizeof buf, stdin);) {
+			if (cp = index(buf, '\n')) *cp = '\0';
 			if (isapropos)
 				lowstr(buf, wbuf);
 			else

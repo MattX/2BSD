@@ -1,8 +1,7 @@
-#	@(#)Makefile	4.3.1	(2.11BSD)	1996/10/23
+#	@(#)Makefile	4.3.2	(2.11BSD)	2025/11/25
 #
-DESTDIR=
 CFLAGS=	-O
-SEPFLAG= -i
+LDFLAGS= -i
 
 # The programs themselves
 #
@@ -16,21 +15,21 @@ SRCS=	find.c bigram.c code.c
 all: ${PROG} ${LIBS}
 
 find: find.o
-	cc ${SEPFLAG} ${CFLAGS} -o find find.o
+	cc ${LDFLAGS} ${CFLAGS} -o find find.o
 
 bigram: bigram.o
-	cc ${SEPFLAG} ${CFLAGS} -o bigram bigram.o
+	cc ${LDFLAGS} ${CFLAGS} -o bigram bigram.o
 
 code: code.o
-	cc ${SEPFLAG} ${CFLAGS} -o code code.o
+	cc ${LDFLAGS} ${CFLAGS} -o code code.o
 
 install: ${PROG} ${LIBS}
-	install -s -m 755 ${PROG} ${DESTDIR}/usr/bin/${PROG}
-	-mkdir ${DESTDIR}/var/db ${DESTDIR}/usr/libexec/find
-	chmod 755 ${DESTDIR}/usr/libexec/find ${DESTDIR}/var/db
-	install -s -m 755 bigram ${DESTDIR}/usr/libexec/find/bigram
-	install -s -m 755 code ${DESTDIR}/usr/libexec/find/code
-	install -c -m 755 updatedb.csh ${DESTDIR}/usr/libexec/find/updatedb
+	install -c -s -m 755 ${PROG} /usr/bin/${PROG}
+	-mkdir /var/db /usr/libexec/find
+	chmod 755 /usr/libexec/find /var/db
+	install -c -s -m 755 bigram /usr/libexec/find/bigram
+	install -c -s -m 755 code /usr/libexec/find/code
+	install -c -m 755 updatedb.csh /usr/libexec/find/updatedb
 
 clean:
 	rm -f *.o a.out core ${LIBS} ${PROG}

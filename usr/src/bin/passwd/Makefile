@@ -14,10 +14,10 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4.2 (2.11BSD) 1996/12/1
+#	@(#)Makefile	5.4.3 (2.11BSD) 2025/11/26
 #
 CFLAGS=	-I. -O
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	passwd.c
 OBJS=	passwd.o
 MAN=	passwd.0
@@ -26,7 +26,7 @@ MANSRC=	passwd.1
 all: passwd ${MAN}
 
 passwd: ${OBJS}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
+	${CC} ${LDFLAGS} -o $@ ${OBJS}
 
 ${MAN}: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
@@ -41,8 +41,8 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: ${MAN} passwd
-	install -s -o root -g bin -m 4755 passwd ${DESTDIR}/bin/passwd
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat1
+	install -c -s -o root -g staff -m 4755 passwd /bin/passwd
+	install -c -o root -g staff -m 444 ${MAN} /usr/man/cat1
 
 lint: ${SRCS}
 	lint ${CFLAGS} ${SRCS}

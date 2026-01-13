@@ -1,4 +1,4 @@
-/*	1.defs.h	4.2	83/08/11	*/
+/*	1.defs.h	4.3	(2.11BSD) 2025/12/26	*/
 
 #define snum 	145
 #define _s0	0
@@ -98,7 +98,7 @@
 #define _subrt	94
 #define _subri	95
 #define _subrn	96
-#define _r	97
+#define _XXr	97
 #define _re	98
 #define _ret	99
 #define _retu	100
@@ -128,7 +128,7 @@
 #define _endeq	124
 #define _rwer	125
 #define _rwerr	126
-#define _p	127
+#define _XXp	127
 #define _pr	128
 #define _pri	129
 #define _prin	130

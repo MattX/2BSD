@@ -1,15 +1,11 @@
-#	#(@)	Makefile	1.3 (2.11BSD)	2022/10/2
+#	#(@)	Makefile	1.4 (2.11BSD)	2025/11/25
 #
-# Hack Overlay Makefile.
-
 # on some systems the termcap library is in -ltermcap
 TERMLIB = -ltermlib
 
-# make hack
 GAME = hack
 BINDIR = /usr/games
 LIBDIR = /usr/games/lib/hackdir
-DESTDIR =
 GAMEUID = daemon
 CFLAGS = -O
 
@@ -72,7 +68,7 @@ HOBJ =  \
 #
 BASE =	strings.o hack.monst.o hack.Decl.o\
 	hack.invent.o hack.dog.o hack.mon.o\
-	hack.engrave.o rnd.o hack.track.o
+	rnd.o hack.track.o
 
 OV1 =	hack.shk.o hack.topl.o hack.o hack.end.o hack.trap.o
 
@@ -88,7 +84,7 @@ OV4 =	hack.zap.o hack.read.o hack.apply.o hack.potion.o\
 	hack.options.o hack.pager.o hack.wield.o
 
 OV5 =	hack.save.o hack.lev.o hack.mklev.o hack.mkshop.o hack.mkmaze.o\
-	hack.shknam.o hack.u_init.o\
+	hack.engrave.o hack.shknam.o hack.u_init.o\
 	hack.rip.o hack.bones.o hack.worm.o hack.steal.o hack.version.o
 
 # Crypt *MUST be listed BEFORE $(HOBJ)
@@ -145,27 +141,12 @@ lint:
 	@echo lint -axbh -DLINT ...
 	@lint -axbh -DLINT $(HACKCSRC) | sed '/_flsbuf/d'
 
-
-diff:
-	@- for i in $(SOURCES) $(AUX) ; do \
-		cmp -s $$i $D/$$i || \
-		( echo diff $D/$$i $$i ; diff $D/$$i $$i ; echo ) ; done
-
-distribution: Makefile
-	@- for i in READ_ME $(SOURCES) $(AUX) Makefile date.h hack.onames.h\
-		; do \
-		cmp -s $$i $D/$$i || \
-		( echo cp $$i $D ; cp $$i $D ) ; done
-# the distribution directory also contains the empty files
-# perm and record, and the informative files Porting and Bugs.
-
-
 install: $(GAME)
-	install -o $(GAMEUID) -m 4711 $(GAME) $(DESTDIR)$(BINDIR)/$(GAME)
-	-rm -rf $(DESTDIR)/$(LIBDIR)
-	-mkdir -p ${DESTDIR}/${LIBDIR}
-	chown daemon ${DESTDIR}/${LIBDIR}
-	chmod 700 ${DESTDIR}/${LIBDIR}
+	install -o $(GAMEUID) -m 4711 $(GAME) $(BINDIR)/$(GAME)
+	-rm -rf $(LIBDIR)
+	-mkdir -p ${LIBDIR}
+	chown daemon ${LIBDIR}
+	chmod 700 ${LIBDIR}
 
 #   The make node `depend' has been commented out as the current dependency
 # list is [now] not as simple as it used to be ...  The reason for this is

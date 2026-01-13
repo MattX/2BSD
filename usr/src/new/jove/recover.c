@@ -4,6 +4,9 @@
  * away copies of JOVE, including sources, provided that this notice is    *
  * included in all the files.                                              *
  ***************************************************************************/
+#if     !defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)recover.c    1.1 (2.11BSD) 2025/12/26";
+#endif
 
 /* Recovers JOVE files after a system/editor crash.
    Usage: recover [-d directory] [-syscrash]
@@ -31,11 +34,6 @@
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/dir.h>
-
-#ifndef L_SET
-#	define L_SET	0
-#	define L_INCR	1
-#endif
 
 char	blk_buf[BUFSIZ];
 int	nleft;
@@ -356,7 +354,7 @@ tellme(quest, answer)
 char	*quest,
 	*answer;
 {
-	if (stdin->_cnt <= 0) {
+	if (stdin->_r <= 0) {
 		printf("%s", quest);
 		fflush(stdout);
 	}

@@ -1,4 +1,6 @@
-static char *sccsid = "@(#)basename.c	4.2 (Berkeley) 10/20/82";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)basename.c	4.3 (2.11BSD) 2025/12/26";
+#endif
 
 #include	<stdio.h>
 
@@ -26,6 +28,6 @@ char **argv;
 		*p1 = '\0';
 	}
 output:
-	puts(p2, stdout);
+	puts(p2);
 	exit(0);
 }

@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)checksys.c	1.6 (2.11BSD) 1998/12/5
+ *	@(#)checksys.c	1.7 (2.11BSD) 2025/12/24
  */
 
 /*
@@ -40,7 +40,7 @@
 #define	N_NLOG		20
 #define	N_NUMSYMS	21
 
-	struct	nlist	nl[N_NUMSYMS];
+	struct	nlist	nl[N_NUMSYMS + 1];  /* need null entry for nlist */
 
 char	*names[] = {
 	"_end",				/*  0 */

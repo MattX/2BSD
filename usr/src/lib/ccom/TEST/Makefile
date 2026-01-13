@@ -1,5 +1,7 @@
+#       Makefile        2.0 (2.11BSD) 2025/11/25
+
 CFLAGS=	-O
-SEPFLAG= -i
+LDFLAGS= -i
 LIB=	/lib
 ALL=	tst_adec tst_rhh-g tst_pntint tst_asm tst_lgm-g \
 	tst_sgncmp tst_assign old-assn
@@ -47,7 +49,7 @@ tst_sgncmp: tst_sgncmp.o
 
 old-assn: old-assn.l
 	lex old-assn.l
-	${CC} ${SEPFLAG} ${CFLAGS} -o old-assn lex.yy.c -lln
+	${CC} ${LDFLAGS} ${CFLAGS} -o old-assn lex.yy.c -lln
 	rm lex.yy.c
 
 clean:

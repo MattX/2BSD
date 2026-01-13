@@ -1,3 +1,4 @@
+#       Makefile        2.0 (2.11BSD) 2025/11/25
 #
 #  Hunt
 #  Copyright (c) 1985 Conrad C. Huang, Gregory S. Couch, Kenneth C.R.C. Arnold
@@ -35,8 +36,7 @@ POBJ=		hunt.o connect.o playit.o
 DEFS=		-I. -DBROADCAST -DRANDOM -DREFLECT -DMONITOR -DINTERNET \
 		-DOOZE -DFLY -DVOLCANO
 CFLAGS=		-O $(DEFS)
-LDFLAGS=
-SEPFLAG= -i
+LDFLAGS=	-i
 PROFLAGS=
 LD=		/bin/ld
 .SUFFIXES:	.uu .obj .c,v
@@ -55,11 +55,11 @@ standard:	hunt hunt.driver
 debug:	hunt.dbg hunt.driver.dbg
 
 hunt.dbg:	$(POBJ) pathname.dbg.o
-	$(CC) ${SEPFLAG} $(LDFLAGS) -o hunt.dbg \
+	$(CC) $(LDFLAGS) -o hunt.dbg \
 		$(POBJ) pathname.dbg.o -lcurses -ltermlib
 
 hunt.driver.dbg: $(DOBJ) pathname.dbg.o
-	$(CC) ${SEPFLAG} $(PROFLAGS) $(LDFLAGS) -o hunt.driver.dbg \
+	$(CC) $(PROFLAGS) $(LDFLAGS) -o hunt.driver.dbg \
 		$(DOBJ) pathname.dbg.o
 
 #
@@ -83,15 +83,15 @@ hunt.obj:	$(POBJ) pathname.o
 # System installation
 #
 install:	standard
-	install -s hunt.driver $(DESTDIR)/usr/games/lib/hunt.driver
-	install -s hunt $(DESTDIR)/usr/games/hunt
+	install -c -s -m 755 hunt.driver /usr/games/lib/hunt.driver
+	install -c -s -m 755 hunt /usr/games/hunt
 
 hunt:	$(POBJ) pathname.o
-	$(CC) ${SEPFLAG} $(LDFLAGS) -o hunt $(POBJ) \
+	$(CC) $(LDFLAGS) -o hunt $(POBJ) \
 		pathname.o -lcurses -ltermlib
 
 hunt.driver:	$(DOBJ) pathname.o
-	$(CC) ${SEPFLAG} $(PROFLAGS) $(LDFLAGS) -o hunt.driver \
+	$(CC) $(PROFLAGS) $(LDFLAGS) -o hunt.driver \
 		$(DOBJ) pathname.o
 
 #

@@ -1,17 +1,17 @@
 #
 # Public Domain.  1996/6/25 - Steven Schultz
 #
-#	@(#)Makefile	1.0 (2.11BSD GTE) 1996/6/25
+#	@(#)Makefile	1.1 (2.11BSD) 2025/11/25
 #
 CFLAGS=	 -O
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	ctimed.c
 OBJS=	ctimed.o
 
 all: ctimed
 
 ctimed: ${OBJS}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS}
 
 clean:
 	rm -f ${OBJS} ctimed tags 
@@ -20,7 +20,7 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: ctimed
-	install -s -o root -g bin -m 755 ctimed ${DESTDIR}/usr/libexec/ctimed
+	install -c -s -o root -g staff -m 755 ctimed /usr/libexec/ctimed
 
 lint: ${SRCS}
 	lint -hax ${SRCS}

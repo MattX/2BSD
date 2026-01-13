@@ -1,4 +1,5 @@
-##
+#       Makefile        2.0 (2.11BSD) 2025/11/25
+
 ##  I wrote this Makefile, based on comments in the source.  -rich $alz.
 ##  Define INDEX to use index() in place of strchr() (v7, BSD).
 1	= -DINDEX
@@ -30,8 +31,8 @@ afio: afio.o
 	$(CC) -i $(CFLAGS) -o afio afio.o
 
 install: all
-	install -s -c -m 0751 afio ${DESTDIR}/usr/local/afio
-	install -c -m 444 -o bin -g bin afio.0 ${DESTDIR}/usr/local/man/cat1
+	install -c -s -m 0751 afio /usr/local/afio
+	install -c -m 444 -o root -g staff afio.0 /usr/local/man/cat1
 
 afio.0:	afio.1
 	rm -f afio.0

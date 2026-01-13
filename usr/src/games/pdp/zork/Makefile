@@ -1,18 +1,17 @@
 #
-# @(#)Makefile  1.1 (2.11BSD) 2020/1/7
+# @(#)Makefile  1.2 (2.11BSD) 2025/11/25
 #
 
 BINDIR = /usr/games
 LIBDIR = /usr/games/lib
-DESTDIR=
 
 CFLAGS = -O
-SEPFLAG= -i
+LDFLAGS= -i
 
 all:	z zork
 
 z:	z.c
-	cc -O ${SEPFLAG} -o z z.c
+	cc -O ${LDFLAGS} -o z z.c
 
 # All the 1.o stuff is just to do a . = . + 140000
 zork:	1.o o.o 
@@ -26,11 +25,11 @@ zork:	1.o o.o
 	./p1
 
 install: z zork
-	install -s z ${DESTDIR}${BINDIR}/zork
-	install -s zork ${DESTDIR}${LIBDIR}/zork
-	install -c -m 644 doverlay ${DESTDIR}${LIBDIR}
-	install -c -m 644 dindex.dat ${DESTDIR}${LIBDIR}
-	install -c -m 644 dtext.dat ${DESTDIR}${LIBDIR}
+	install -c -s -m 755 z ${BINDIR}/zork
+	install -c -s -m 755 zork ${LIBDIR}/zork
+	install -c -m 644 doverlay ${LIBDIR}
+	install -c -m 644 dindex.dat ${LIBDIR}
+	install -c -m 644 dtext.dat ${LIBDIR}
 
 clean:
 	rm -f 1.out a.out b.out h *.o core dungeon.dat zork z syms

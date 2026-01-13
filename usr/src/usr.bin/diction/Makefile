@@ -1,13 +1,12 @@
 #
-#	@(#)Makefile	4.5.1	(2.11BSD)	1996/10/23
+#	@(#)Makefile	4.5.2	(2.11BSD)	2025/11/25
 #
 #	make file for STYLE and DICTION
 #
 #	DICT is the full pathname of the file dict.d, the
 #		dictionary file used by DICTION
 #
-DESTDIR=
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS = \
 	abbrev.c conp.h dict.c dict.d \
 	diction.c diction.sh edict.c ehash.c \
@@ -24,23 +23,23 @@ all: diction style
 style: style1 style2 style3
 
 install: style diction style.sh diction.sh explain.sh dict.d explain.d
-	-mkdir -p ${DESTDIR}/usr/libexec/diction
-	install -s -m 755 style1 ${DESTDIR}/usr/libexec/diction
-	install -s -m 755 style2 ${DESTDIR}/usr/libexec/diction
-	install -s -m 755 style3 ${DESTDIR}/usr/libexec/diction
-	install -s -m 755 dprog ${DESTDIR}/usr/libexec/diction
-	install -c -m 755 style.sh ${DESTDIR}/usr/bin/style
-	install -c -m 755 diction.sh ${DESTDIR}/usr/bin/diction
-	install -c -m 755 explain.sh ${DESTDIR}/usr/bin/explain
-	install -c -m 444 dict.d ${DESTDIR}/usr/share/misc
-	install -c -m 444 explain.d ${DESTDIR}/usr/share/misc
+	-mkdir -p /usr/libexec/diction
+	install -c -s -m 755 -o root style1 /usr/libexec/diction
+	install -c -s -m 755 -o root style2 /usr/libexec/diction
+	install -c -s -m 755 -o root style3 /usr/libexec/diction
+	install -c -s -m 755 -o root dprog /usr/libexec/diction
+	install -c -m 755 -o root style.sh /usr/bin/style
+	install -c -m 755 -o root diction.sh /usr/bin/diction
+	install -c -m 755 -o root explain.sh /usr/bin/explain
+	install -c -m 444 -o root dict.d /usr/share/misc
+	install -c -m 444 -o root explain.d /usr/share/misc
 
 clean:
 	rm -f prtlex.c wdslex.c endlex.c
 	rm -f *.o style1 style2 style3 dprog
 
 style3: prtlex.o pscan.o outp.o
-	cc ${SEPFLAG} prtlex.o pscan.o outp.o -ll  -o style3
+	cc ${LDFLAGS} prtlex.o pscan.o outp.o -ll  -o style3
 prtlex.c: part.l
 	lex part.l
 	mv lex.yy.c prtlex.c
@@ -52,7 +51,7 @@ outp.o: names.h conp.h style.h outp.c
 	cc -c -O outp.c
 
 style1: wdslex.o
-	cc ${SEPFLAG} wdslex.o -ll  -o style1
+	cc ${LDFLAGS} wdslex.o -ll  -o style1
 wdslex.o: wdslex.c nhash.c dict.c ydict.c names.h abbrev.c
 	cc -c wdslex.c
 wdslex.c: nwords.l
@@ -60,7 +59,7 @@ wdslex.c: nwords.l
 	mv lex.yy.c wdslex.c
 
 style2: endlex.o
-	cc ${SEPFLAG} endlex.o -ll  -o style2
+	cc ${LDFLAGS} endlex.o -ll  -o style2
 endlex.o: names.h endlex.c ehash.c edict.c
 	cc -c endlex.c
 endlex.c: end.l
@@ -69,7 +68,7 @@ endlex.c: end.l
 
 diction: dprog
 dprog: diction.c
-	cc ${SEPFLAG} -O $(DICT) diction.c -o dprog
+	cc ${LDFLAGS} -O $(DICT) diction.c -o dprog
 
 srcs:	sources
 

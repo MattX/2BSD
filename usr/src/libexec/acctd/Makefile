@@ -1,10 +1,10 @@
 #
 # Public Domain.  1999/2/19 - Steven Schultz
 #
-#	@(#)Makefile	1.2 (2.11BSD) 1999/2/19
+#	@(#)Makefile	1.3 (2.11BSD) 2025/11/25
 #
 CFLAGS=	 -O
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	acctd.c
 OBJS=	acctd.o
 MAN=	acctd.0
@@ -13,7 +13,7 @@ MANSRC=	acctd.8
 all: acctd acctd.0
 
 acctd: ${OBJS}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS}
 
 acctd.0: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
@@ -25,8 +25,8 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: acctd
-	install -s -o root -g bin -m 700 acctd ${DESTDIR}/usr/libexec/acctd
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat8/${MAN}
+	install -c -s -o root -g staff -m 700 acctd /usr/libexec/acctd
+	install -c -o root -g staff -m 444 ${MAN} /usr/man/cat8/${MAN}
 
 lint: ${SRCS}
 	lint -hax ${SRCS}

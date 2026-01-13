@@ -1,7 +1,6 @@
-#
 #  Makefile for mp, the PostScript pretty printer.
 #
-#  @(#)Makefile.dist 1.11 92/02/17
+#  @(#)Makefile 1.12 (2.11BSD) 2025/11/26
 #
 #  Copyright (c) Steve Holden and Rich Burridge.
 #                All rights reserved.
@@ -84,10 +83,9 @@ HDRS	= extern.h mp.h patchlevel.h
 MPAGES  = mp.man mp.man.text mailp.man mailp.man.text
 PROLOGS = mp.common.ps mp.pro.ps mp.pro.l.ps mp.pro.alt.ps mp.pro.altl.ps \
 	  mp.pro.ff.ps mp.pro.fp.ps mp.pro.tm.ps mp.pro.ts.ps
-OTHERS	= README Makefile.dist mailp MANIFEST FILES CHANGES TODO \
-	  mp.el Data
+OTHERS	= README Makefile mailp FILES CHANGES TODO mp.el Data
 
-SFILES1  = README Makefile.dist MANIFEST FILES Data
+SFILES1  = README Makefile FILES Data
 SFILES2  = $(SRCS) $(HDRS)
 SFILES3  = $(PROLOGS)
 SFILES4  = TODO mailp mp.el $(MPAGES)
@@ -126,31 +124,31 @@ install:   common-install
 common-install: $(BINARIES)
 	-mkdir -p ${MPLIBDIR}
 #                                                     mp
-	install -m 751 -o bin -g bin -s mp $(MPBINDIR)
+	install -m 751 -o root -g staff -s mp $(MPBINDIR)
 #                                                     mp.1
 	nroff -h -man mp.1 > mp.0
-	install -m 644 -o bin -g bin mp.0 $(MPMANDIR)
+	install -m 644 -o root -g staff mp.0 $(MPMANDIR)
 #                                                     mailp.1
 	nroff -h -man mailp.1 > mailp.0
-	install -m 644 -o bin -g bin mailp.0 $(MPMANDIR)
+	install -m 644 -o root -g staff mailp.0 $(MPMANDIR)
 #                                                     mp.common.ps
-	install -c -m 644 -o bin -g bin mp.common.ps $(MPLIBDIR)
+	install -c -m 644 -o root -g staff mp.common.ps $(MPLIBDIR)
 #                                                     mp.pro.ps
-	install -c -m 644 -o bin -g bin mp.pro.ps $(MPLIBDIR)
+	install -c -m 644 -o root -g staff mp.pro.ps $(MPLIBDIR)
 #                                                     mp.pro.l.ps
-	install -c -m 644 -o bin -g bin mp.pro.l.ps $(MPLIBDIR)
+	install -c -m 644 -o root -g staff mp.pro.l.ps $(MPLIBDIR)
 #                                                     mp.pro.alt.ps
-	install -c -m 644 -o bin -g bin mp.pro.alt.ps $(MPLIBDIR)
+	install -c -m 644 -o root -g staff mp.pro.alt.ps $(MPLIBDIR)
 #                                                     mp.pro.altl.ps
-	install -c -m 644 -o bin -g bin mp.pro.altl.ps $(MPLIBDIR)
+	install -c -m 644 -o root -g staff mp.pro.altl.ps $(MPLIBDIR)
 #                                                     mp.pro.ff.ps
-	install -c -m 644 -o bin -g bin mp.pro.ff.ps $(MPLIBDIR)
+	install -c -m 644 -o root -g staff mp.pro.ff.ps $(MPLIBDIR)
 #                                                     mp.pro.fp.ps
-	install -c -m 644 -o bin -g bin mp.pro.fp.ps $(MPLIBDIR)
+	install -c -m 644 -o root -g staff mp.pro.fp.ps $(MPLIBDIR)
 #                                                     mp.pro.tm.ps
-	install -c -m 644 -o bin -g bin mp.pro.tm.ps $(MPLIBDIR)
+	install -c -m 644 -o root -g staff mp.pro.tm.ps $(MPLIBDIR)
 #                                                     mp.pro.ts.ps
-	install -c -m 644 -o bin -g bin mp.pro.ts.ps $(MPLIBDIR)
+	install -c -m 644 -o root -g staff mp.pro.ts.ps $(MPLIBDIR)
 #                                                     mailp
 #
 	   -sed -e s,BINDIR,$(MPBINDIR),g mailp >$(MPBINDIR)/mailp

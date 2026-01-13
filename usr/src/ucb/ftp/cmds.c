@@ -16,7 +16,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)cmds.c	5.18.3 (2.11BSD) 2025/03/21";
+static char sccsid[] = "@(#)cmds.c	5.18.3 (2.11BSD) 2026/1/5";
 #endif
 
 /*
@@ -55,6 +55,17 @@ char *mname;
 jmp_buf jabort;
 char *dotrans(), *domap();
 
+/* This works because the buffer is global */
+void cmdgets()
+	{
+	register int s = strlen(line);
+	register char *cp;
+
+	fgets(&line[s], sizeof (line) - s, stdin);
+	if	(cp = index(line, '\n'))
+		*cp = '\0';
+	}
+
 /*
  * Connect to peer server and
  * auto-login, if possible.
@@ -75,7 +86,7 @@ setpeer(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(to) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -307,7 +318,7 @@ put(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(local-file) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -321,7 +332,7 @@ usage:
 	if (argc < 3) {
 		(void) strcat(line, " ");
 		printf("(remote-file) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -366,7 +377,7 @@ mput(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(local-files) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -513,7 +524,7 @@ getit(argc, argv, restartit, mode)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(remote-file) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -527,7 +538,7 @@ usage:
 	if (argc < 3) {
 		(void) strcat(line, " ");
 		printf("(local-file) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -660,7 +671,7 @@ mget(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(remote-files) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -984,7 +995,7 @@ cd(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(remote-directory) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -1040,7 +1051,7 @@ delete(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(remote-file) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -1066,7 +1077,7 @@ mdelete(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(remote-files) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -1111,7 +1122,7 @@ renamefile(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(from-name) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -1125,7 +1136,7 @@ usage:
 	if (argc < 3) {
 		(void) strcat(line, " ");
 		printf("(to-name) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -1181,7 +1192,7 @@ mls(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(remote-files) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -1189,7 +1200,7 @@ mls(argc, argv)
 	if (argc < 3) {
 		(void) strcat(line, " ");
 		printf("(local-file) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -1297,7 +1308,7 @@ user(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(username) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -1362,7 +1373,7 @@ makedir(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(directory-name) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -1389,7 +1400,7 @@ removedir(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(directory-name) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -1418,7 +1429,7 @@ quote(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(command line to send) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -1453,7 +1464,7 @@ site(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(arguments to SITE command) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -1485,7 +1496,7 @@ do_chmod(argc, argv)
 	if (argc < 3) {
 		(void) strcat(line, " ");
 		printf("(mode and file-name) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -1572,14 +1583,13 @@ disconnect()
 confirm(cmd, file)
 	char *cmd, *file;
 {
-	char line[BUFSIZ];
 
 	if (!interactive)
 		return (1);
 	printf("%s %s? ", cmd, file);
-	(void) fflush(stdout);
-	(void) gets(line);
-	return (*line != 'n' && *line != 'N');
+	line[0] = '\0';
+	cmdgets();
+	return (line[0] != 'n' && line[0] != 'N');
 }
 
 fatal(msg)
@@ -1679,7 +1689,7 @@ doproxy(argc,argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(command) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -1812,7 +1822,7 @@ setnmap(argc, argv)
 	if (argc < 3) {
 		(void) strcat(line, " ");
 		printf("(mapout) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -2066,7 +2076,7 @@ macdef(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(macro name) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -2129,7 +2139,7 @@ sizecmd(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(filename) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;
@@ -2153,7 +2163,7 @@ modtime(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(filename) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;

@@ -9,17 +9,16 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	@(#)Makefile	5.1 (Berkeley) 12/12/87
+#	@(#)Makefile	5.2 (2.11BSD) 2025/11/25
 #
 SUBDIR=	nroff troff nroff_term troff_font
-SEPFLAG=-i
 
 all: FRC
-	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} SEPFLAG=${SEPFLAG}); done
+	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS}); done
 
 install: FRC
 	for i in ${SUBDIR}; do \
-		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); \
+		(cd $$i; make ${MFLAGS} install); \
 	done
 
 clean: FRC

@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)3.t	1.6 (2.11BSD GTE) 1996/11/16
+.\"	@(#)3.t	1.7 (2.11BSD) 2025/12/10
 .\"
 .ds lq ``
 .ds rq ''
@@ -21,23 +21,6 @@
 .R
 .NL
 .PP
-Begin by reading the document
-``Changes to the System in \*(2B'' to get an idea of how
-the system changes will affect your local modifications.
-If you have local device drivers, see the file \fI/sys/OTHERS/README\fP
-for hints on how to integrate your drivers into \*(2B.
-.PP
-The only upgrade path to \*(2B is to do a full bootstrap as described
-in Chapter 2.  As always, full backups of the existing system should
-be made to guard against errors or failures.
-\fBNOTE:\fP The old filesystems can not be mounted by the new
-kernel.  If you must access old discs or filesystems, there is a
-version of \fIdump\fP\|(8) in /usr/src/old/dump which can be used
-with the \fBraw\fP disc to dump old filesystems.
-.PP
-The archive file format has changed, the 4.3BSD \fIar\fP(5) format is
-now used.  Local archives will have to be converted by the \fI/usr/old/arcv\fP
-program.
 .NH 2
 Files to save
 .PP
@@ -153,10 +136,6 @@ into a scratch directory, say /usr/convert:
 \fB#\fP cd /usr/convert
 \fB#\fP tar x
 .DE
-.PP
-For sites running \*(1B, converting local configuration files should be
-very simple.  In general very little has changed between \*(1B and \*(2B
-with regard to these files.
 .PP
 For sites running a pre-\*(Ps UNIX, there is very little that can be
 said here as the variety of previous versions of PDP-11 UNIX systems and how

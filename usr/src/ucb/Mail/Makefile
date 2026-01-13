@@ -1,4 +1,4 @@
-#	@(#)Makefile	5.16.2 (2.11BSD) 1996/10/31
+#	@(#)Makefile	5.16.3 (2.11BSD) 2025/11/25
 
 SRCS=	version.c aux.c cmd1.c cmd2.c cmd3.c cmdtab.c collect.c edit.c fio.c \
 	getname.c head.c v7.local.c lex.c list.c main.c names.c popen.c \
@@ -9,7 +9,6 @@ OBJS=	version.o aux.o cmd1.o cmd2.o cmd3.o cmdtab.o collect.o edit.o fio.o \
 #
 CFLAGS=	-O
 XSTR=	/usr/ucb/xstr
-DESTDIR=
 CTAGS=	/usr/ucb/ctags -w
 LIBES=
 AS=	-as
@@ -36,10 +35,10 @@ Mail:	$S $(OBJS)
 	@size Mail
 
 install: all
-	install -s Mail ${DESTDIR}/usr/ucb/Mail
-	install -s fmt ${DESTDIR}/usr/ucb/fmt
-	cd ${DESTDIR}/usr/ucb; rm -f mail; ln Mail mail
-	install -c -m 444 Mail.rc ${DESTDIR}/etc/Mail.rc
+	install -c -s -m 755 Mail /usr/ucb/Mail
+	install -c -s -m 755 fmt /usr/ucb/fmt
+	cd /usr/ucb; rm -f mail; ln Mail mail
+	install -c -m 444 Mail.rc /etc/Mail.rc
 
 tags:	$(SRCS)
 	${CTAGS} $(SRCS);

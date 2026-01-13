@@ -4,7 +4,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)vgrind.sh	5.3.1 (2.11BSD) 1996/10/29
+#	@(#)vgrind.sh	5.3.2 (2.11BSD) 2025/11/27
 #
 # vgrind
 #
@@ -90,10 +90,10 @@ if (-r index) then
     else
 	if ("$head" != "") then
 	    $b/vfontedpr $options -h "$head" $files | \
-		/bin/sh -c "vtroff -rx1 $voptions -i -mvgrind 2>> xindex"
+		/bin/sh -c "troff -rx1 $voptions -i -mvgrind 2>> xindex"
 	else
 	    $b/vfontedpr $options $files | \
-		/bin/sh -c "vtroff -rx1 $voptions -i -mvgrind 2>> xindex"
+		/bin/sh -c "troff -rx1 $voptions -i -mvgrind 2>> xindex"
 	endif
     endif
     sort -df +0 -2 xindex >index
@@ -108,10 +108,10 @@ else
     else
 	if ("$head" != "") then
 	    $b/vfontedpr $options -h "$head" $files \
-		| vtroff -i $voptions -mvgrind
+		| troff -i $voptions -mvgrind
 	else
 	    $b/vfontedpr $options $files \
-		| vtroff -i $voptions -mvgrind
+		| troff -i $voptions -mvgrind
 	endif
     endif
 endif

@@ -1,6 +1,5 @@
-#
-#       Makefile for Mtools
-#
+#       Makefile        2.0 (2.11BSD) 2025/11/25
+
 # check the Configure file for some examples of device-specific setups
 # Berkeley flavors of Unix should include -DBSD in the CFLAGS
 
@@ -129,8 +128,8 @@ mwrite.0: Mwrite.1
 	 nroff -man Mwrite.1  >  mwrite.0
 
 install: $(PROGS) $(MANPAGES)
-	install -s -m 755 -o bin $(PROGS) ${DESTDIR}$(BINDIR)
-	install -c -m 444 -o bin -g bin *.0 ${DESTDIR}$(MANDIR)
+	install -c -s -m 755 -o root $(PROGS) $(BINDIR)
+	install -c -m 444 -o root -g staff *.0 $(MANDIR)
 
 clean:
 	rm -f $(PROGS) *.0 *.o

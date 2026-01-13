@@ -1,11 +1,10 @@
 #
 # Public domain - 1997/1/10 - sms
 #
-#	@(#)Makefile	1.0 (2.11BSD) 1997/1/10
+#	@(#)Makefile	1.1 (2.11BSD) 2025/11/25
 #
-# DESTDIR is defined here to be something which does *NOT* exist - it must be
-#  specified on the command line when doing a "make DESTDIR=/mnt distribution".
-#  This is aimed at avoiding overwriting the system disk's /etc files.
+# DESTDIR is defined here to be something which does *NOT* exist and should be
+# the same as specified in ../Makefile (See the comments in ../Makefile)
 
 DESTDIR=/foobar
 
@@ -15,6 +14,7 @@ GRP=daemon
 FILES= L-devices L-dialcodes L.cmds L.sys L_stat L_sub SEQF USERFILE \
 	clean.daily clean.weekly uucp-map
 
+# all the usual targets do nothing
 all install depend lint clean tags:
 
 distribution:

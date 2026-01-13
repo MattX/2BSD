@@ -1,6 +1,6 @@
-#if	defined(RCSIDENT) && defined(MAINLINE)
-static char zzparms[] = "$Header: parms.h,v 1.7.0.12 86/08/28 22:55:49 notes Rel $";
-#endif	defined(RCSIDENT) && defined(MAINLINE)
+#if	!defined(lint) && defined(DOSCCS)
+static char zzparms[] = "parms.h 1.7.0.2 (2.11BSD) 2025/11/29";
+#endif
 
 /*
  *	This file contains the constants that must be reset on each system
@@ -38,7 +38,7 @@ static char zzparms[] = "$Header: parms.h,v 1.7.0.12 86/08/28 22:55:49 notes Rel
  *	this undefined.
  */
 
-#define	FULLDOMAIN	"imsd.contel.com"		/* local domain */
+#define	FULLDOMAIN	"example.localhost.com"		/* local domain */
 #undef	IDDOMAIN					/* not in unique id */
 
 /*

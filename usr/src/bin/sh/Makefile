@@ -1,17 +1,9 @@
-#	Makefile	4.5	83/07/01
+#	Makefile	4.6	(2.11BSD) 2025/11/25
 #
 CFLAGS = -O -w
-SEPFLAG= -i
+LDFLAGS= -i
 
 all:	sh
-
-cp:	sh
-	cp sh /bin/sh
-	rm sh *.o
-
-cmp:	sh
-	cmp sh /bin/sh
-	rm sh *.o
 
 sh:	setbrk.o
 sh:	builtin.o blok.o stak.o
@@ -26,9 +18,9 @@ main.o:		brkincr.h
 stak.o:		brkincr.h
 
 sh:
-	cc ${SEPFLAG} -o sh *.o
+	cc ${LDFLAGS} -o sh *.o
 
 install: all
-	install -s sh $(DESTDIR)/bin
+	install -c -s -m 755 -o root sh /bin
 clean:
 	rm -f sh *.o

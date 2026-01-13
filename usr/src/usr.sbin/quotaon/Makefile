@@ -1,10 +1,10 @@
 #
 # Public Domain.  1996/11/16 - Steven Schultz
 #
-#	@(#)Makefile	1.0 (2.11BSD) 1996/11/16
+#	@(#)Makefile	1.1 (2.11BSD) 2025/11/28
 #
 CFLAGS=	 -O
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	quotaon.c
 OBJS=	quotaon.o
 MAN=	quotaon.0
@@ -13,7 +13,7 @@ MANSRC=	quotaon.8
 all: quotaon quotaon.0
 
 quotaon: ${OBJS}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
+	${CC} ${LDFLAGS} -o $@ ${OBJS}
 
 quotaon.0: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
@@ -25,12 +25,12 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: quotaon
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat8
-	-rm -f ${DESTDIR}/usr/man/cat8/quotaoff.0
-	ln ${DESTDIR}/usr/man/cat8/quotaon.0 ${DESTDIR}/usr/man/cat8/quotaoff.0
-	install -s -o root -g bin -m 755 quotaon ${DESTDIR}/usr/sbin/quotaon
-	-rm -f ${DESTDIR}/usr/sbin/quotaoff
-	ln ${DESTDIR}/usr/sbin/quotaon ${DESTDIR}/usr/sbin/quotaoff
+	install -c -o root -g staff -m 444 ${MAN} /usr/man/cat8
+	-rm -f /usr/man/cat8/quotaoff.0
+	ln /usr/man/cat8/quotaon.0 /usr/man/cat8/quotaoff.0
+	install -c -s -o root -g staff -m 755 quotaon /usr/sbin/quotaon
+	-rm -f /usr/sbin/quotaoff
+	ln /usr/sbin/quotaon /usr/sbin/quotaoff
 
 lint: ${SRCS}
 	lint -hax ${SRCS}

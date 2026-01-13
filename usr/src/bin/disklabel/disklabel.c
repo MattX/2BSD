@@ -39,8 +39,7 @@ static char copyright[] =
 "@(#) Copyright (c) 1987, 1993\n\
 	The Regents of the University of California.  All rights reserved.\n";
 
-static char sccsid[] = "@(#)disklabel.c	8.1.3 (2.11BSD) 1999/10/25";
-/* from static char sccsid[] = "@(#)disklabel.c	1.2 (Symmetric) 11/28/85"; */
+static char sccsid[] = "@(#)disklabel.c	8.1.4 (2.11BSD) 2025/12/11";
 #endif
 
 #include <sys/param.h>
@@ -56,6 +55,7 @@ static char sccsid[] = "@(#)disklabel.c	8.1.3 (2.11BSD) 1999/10/25";
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <strings.h>
 #include "pathnames.h"
 
 /*
@@ -109,6 +109,8 @@ int	debug;
 #else
 #define OPTIONS	"BNRWb:erw"
 #endif
+
+int parse_sec_cyl(struct disklabel *, char *, long *);
 
 main(argc, argv)
 	int argc;
@@ -181,14 +183,14 @@ main(argc, argv)
 
 	dkname = argv[0];
 	if (dkname[0] != '/') {
-		(void)sprintf(np, "%s/r%s%c", _PATH_DEV, dkname, RAWPARTITION);
+		(void)sprintf(np, "%sr%s%c", _PATH_DEV, dkname, RAWPARTITION);
 		specname = np;
 		np += strlen(specname) + 1;
 	} else
 		specname = dkname;
 	f = open(specname, op == READ ? O_RDONLY : O_RDWR);
 	if (f < 0 && errno == ENOENT && dkname[0] != '/') {
-		(void)sprintf(specname, "%s/r%s", _PATH_DEV, dkname);
+		(void)sprintf(specname, "%sr%s", _PATH_DEV, dkname);
 		np = namebuf + strlen(specname) + 1;
 		f = open(specname, op == READ ? O_RDONLY : O_RDWR);
 	}
@@ -280,7 +282,6 @@ makelabel(type, name, lp)
 	register struct disklabel *lp;
 {
 	register struct disklabel *dp;
-	char *strcpy();
 
 	dp = getdiskbyname(type);
 	if (dp == NULL) {
@@ -620,7 +621,6 @@ edit(lp, f)
 	register int c;
 	struct disklabel label;
 	FILE *fd;
-	char *mktemp();
 
 	(void) mktemp(tmpfil);
 	fd = fopen(tmpfil, "w");
@@ -739,7 +739,8 @@ getasciilabel(f, lp)
 	FILE	*f;
 	register struct disklabel *lp;
 {
-	register char **cpp, *cp;
+	char **cpp;
+	register char *cp;
 	register struct partition *pp;
 	char *tp, *s, line[BUFSIZ];
 	int lineno = 0, errors = 0;
@@ -951,23 +952,22 @@ getasciilabel(f, lp)
 				continue;
 			}
 			pp = &lp->d_partitions[part];
-#define NXTNUM(n) { \
+#define NXTNUM() { \
 	cp = tp, tp = word(cp); \
 	if (tp == NULL) \
 		tp = cp; \
-	(n) = atol(cp); \
      }
 
-			NXTNUM(v);
-			if (v < 0) {
+			NXTNUM();
+			if (parse_sec_cyl(lp, cp, &v) < 0) {
 				fprintf(stderr,
 				    "line %d: %s: bad partition size\n",
 				    lineno, cp);
 				errors++;
 			} else
 				pp->p_size = v;
-			NXTNUM(v);
-			if (v < 0) {
+			NXTNUM();
+			if (parse_sec_cyl(lp, cp, &v) < 0) {
 				fprintf(stderr,
 				    "line %d: %s: bad partition offset\n",
 				    lineno, cp);
@@ -997,10 +997,12 @@ getasciilabel(f, lp)
 
 			case FS_UNUSED:				/* XXX */
 			case FS_V71K:
-				NXTNUM(pp->p_fsize);
+				NXTNUM();
+				pp->p_fsize = atol(cp);
 				if (pp->p_fsize == 0)
 					break;
-				NXTNUM(v);
+				NXTNUM();
+				v = atol(cp);
 				pp->p_frag = v / pp->p_fsize;
 				break;
 
@@ -1015,7 +1017,14 @@ getasciilabel(f, lp)
 	next:
 		;
 	}
-	errors += checklabel(lp);
+
+/*
+ * If error(s) have already been logged then don't call checklabel on a bogus
+ * label.  The meaningful error message has already been printed and checklabel
+ * will emit additional messages based on an incomplete or zero filled label.
+*/
+	if (errors == 0)
+	   errors = checklabel(lp);
 	return (errors == 0);
 }
 
@@ -1141,3 +1150,115 @@ usage()
 		"(to write disable/enable label)");
 	exit(1);
 }
+
+/*
+ * Sizes and offsets can be specified in four ways:
+ *
+ *    Number of sectors:  32678
+ *    Number of cylinders:  110c
+ *    Number of cylinders and sectors:  29c14s
+ *    Number of sectors and cylinders:  22s134c
+ * 
+ * The trailing 's' or 'c' can be left off in the last two cases.
+ *
+ * The geometry section of the label must have been filled in previously.
+ * A warning is issued if the cylinder or cylinder+sector forms are used
+ * and the necessary geometry information is not present.
+*/
+
+int parse_sec_cyl(lp, line, numsec)
+	struct	disklabel *lp;
+	char	*line;
+	long	*numsec;
+	{
+	register char	*cp;
+	int	error = 0;
+	long	tmp, tmpcyl = 0, tmpsec = 0;
+
+	for	(tmp = 0, cp = line; *cp; cp++)
+		{
+		if	(*cp >= '0' && *cp <= '9')
+			{
+			tmp *= 10;
+			tmp += (*cp - '0');
+			}
+		else if	(*cp == 'c')
+			{
+			if	(tmpcyl)
+				{
+				fputs("duplicate 'c'ylinder used\n", stderr);
+				error = 1;
+				break;
+				}
+			tmpcyl = tmp;
+			tmp = 0;
+			}
+		else if	(*cp == 's')
+			{
+			if	(tmpsec)
+				{
+				fputs("duplicate 's'ector used\n", stderr);
+				error = 1;
+				break;
+				}
+			tmpsec = tmp;
+			tmp = 0;
+			}
+		else
+			{
+			fprintf(stderr, "illegal character '%c'\n", *cp);
+			error = 1;
+			break;
+			}
+		}
+	if	(error)
+		return(-1);
+
+/*
+ * At this point if either a 's' or 'c' was encountered in the string then
+ * one or both of 'tmpsec' and 'tmpcyl' will be non-zero.  If the trailing 
+ * character was omitted we need to figure out which variable gets the 
+ * contents left in 'tmp' when the terminating null character was seen. This
+ * is because "15c8" and "18s3" are both valid and indicate "15 cylinders +
+ * 8 sectors" and "18 sectors + 3 cylinders" respectively.
+ *
+ * If neither 'tmpsec' or 'tmpcyl' are nonzero then we have a simple sector
+ * number in 'tmp'.
+*/
+	if	(tmpsec || tmpcyl)
+		{
+		if	(tmpsec)
+			tmpcyl = tmp;
+		else
+			tmpsec = tmp;
+		}
+	else
+		{
+		tmpsec = tmp;
+		tmpcyl = 0;
+		}
+/*
+ * It is an error condition to specify a number of cylinders and not
+ * have previously defined the geometry - it is impossible to calculate
+ * the number of sectors in the partition without geometry.
+*/
+	if	(tmpcyl && lp->d_secpercyl == 0)
+		{
+		fputs("# cylinders given but no geometry defined!\n", stderr);
+		return(-1);
+		}
+
+/*
+ * Sanity check to make sure erroneous number of cylinders is not believed
+ * due to truncation (number of cylinders is really a 'u_int')
+*/
+
+	if	(tmpcyl > 65535L)
+		{
+		fprintf(stderr, "Number of cylinders (%D) is ridiculous!\n",
+			tmpcyl);
+		return(-1);
+		}
+	*numsec = (lp->d_secpercyl * tmpcyl) + tmpsec;
+	return(0);
+	}

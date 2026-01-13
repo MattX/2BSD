@@ -1,4 +1,4 @@
-Updated 1997/2/14
+		README 1.1 (2.11BSD) 2025/12/18
 
 	This directory contains prototypes of the files necessary to remaking
 the kernel.  The kernel is not compiled or loaded in this directory, but in
@@ -50,11 +50,3 @@ ALL other options have either been deleted (obsolete) or made
 standard.  The few remaining options have been moved into the kernel Makefile
 as "-Dxxx" flags to the compiler.  If EXTERNALITIMES changes you will need
 to recompile anything which looks at the kernel's incore inode table.
-
-	The directory VAX.compile contains a C preprocessor that defines
-"pdp11" and a C compiler that knows where to find said preprocessor.  If you
-compile and install VAX.compile/cpp as VAX.compile/CPP and VAX.compile/cc.c
-as VAX.compile/CC, then do "./config VAX", you can compile the entire kernel
-on a larger machine; obviously, this is more of a test for syntax/load errors
-than anything else.  If you're interested, it usually took me about 5 minutes
-to compile the entire networking kernel on a VAX 8600.

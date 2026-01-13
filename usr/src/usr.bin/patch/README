@@ -1,4 +1,4 @@
-			Patch Kit, Version 2.0
+		Patch Kit (2.11BSD) Version 2.1 2025/12/26
 
 		    Copyright (c) 1988, Larry Wall
 
@@ -14,51 +14,21 @@ in MANIFEST.
 
 Installation
 
-1)  Run Configure.  This will figure out various things about your system.
-    Some things Configure will figure out for itself, other things it will
-    ask you about.  It will then proceed to make config.h, config.sh, and
-    Makefile.
-
-    You might possibly have to trim # comments from the front of Configure
-    if your sh doesn't handle them, but all other # comments will be taken
-    care of.
-
-    If you don't have sh, you'll have to rip the prototype of config.h out
-    of Configure and generate the defines by hand.
-
-2)  Glance through config.h to make sure system dependencies are correct.
+1)  Glance through config.h to make sure system dependencies are correct.
     Most of them should have been taken care of by running the Configure script.
 
     If you have any additional changes to make to the C definitions, they
-    can be done in the Makefile, or in config.h.  Bear in mind that they may
-    get undone next time you run Configure.
+    can be done in the Makefile, or in config.h.
 
-3)  make
+2)  make
 
     This will attempt to make patch in the current directory.
 
-4)  make install
+3)  make install
 
-    This will put patch into a public directory (normally /usr/local/bin).
+    This will put patch into a public directory (normally /usr/bin).
     It will also try to put the man pages in a reasonable place.  It will not
     nroff the man page, however.
-
-5)  Read the manual entry before running patch.
-
-6)  IMPORTANT!  Help save the world!  Communicate any problems and
-    suggested patches to me, lwall@jpl-devvax.Jpl.Nasa.Gov (Larry Wall),
-    so we can keep the world in sync.  If you have a problem, there's
-    someone else out there who either has had or will have the same problem.
-
-    If possible, send in patches such that the patch program will apply them.
-    Context diffs are the best, then normal diffs.  Don't send ed scripts--
-    I've probably changed my copy since the version you have.
-
-    Watch for patch patches in net.sources.bugs.  Patches will generally be
-    in a form usable by the patch program.  If you are just now bringing up
-    patch and aren't sure how many patches there are, write to me and I'll
-    send any you don't have.  Your current patch level is shown in patchlevel.h.
-
 
 NEW FEATURES IN THIS RELEASE
 

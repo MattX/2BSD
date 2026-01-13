@@ -1,5 +1,5 @@
 #
-#       @(#)Makefile    1.0 (2.11BSD) 2021/7/10
+#       @(#)Makefile    1.1 (2.11BSD) 2025/11/28
 #
 
 # DFLAGS = -DTEST -DDEBUG
@@ -23,8 +23,8 @@ ${MAN}:	${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
 
 install: ${PROG} ${MAN}
-	install -c -s -o bin -g bin $(PROG) ${DESTDIR}/usr/sbin/${PROG}
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat8/${MAN}
+	install -c -s -o root -g staff $(PROG) /usr/sbin/${PROG}
+	install -c -o root -g staff -m 444 ${MAN} /usr/man/cat8/${MAN}
 
 clean:
 	rm -f ${PROG} ${MAN} ${OBJS}

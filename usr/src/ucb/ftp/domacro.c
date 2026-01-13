@@ -16,8 +16,8 @@
  */
 
 #if	!defined(lint) && !defined(pdp11)
-static char sccsid[] = "@(#)domacro.c	1.6 (Berkeley) 2/28/89";
-#endif /* not lint */
+static char sccsid[] = "@(#)domacro.c	1.7 (2.11BSD) 2026/1/5";
+#endif
 
 #include "ftp_var.h"
 
@@ -26,6 +26,9 @@ static char sccsid[] = "@(#)domacro.c	1.6 (Berkeley) 2/28/89";
 #include <errno.h>
 #include <ctype.h>
 #include <sys/ttychars.h>
+
+/* in cmds.c */
+extern void cmdgets();
 
 domacro(argc, argv)
 	int argc;
@@ -42,7 +45,7 @@ domacro(argc, argv)
 	if (argc < 2) {
 		(void) strcat(line, " ");
 		printf("(macro name) ");
-		(void) gets(&line[strlen(line)]);
+		cmdgets();
 		makeargv();
 		argc = margc;
 		argv = margv;

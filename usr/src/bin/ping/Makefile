@@ -1,9 +1,9 @@
 #
-#	@(#)Makefile	1.1 (2.11BSD) 1996/1/28
+#	@(#)Makefile	1.2 (2.11BSD) 2025/11/26
 #
 
 CFLAGS=	-O
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	ping.c
 OBJS=	ping.o
 MAN=	ping.0
@@ -12,7 +12,7 @@ MANSRC=	ping.8
 all: ping ${MAN}
 
 ping: ${OBJS}
-	${CC} ${SEPFLAG} -o $@ ${CFLAGS} ${OBJS}
+	${CC} ${LDFLAGS} -o $@ ${CFLAGS} ${OBJS}
 
 ping.0: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
@@ -27,8 +27,8 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: ${MAN} ping
-	install -s -o root -g bin -m 4751 ping ${DESTDIR}/bin
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat8
+	install -c -s -o root -g staff -m 4751 ping /bin
+	install -c -o root -g staff -m 444 ${MAN} /usr/man/cat8
 
 lint: ${SRCS}
 	lint -haxc ${SRCS}

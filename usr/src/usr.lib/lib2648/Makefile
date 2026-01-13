@@ -3,10 +3,9 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.1.1 (2.11BSD) 1996/1/27
+#	@(#)Makefile	5.1.2 (2.11BSD) 2025/11/25
 #
 LIBDIR=	/usr/lib
-DESTDIR=
 CFLAGS=	-DTRACE -O
 VGRIND=	csh /usr/ucb/vgrind
 SRCS=	2648.h bit.h \
@@ -29,8 +28,8 @@ lib2648.a:	${OBJS}
 	ar cr lib2648.a `lorder ${OBJS} | tsort`
 
 install:	lib2648.a
-	install -m 644 lib2648.a ${DESTDIR}${LIBDIR}/lib2648.a
-	ranlib ${DESTDIR}${LIBDIR}/lib2648.a
+	install -c -m 644 lib2648.a ${LIBDIR}/lib2648.a
+	ranlib ${LIBDIR}/lib2648.a
 
 tags:	/tmp
 	ctags ${SRCS}

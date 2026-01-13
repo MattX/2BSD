@@ -4,10 +4,10 @@
 # the terms of the Berkeley Software License Agreement.
 #
 
-# @(#)Makefile	1.7.2 2022/10/2
+# @(#)Makefile	1.7.3 (2.11BSD) 2025/11/25
 
 CFLAGS=		-O
-SEPFLAG= -i
+LDFLAGS=	-i
 OBJS=		battlestar.o com1.o com2.o com3.o com4.o com5.o com6.o com7.o \
 		init.o cypher.o getcom.o parse.o room.o save.o fly.o misc.o \
 		globals.o dayfile.o nightfile.o dayobjs.o nightobjs.o words.o
@@ -17,15 +17,15 @@ CFILES=		battlestar.c com1.c com2.c com3.c com4.c com5.c com6.c com7.c \
 LIBS=		-lcurses -ltermlib
 LINTFLAGS=	-h
 JUNKFILES=	battlestar tags
-DIR=		$(DESTDIR)/usr/games
-LIB=		$(DESTDIR)/usr/games/lib
+DIR=		/usr/games
+LIB=		/usr/games/lib
 LOGFILE=	$(LIB)/battlestar.log
 MAN=		battlestar.0
 
 all:	battlestar ${MAN}
 
 battlestar: $(OBJS)
-	cc -o battlestar ${SEPFLAG} $(OBJS) $(LIBS)
+	cc -o battlestar ${LDFLAGS} $(OBJS) $(LIBS)
 
 $(OBJS): externs.h
 
@@ -59,8 +59,8 @@ lint: $(CFILES)
 	lint $(LINTFLAGS) $(CFILES) $(LIBS) 
 
 install: battlestar $(MAN) $(LOGFILE) $(STRINGFILE)
-	install -s battlestar $(DIR)/battlestar
-	install -m 444 -o bin -g bin  ${MAN} ${DESTDIR}/usr/man/cat6
+	install -c -s -m 755 battlestar $(DIR)/battlestar
+	install -m 444 -o root -g staff  ${MAN} /usr/man/cat6
 
 stringfile $(STRINGFILE): battle_strings
 	install -c -m 644 battle_strings $(LIB)

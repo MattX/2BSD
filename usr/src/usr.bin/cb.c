@@ -1,4 +1,7 @@
-static char *sccsid = "@(#)cb.c	4.3 (Berkeley) 2/17/86";
+#if	!defined(lint) && defined(DOSCCS)
+static char *sccsid = "@(#)cb.c	4.4 (2.11BSD) 2025/12/26";
+#endif
+
 #include <stdio.h>
 int	slevel[10];
 int	clevel	= 0;
@@ -48,7 +51,7 @@ char argv[];
 			if(lookup(welse) == 1){
 				gotelse();
 				if(sflg == 0 || j > 0)string[j++] = c;
-				puts();
+				cputs();
 				sflg = 0;
 				continue;
 			}
@@ -56,7 +59,7 @@ char argv[];
 			continue;
 		case '\n':
 			if((eflg = lookup(welse)) == 1)gotelse();
-			puts();
+			cputs();
 			printf("\n");
 			sflg = 1;
 			if(eflg == 1){
@@ -78,9 +81,9 @@ char argv[];
 				tabs--;
 			}
 			string[j++] = c;
-			puts();
+			cputs();
 			getnl();
-			puts();
+			cputs();
 			printf("\n");
 			tabs++;
 			sflg = 1;
@@ -98,7 +101,7 @@ char argv[];
 				tabs -= pflg[level];
 				pflg[level] = 0;
 			}
-			puts();
+			cputs();
 			tabs--;
 			ptabs();
 			if((peek = getch()) == ';'){
@@ -107,7 +110,7 @@ char argv[];
 			}
 			else printf("%c",c);
 			getnl();
-			puts();
+			cputs();
 			printf("\n");
 			sflg = 1;
 			if(clevel < slevel[level])if(level > 0)level--;
@@ -126,7 +129,7 @@ char argv[];
 					string[j++] = getch();
 				}
 				if(cc == '\n'){
-					puts();
+					cputs();
 					sflg = 1;
 				}
 			}
@@ -138,13 +141,13 @@ char argv[];
 			continue;
 		case ';':
 			string[j++] = c;
-			puts();
+			cputs();
 			if(pflg[level] > 0 && ind[level] == 0){
 				tabs -= pflg[level];
 				pflg[level] = 0;
 			}
 			getnl();
-			puts();
+			cputs();
 			printf("\n");
 			sflg = 1;
 			if(iflev > 0)
@@ -169,11 +172,11 @@ char argv[];
 			}
 			if(lookup(wds) == 0){
 				sflg = 0;
-				puts();
+				cputs();
 			}
 			else{
 				tabs--;
-				puts();
+				cputs();
 				tabs++;
 			}
 			if((peek = getch()) == ';'){
@@ -181,7 +184,7 @@ char argv[];
 				peek = -1;
 			}
 			getnl();
-			puts();
+			cputs();
 			printf("\n");
 			sflg = 1;
 			continue;
@@ -195,7 +198,7 @@ char argv[];
 		case ')':
 			paren--;
 			string[j++] = c;
-			puts();
+			cputs();
 			if(getnl() == 1){
 				peek = '\n';
 				if(paren != 0)aflg = 1;
@@ -211,7 +214,7 @@ char argv[];
 			while((cc = getch()) != '\n')string[j++] = cc;
 			string[j++] = cc;
 			sflg = 0;
-			puts();
+			cputs();
 			sflg = 1;
 			continue;
 		case '(':
@@ -229,7 +232,7 @@ cont:
 					goto cont;
 				}
 				paren--;
-				puts();
+				cputs();
 				if(getnl() == 1){
 					peek = '\n';
 					pflg[level]++;
@@ -239,7 +242,7 @@ cont:
 				continue;
 			}
 			if(lookup(wif) == 1){
-				puts();
+				cputs();
 				stabs[clevel][iflev] = tabs;
 				spflg[clevel][iflev] = pflg[level];
 				sind[clevel][iflev] = ind[level];
@@ -263,7 +266,7 @@ getch(){
 	peek = -1;
 	return(lastchar);
 }
-puts(){
+cputs(){
 	if(j > 0){
 		if(sflg != 0){
 			ptabs();
@@ -311,7 +314,7 @@ beg:
 		goto beg;
 	}
 	if(ch == '\n'){
-		puts();
+		cputs();
 		aflg = 1;
 		goto beg;
 	}
@@ -355,7 +358,7 @@ comment(){
 				return;
 			break;
 		case '\n':
-			puts();
+			cputs();
 			sflg = 1;
 			break;
 		}

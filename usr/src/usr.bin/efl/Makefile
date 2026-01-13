@@ -1,21 +1,21 @@
+#       Makefile        2.0 (2.11BSD) 2025/11/27
+
 ################################################################################
-# A horrid Makefile for EFL, a language even more dead than Latin              #
-#                                                                              #
-# I wrote this to make EFL compile on a PDP-11.  It attempts to stuff          #
-# EFL into 64K, and it just barely fits.  The program is barely under 64K      #
-# text, just under 56K bss and data, and 8K stack.  It will work as a split    #
-# I&D program without overlays.  Any increase will likely push it into an      ## overlaid image.                                                              #
-#                                                                              #
-# Sorry for the mess, but this is the best I could do while limiting changes   #
-# to the EFL source itself.  I admit I don't understand most of it, so         #
-# confining changes to here is probably a good idea.                           #
-#                                       -- Frank Wortner                       #
+# A horrid Makefile for EFL, a language even more dead than Latin
+#
+# I wrote this to make EFL compile on a PDP-11.  It attempts to stuff
+# EFL into 64K, and it just barely fits.  The program is barely under 64K
+# text, just under 56K bss and data, and 8K stack.
+#
+# Sorry for the mess, but this is the best I could do while limiting changes
+# to the EFL source itself.  I admit I don't understand most of it, so
+# confining changes to here is probably a good idea.
+#                                       -- Frank Wortner
 ################################################################################
 PROGRAM= efl
 CFLAGS = -O -w
 # Implement split I&D.  EFL just barely fits.
-SEPFLAG = -i
-LDFLAGS = $(SEPFLAG)
+LDFLAGS = -i
 EFLSHAREDIR = /usr/share/efl
 
 FILES1 =  Makefile efl.1 defs tokens main.c init.c tailor.c\
@@ -32,15 +32,22 @@ FILES = $(FILES1) $(FILES2)
 # in saves .75KB of I space and 1.7KB of D space
 LIBS=-lstubs
 
+# The ANSI stdio package only uses a few hundred bytes of additional text
+# but that was enough to force the use of overlays.
+
 BASE=   addr.o alloc.o blklab.o dcl.o dclgen.o error.o exec.o \
-        field.o free.o gram.o icfile.o init.o io.o lex.o main.o \
-        misc.o mk.o namgen.o pass2.o print.o simple.o struct.o \
+        field.o free.o gram.o icfile.o init.o lex.o main.o \
+        mk.o misc.o pass2.o print.o struct.o \
         symtab.o tailor.o temp.o 
 
-OBJECTS = $(BASE)
+OV1= namgen.o io.o
+OV2= simple.o
 
-$(PROGRAM): $(BASE)
-	/bin/ld $(LDFLAGS) -X -o $(PROGRAM) /lib/crt0.o $(BASE) $(LIBS) -lc
+OBJECTS = $(BASE) ${OV1} ${OV2} ${OV3}
+
+$(PROGRAM): ${OBJECTS}
+	/bin/ld $(LDFLAGS) -X -o $(PROGRAM) /lib/crt0.o \
+	   -Z ${OV1} -Z ${OV2} -Y ${BASE} $(LIBS) -lc
 	size $(PROGRAM)
 	./catastrophe $(PROGRAM)
 
@@ -116,10 +123,10 @@ clean:
 
 install: $(PROGRAM) efl_errorstrings
 	-@size $(PROGRAM) /usr/bin/efl
-	install -c -s -m 755 -o root -g bin $(PROGRAM) ${DESTDIR}/usr/bin/efl
+	install -c -s -m 755 -o root -g staff $(PROGRAM) /usr/bin/efl
 	-mkdir -p $(EFLSHAREDIR)
 	-chmod 755 $(EFLSHAREDIR)
-	install -c -m 444 -o root -g bin efl_errorstrings $(EFLSHAREDIR)
+	install -c -m 444 -o root -g staff efl_errorstrings $(EFLSHAREDIR)
 
 lint: $(PROGRAM)
 	lint -p *.c -lS

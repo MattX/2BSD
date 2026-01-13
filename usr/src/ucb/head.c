@@ -4,15 +4,12 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if     defined(DOSCCS) && !defined(lint)
 char copyright[] =
-"@(#) Copyright (c) 1980 Regents of the University of California.\n\
- All rights reserved.\n";
-#endif not lint
+"@(#) Copyright (c) 1980 Regents of the University of California.\nAll rights reserved.\n";
 
-#ifndef lint
-static char sccsid[] = "@(#)head.c	5.1 (Berkeley) 5/31/85";
-#endif not lint
+static char sccsid[] = "@(#)head.c	5.2 (2.11BSD) 2025/12/25";
+#endif
 
 #include <stdio.h>
 /*
@@ -43,7 +40,6 @@ main(Argc, argv)
 		if (argc == 0 && around)
 			break;
 		if (argc > 0) {
-			close(0);
 			if (freopen(argv[0], "r", stdin) == NULL) {
 				perror(argv[0]);
 				exit(1);
@@ -65,7 +61,6 @@ main(Argc, argv)
 copyout(cnt)
 	register int cnt;
 {
-	register int c;
 	char lbuf[BUFSIZ];
 
 	while (cnt > 0 && fgets(lbuf, sizeof lbuf, stdin) != 0) {

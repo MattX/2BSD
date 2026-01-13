@@ -1,42 +1,25 @@
-#	@(#)Makefile	4.2	(Berkeley)	9/7/85
+#	@(#)Makefile	4.3	(2.11BSD)	2025/11/29
 #
-DESTDIR=
 CFLAGS=	-O
-SEPFLAG= -i
+LDFLAGS= -i
 
 quiz: quiz.c
-	cc ${SEPFLAG} ${CFLAGS} -o quiz quiz.c
+	cc ${LDFLAGS} ${CFLAGS} -o quiz quiz.c
 
 install: quiz quiz.k
-	install -s quiz ${DESTDIR}/usr/games/quiz
-	cp -r quiz.k ${DESTDIR}/usr/games/lib
+	install -c -s -m 755 -o root quiz /usr/games/quiz
+	-rm -rf /usr/games/lib/quiz.k
+	cp -pr quiz.k /usr/games/lib
+	chmod 755 /usr/games/lib/quiz.k
 
 clean:
 	rm -f a.out core *.s *.o quiz
 
-depend:
-	cat </dev/null >x.c
-	for i in quiz; do \
-		(echo $$i: $$i.c >>makedep; \
-		/bin/grep '^#[ 	]*include' x.c $$i.c | sed \
-			-e 's,<\(.*\)>,"/usr/include/\1",' \
-			-e 's/:[^"]*"\([^"]*\)".*/: \1/' \
-			-e 's/\.c//' >>makedep); done
-	echo '/^# DO NOT DELETE THIS LINE/+2,$$d' >eddep
-	echo '$$r makedep' >>eddep
-	echo 'w' >>eddep
-	cp Makefile Makefile.bak
-	ed - Makefile < eddep
-	rm eddep makedep x.c
-	echo '# DEPENDENCIES MUST END AT END OF FILE' >> Makefile
-	echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY' >> Makefile
-	echo '# see make depend above' >> Makefile
+depend:	quiz.c
+	mkdep ${CFLAGS} quiz.c
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
 
-# DO NOT DELETE THIS LINE -- make depend uses it
+quiz.o: quiz.c /usr/include/stdio.h /usr/include/signal.h
 
-quiz: quiz.c
-quiz: /usr/include/stdio.h
-quiz: /usr/include/signal.h
-# DEPENDENCIES MUST END AT END OF FILE
-# IF YOU PUT STUFF HERE IT WILL GO AWAY
-# see make depend above
+# IF YOU PUT ANYTHING HERE IT WILL GO AWAY

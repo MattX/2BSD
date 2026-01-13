@@ -1,8 +1,9 @@
-/* string extraction/restoration routines */
+#if !defined(lint) && !defined(NOSCCS)
+static char     SccsId[] = "@(#)extract.c   5.7.2 (2.11BSD) 2025/12/26";
+#endif
 
 #define BUFLEN 256
 #include "sendmail.h"
-#include <varargs.h>
 
 char	*StringFile =	"/usr/share/misc/sendmail.sr";
 static int strfile = -1, ourpid = 0;
@@ -35,46 +36,39 @@ oops:
 
 /* extracted string front end for printf() */
 /*VARARGS1*/
-strprerror(fmt, va_alist)
-	int fmt;
-	va_dcl
+strprerror(int fmt, ...)
 {
 	va_list ap;
 	char buf[BUFLEN];
 
 	errprep(fmt, buf);
-	va_start(ap);
+	va_start(ap, fmt);
 	vprintf(buf, ap);
 	va_end(ap);
 }
 
 /* extracted string front end for sprintf() */
 /*VARARGS1*/
-strsrerror(fmt, obuf, va_alist)
-	int fmt;
-	char *obuf;
-	va_dcl
+strsrerror(int fmt, char *obuf, ...)
 {
 	char buf[BUFLEN];
 	va_list ap;
 
 	errprep(fmt, buf);
-	va_start(ap);
+	va_start(ap, obuf);
 	vsprintf(obuf, buf, ap);
 	va_end(ap);
 }
 
 /* extracted string front end for fprintf() */
 /*VARARGS1*/
-strfrerror(fmt, fd, va_alist)
-	int fmt, fd;
-	va_dcl
+strfrerror(int fmt, FILE *fd, ...)
 {
 	va_list ap;
 	char buf[BUFLEN];
 
 	errprep(fmt, buf);
-	va_start(ap);
+	va_start(ap, fd);
 	vfprintf(fd, buf, ap);
 	va_end(ap);
 }

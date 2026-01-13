@@ -14,11 +14,11 @@
 # WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#)Makefile	5.1.1 (2.11BSD) 1996/11/16
+# @(#)Makefile	5.1.2 (2.11BSD) 2025/11/25
 #
 
 CFLAGS=	-O
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	mkpasswd.c
 OBJS=	mkpasswd.o
 MAN=	mkpasswd.0
@@ -27,7 +27,7 @@ MANSRC=	mkpasswd.8
 all: mkpasswd ${MAN}
 
 mkpasswd: ${OBJS}
-	${CC} ${SEPFLAG} -o $@ ${CFLAGS} ${OBJS}
+	${CC} ${LDFLAGS} -o $@ ${CFLAGS} ${OBJS}
 
 clean:
 	rm -f ${OBJS} ${MAN} core mkpasswd
@@ -36,8 +36,8 @@ depend: ${SRCS}
 	mkdep -p ${CFLAGS} ${SRCS}
 
 install: ${MAN} mkpasswd
-	install -s -o bin -g bin -m 755 mkpasswd ${DESTDIR}/sbin/mkpasswd
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat8
+	install -c -s -o root -g staff -m 755 mkpasswd /sbin/mkpasswd
+	install -c -o root -g staff -m 444 ${MAN} /usr/man/cat8
 
 mkpasswd.0: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}

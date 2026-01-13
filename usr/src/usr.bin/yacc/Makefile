@@ -1,8 +1,7 @@
 #
-#	@(#)Makefile	4.4	(2.11BSD) 2025/8/30
+#	@(#)Makefile	4.5	(2.11BSD) 2025/11/25
 #
-DESTDIR=
-SEPFLAG= -i
+LDFLAGS= -i
 CFLAGS=-O
 XSTR=xstr
  
@@ -14,7 +13,7 @@ XSTR=xstr
 all: yacc
 
 yacc: y1.o y2.o y3.o y4.o strings.o
-	$(CC) ${SEPFLAG} -o yacc y?.o strings.o
+	$(CC) ${LDFLAGS} -o yacc y?.o strings.o
 
 y1.o y2.o y3.o y4.o: dextern files
 
@@ -24,7 +23,7 @@ strings.o: strings
 	mv xs.o strings.o
 
 install: yacc yaccpar
-	install -s -m 755 yacc $(DESTDIR)/usr/bin
-	install -c yaccpar $(DESTDIR)/usr/share/misc
+	install -c -s -m 755 -o root yacc /usr/bin
+	install -c yaccpar /usr/share/misc
 clean :
 	-rm -f *.o yacc x.c xs.c strings

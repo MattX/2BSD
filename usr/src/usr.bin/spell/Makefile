@@ -1,28 +1,28 @@
-#	@(#)Makefile	4.3.1 (2.11BSD)	1996/10/23
+#	@(#)Makefile	4.3.2 (2.11BSD)	2025/11/27
 
 CFLAGS= -O
-SEPFLAG= -i
+LDFLAGS= -i
 
 all:	spell hlist hlista hlistb hstop spellin spellout
 
 install:	all
-	install -s spell $(DESTDIR)/usr/libexec
-	install -s spellin ${DESTDIR}/usr/bin
-	install -s spellout ${DESTDIR}/usr/bin
-	install -c hlista $(DESTDIR)/usr/dict
-	install -c hlistb $(DESTDIR)/usr/dict
-	install -c hstop $(DESTDIR)/usr/dict
-	install -c spell.sh $(DESTDIR)/usr/bin/spell
+	install -c -s -m 755 spell /usr/libexec
+	install -c -s -m 755 spellin /usr/bin
+	install -c -s -m 755 spellout /usr/bin
+	install -c -m 644 hlista /usr/dict
+	install -c -m 644 hlistb /usr/dict
+	install -c -m 644 hstop /usr/dict
+	install -c -m 755 spell.sh /usr/bin/spell
 
 clean:	
 	rm -f *.o spell spellin hlista hlistb hlist hstop spellout
 
 spell: spell.o
-	cc ${SEPFLAG} spell.o -o spell
+	cc ${LDFLAGS} spell.o -o spell
 spellin: spellin.o
-	cc ${SEPFLAG} spellin.o -o spellin
+	cc ${LDFLAGS} spellin.o -o spellin
 spellout: spellout.o
-	cc ${SEPFLAG} spellout.o -o spellout
+	cc ${LDFLAGS} spellout.o -o spellout
 
 hlist: /usr/dict/words spellin
 	spellin </usr/dict/words >hlist

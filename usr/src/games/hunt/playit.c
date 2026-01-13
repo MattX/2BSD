@@ -9,7 +9,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)playit.c      1.1 (2.11BSD) 2020/1/7";
+static char sccsid[] = "@(#)playit.c      1.2 (2.11BSD) 2025/12/25";
 #endif
 
 # include	<curses.h>
@@ -43,7 +43,7 @@ static char	otto_face;
  */
 static char	ibuf[20];
 
-#define	GETCHR(fd)	(--(fd)->_cnt >= 0 ? *(fd)->_ptr++&0377 : getchr(fd))
+#define	GETCHR(fd)	(--(fd)->_r >= 0 ? *(fd)->_p++&0377 : getchr(fd))
 
 /*
  * playit:
@@ -203,7 +203,7 @@ one_more_time:
 		send_stuff();
 	if ((readfds & driver_mask) == 0)
 		goto one_more_time;
-	return _filbuf(fd);
+	return __srget(fd);
 }
 
 /*

@@ -1,1 +1,9 @@
-127.0.0.1	localhost.2bsd.com localhost.arpa localhost
+#
+#       @(#)hosts    1.0 (2.11BSD) 2026/1/12
+#
+# Settings in this file must match /etc/netstart and /etc/resolv.conf
+#
+# Define your host's IP address and name (both with and without domain name)
+192.168.0.2	211bsd.example.com 211bsd
+# Edit the following line *ONLY* to change the domain name
+127.0.0.1	localhost.example.com localhost

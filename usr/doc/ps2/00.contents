@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)00.contents	5.2 (Berkeley) 5/10/86
+.\"	@(#)00.contents	5.3 (2.11BSD) 2025/12/26
 .\"
 .OH '''PS2 Contents'
 .EH 'PS2 Contents'''
@@ -62,21 +62,10 @@ An introduction to a powerful FORTRAN preprocessor providing access
 to a language with structures much like C.
 
 .IP
-.tl 'Berkeley FP User\'s Manual''PS2:7'
-.QP
-A description of the Berkeley implementation of Backus'
-Functional Programming Language, FP.
-
-.IP
 .tl 'Ratfor \- A Preprocessor for a Rational FORTRAN''PS2:8'
 .QP
 Converts a FORTRAN with C\-like control structures and cosmetics into real, 
 ugly, compilable FORTRAN.
-
-.IP
-.tl 'The F\s-2RANZ\s0 L\s-2ISP\s0 Manual''PS2:9'
-.QP
-A dialect of \s-2LISP\s0, largely compatible with \s-2MACLISP\s0.
 
 .SH
 Database Management

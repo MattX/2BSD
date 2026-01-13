@@ -1365,7 +1365,7 @@ back:					if (c == '*') {
 	if (macget(begpos) == CONC)
 		goto bad; /* 6.10.3.3 p1 */
 
-	if (redef && ifiles->idx != SYSINC) {
+	if (redef) {
 		if (cmprepl(np->valoff, begpos) || 
 		    np->type != type || np->narg != narg) { /* not equal */
 			np->valoff = begpos;

@@ -4,8 +4,8 @@
  * profit and the author is credited appropriately.
  */
 
-#if	!defined(lint) && defined(DOSCCS)
-static char *RCSid = "$Header: options.c,v 1.13.1 96/3/23 18:13:28 sms Exp $";
+#if     !defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)options.c    1.13.2 (2.11BSD) 2025/12/24";
 #endif
 
 /*
@@ -64,9 +64,6 @@ static char *RCSid = "$Header: options.c,v 1.13.1 96/3/23 18:13:28 sms Exp $";
  */
 
 #include "options.h"
-#ifdef HAS_VARARGS
-#include <varargs.h>
-#endif
 
 char *OptionChars = "-+";	/* Default option switching characters */
 char *ProgramName = NULL;	/* Name of this program */
@@ -328,31 +325,17 @@ void HelpOptions(options, num_opts, message)
 /*
  * UserError - Print a user error.
  */
-#ifdef HAS_VARARGS
-void UserError(va_alist)
-     va_dcl
+void UserError(char *fmt, ...)
 {
-    va_list args;
-    char *fmt;
+    va_list ap;
 
-    va_start(args);
+    va_start(ap, fmt);
     if (ProgramName)
 	(void) fprintf(stderr, "%s: ", ProgramName);
-    fmt = (char *) va_arg(args, char *);
-    (void) vfprintf(stderr, fmt, args);
-    va_end(args);
+    vfprintf(stderr, fmt, ap);
+    va_end(ap);
     (void) fprintf(stderr, "\n");
 }
-#else
-void UserError(fmt, a1, a2, a3, a4, a5, a6)
-     char *fmt;
-{
-    if (ProgramName)
-	(void) fprintf(stderr, "%s: ", ProgramName);
-    (void) fprintf(stderr, fmt, a1, a2, a3, a4, a5, a6);
-    (void) fprintf(stderr, "\n");
-}
-#endif
 
 OptBool(opt, value, docopy)
      OptionDescRec *opt;

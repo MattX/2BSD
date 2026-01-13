@@ -1,7 +1,10 @@
-
 /*
  *                     RCS common definitions and data structures
  */
+#if     !defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)rcsbase.h    6.2.2 (2.11BSD) 2025/12/26";
+#endif
+
 #define RCSBASE "$Id: rcsbase.h,v 4.5 87/12/18 17:06:41 narten Exp $"
 /*****************************************************************************
  * INSTRUCTIONS:
@@ -170,7 +173,10 @@
 #define JOINFIL3    ",RCSj3XXXXXX"
 
 
-#define putc(x,p) (--(p)->_cnt>=0? ((int)(*(p)->_ptr++=(unsigned)(x))):fflsbuf((unsigned)(x),p))
+#define putc(c, p) \
+        (--(p)->_w < 0 ? \
+		fflsbuf((unsigned)(c), p) : \
+	(*(p)->_p = (c), (int)*(p)->_p++))
 /* This version of putc prints a char, but aborts on write error            */
 
 #define GETC(in,out,echo) (echo?putc(getc(in),out):getc(in))

@@ -9,7 +9,7 @@
 # software without specific written prior permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	@(#)Makefile	5.3.1 (2.11BSD) 1996/12/1
+#	@(#)Makefile	5.3.2 (2.11BSD) 2025/11/25
 #
 CFLAGS=	-O -DUNIX -DUNIX_BSD4_2
 SRCS=	curses.c	\
@@ -71,8 +71,8 @@ depend: FRC
 	mkdep ${CFLAGS} ${SRCS}
 
 install: rogue
-	install -s -o games -g bin -m 4700 rogue ${DESTDIR}/usr/games/hide
-	(cd ${DESTDIR}/usr/games; rm -f rogue; ln -s dm rogue; chown games.bin rogue)
+	install -c -s -o games -g staff -m 4700 rogue /usr/games/hide
+	(cd /usr/games; rm -f rogue; ln -s dm rogue; chown games.bin rogue)
 
 lint: FRC
 	lint ${CFLAGS} ${SRCS}

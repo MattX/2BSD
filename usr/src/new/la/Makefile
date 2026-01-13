@@ -1,26 +1,22 @@
-#
-# la Makefile.  Revised 1996/1/28
-#
-DESTDIR=
+#       Makefile        2.0 (2.11BSD) 2025/11/25
 
-DEFS=
-CFLAGS=	-O ${DEFS}
-SEPFLAG=-i
+CFLAGS=	-O
+LDFLAGS=-i
 
 all: la la.0
 
 la: la.o
-	cc ${CFLAGS} ${SEPFLAG} la.o -o la
+	cc ${CFLAGS} ${LDFLAGS} la.o -o la
 
 install: la la.0
-	install -s la ${DESTDIR}/usr/new/la
-	install -c -m 444 -o bin -g bin la.0 ${DESTDIR}/usr/new/man/cat1/la.0
+	install -c -s -m 755 la /usr/new/la
+	install -c -m 444 -o root -g staff la.0 /usr/new/man/cat1/la.0
 
 la.0: la.1
 	/usr/man/manroff la.1 > la.0
 
 clean:
-	rm -f la *.o la.0 MAKELOG
+	rm -f la *.o la.0
 
 depend:
 tags:

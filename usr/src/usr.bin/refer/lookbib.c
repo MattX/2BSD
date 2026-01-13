@@ -1,5 +1,5 @@
 #if	defined(DOSCCS) && !defined(lint)
-static char *sccsid = "@(#)lookbib.c	4.4.2 (2.11BSD GTE) 1996/10/23";
+static char *sccsid = "@(#)lookbib.c	4.4.3 (2.11BSD) 2025/12/26";
 #endif
 
 #include <stdio.h>
@@ -10,7 +10,7 @@ int argc;
 char **argv;
 {
 	FILE *fp, *hfp;
-	char s[BUFSIZ], hunt[64], *sprintf();
+	char s[BUFSIZ], hunt[64];
 	int instructions = 1;
 
 	if (strcmp(argv[1],"-n") == 0)

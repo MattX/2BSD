@@ -1,12 +1,10 @@
-# m11 Makefile.  Revised 2001/11/20
-#
-# Note that the pathname for macxrf is wired into exec.m11 ...
+#       Makefile        2.0 (2.11BSD) 2025/11/25
 
-DESTDIR=
+# Note that the pathname for macxrf is wired into exec.m11 ...
 
 M11=	./m11.x
 
-SEPFLAG=-i
+LDFLAGS=-i
 MFLAGS=
 
 .SUFFIXES: .m11 .obj
@@ -29,20 +27,20 @@ OBJS=	exec.obj macro.obj code.obj expr.obj fltg.obj getl.obj \
 all: m11 macxrf m11.0
 
 m11: ${OBJS}
-	l11 -ls ${SEPFLAG} ${OBJS}
+	l11 -ls ${LDFLAGS} ${OBJS}
 	mv exec.out m11
 
 macxrf: macxrf.c
-	cc ${SEPFLAG} -O -w -o macxrf macxrf.c
+	cc ${LDFLAGS} -O -w -o macxrf macxrf.c
 
 install: all m11.0
-	install -s m11 ${DESTDIR}/usr/new/m11
-	install -s macxrf ${DESTDIR}/usr/new/macxrf
-	install -c -m 444 -o bin -g bin m11.0 ${DESTDIR}/usr/new/man/cat1/m11.0
+	install -c -s m11 /usr/new/m11
+	install -c -s macxrf /usr/new/macxrf
+	install -c -m 444 -o root -g staff m11.0 /usr/new/man/cat1/m11.0
 
 cmp: all
-	cmp m11	${DESTDIR}/usr/new/m11
-	cmp macxrf ${DESTDIR}/usr/new/macxrf
+	cmp m11	/usr/new/m11
+	cmp macxrf /usr/new/macxrf
 
 clean:
 	rm -f *.obj *.lst *.map m11 macxrf *.0

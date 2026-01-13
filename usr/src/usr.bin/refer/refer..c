@@ -1,4 +1,6 @@
-/*	refer..c	4.4	1/1/94	*/
+#if     defined(DOSCCS) && !defined(lint)
+static char *sccsid = "@(#)refer..c    4.5 (2.11BSD) 2025/12/26";
+#endif
 
 #include <stdio.h>
 #include <ctype.h>
@@ -45,4 +47,4 @@ extern char *class(),*caps(),*revauth();
 extern char *artskp(),*fpar();
 extern char *trimnl();
 
-extern char *getenv(), *sprintf(), *strcpy(), *strcat();
+extern char *getenv(), *strcpy(), *strcat();

@@ -14,10 +14,9 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	5.4.3 (2.11BSD) 1997/5/31
+#	@(#)Makefile	5.4.4 (2.11BSD) 2025/11/25
 #
-DESTDIR=
-MDIR=	${DESTDIR}/usr/man/cat4
+MDIR=	/usr/man/cat4
 SRCS=	acc.4 arp.4 bk.4 br.4 cons.4 css.4 de.4 dh.4 dhu.4 dhv.4 \
 	dmc.4 dr.4 dz.4  \
 	ec.4 en.4 fd.4 hk.4 ht.4 hy.4 icmp.4 idp.4 il.4 imp.4 impconf.4 inet.4 \
@@ -34,7 +33,7 @@ OBJS=	acc.0 arp.0 bk.0 br.0 cons.0 css.0 de.0 dh.0 dhu.0 dhv.0 \
 .SUFFIXES: .4 .0
 
 .4.0:
-	${DESTDIR}/usr/man/manroff $*.4 > $*.0
+	/usr/man/manroff $*.4 > $*.0
 
 all: ${OBJS}
 
@@ -42,7 +41,7 @@ clean: FRC
 	rm -f ${OBJS}
 
 install: all
-	install -c -o bin -g bin -m 444 ${OBJS} ${MDIR}
+	install -c -o root -g staff -m 444 ${OBJS} ${MDIR}
 	rm -f ${MDIR}/dvhp.0
 	ln ${MDIR}/xp.0 ${MDIR}/dvhp.0
 	rm -f ${MDIR}/hp.0

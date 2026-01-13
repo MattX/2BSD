@@ -1,3 +1,7 @@
+#if     !defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)ansitape.c    1.1 (2.11BSD) 2025/12/26";
+#endif
+
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/mtio.h>
@@ -155,10 +159,10 @@ main(argc,argv)
 	tape = open(device,wflag?O_RDWR:O_RDONLY,NULL);
 	if(tape<0) {
 		perror(device);
-		printf(stderr,"tape not accessable - check if drive online and write ring present\n");
+		fprintf(stderr,"tape not accessable - check if drive online and write ring present\n");
 		exit(1);
 	}
-	rewind(tape);
+	arewind(tape);
 	filenum=1;
 	casefix(tapename);
 
@@ -211,7 +215,7 @@ main(argc,argv)
 		writetm(tape);
 		writetm(tape);
 	}
-	rewind(tape);
+	arewind(tape);
 	close(tape);
 	if(vflag && (tflag || xflag)) {
 		fprintf(stdout," read  %d files in %d blocks (%d lines, %d chars)\n",
@@ -311,7 +315,7 @@ int success;
 			if(success != blocksize) {
 				perror("tape");
 				fprintf(stderr," hard write error:  write aborted\n");
-				rewind(tape);
+				arewind(tape);
 				exit(1);
 			}
 			obuf=obufstart;
@@ -349,7 +353,7 @@ int success;
 		if(success != blocksize) {
 			perror("tape");
 			fprintf(stderr," hard write error:  write aborted\n");
-			rewind(tape);
+			arewind(tape);
 			exit(1);
 		}
 		numblock++;
@@ -375,7 +379,7 @@ writetm(tape)
 	ioctl(tape,MTIOCTOP,&mtop);
 }
 
-rewind(tape)
+arewind(tape)
 	int tape;
 {
 	struct mtop mtop;

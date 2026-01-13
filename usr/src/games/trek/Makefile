@@ -3,12 +3,10 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.1 (Berkeley) 5/30/85
+#	@(#)Makefile	5.2 (2.11BSD) 2025/11/29
 #
-DESTDIR=
 CFLAGS=	-O
-LFLAGS=	
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	abandon.c attack.c autover.c capture.c check_out.c checkcond.c \
 	compkl.c computer.c damage.c damaged.c dcrept.c destruct.c \
 	dock.c dumpgame.c dumpme.c dumpssradio.c events.c externs.c \
@@ -28,7 +26,7 @@ OBJS=	abandon.o attack.o autover.o capture.o check_out.o checkcond.o \
 HDRS=	getpar.h trek.h
 
 trek: 	${OBJS} ${HDRS}
-	cc ${SEPFLAG} ${LFLAGS} -o trek ${OBJS} -lm
+	cc ${LDFLAGS} -o trek ${OBJS} -lm
 
 ${OBJS}:
 	${CC} ${CFLAGS} -c $*.c
@@ -37,146 +35,68 @@ tags:	tags $(SRCS)
 	ctags $(SRCS)
 
 install: trek
-	install -s trek ${DESTDIR}/usr/games/trek
+	install -c -s -m 755 -o root trek /usr/games/trek
 
 clean:
 	rm -f a.out core ${OBJS} trek
 
-depend:
-	cat </dev/null >x.c
-	for i in ${SRCS}; do \
-		(echo `basename $$i .c`.o: $$i >>makedep; \
-		/bin/grep '^#[ 	]*include' x.c $$i | sed \
-			-e 's,<\(.*\)>,"/usr/include/\1",' \
-			-e 's/:[^"]*"\([^"]*\)".*/: \1/' \
-			-e 's/\.c/.o/' >>makedep); done
-	echo '/^# DO NOT DELETE THIS LINE/+2,$$d' >eddep
-	echo '$$r makedep' >>eddep
-	echo 'w' >>eddep
-	cp Makefile Makefile.bak
-	ed - Makefile < eddep
-	rm eddep makedep x.c
-	echo '# DEPENDENCIES MUST END AT END OF FILE' >> Makefile
-	echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY' >> Makefile
-	echo '# see make depend above' >> Makefile
+depend:	${SRCS}
+	mkdep ${CFLAGS} ${SRCS}
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
 
-# DO NOT DELETE THIS LINE -- make depend uses it
-
-abandon.o: abandon.c
-abandon.o: trek.h
-attack.o: attack.c
-attack.o: trek.h
-autover.o: autover.c
-autover.o: trek.h
-capture.o: capture.c
-capture.o: trek.h
-check_out.o: check_out.c
-check_out.o: trek.h
-checkcond.o: checkcond.c
-checkcond.o: trek.h
-compkl.o: compkl.c
-compkl.o: trek.h
-computer.o: computer.c
-computer.o: trek.h
-computer.o: getpar.h
-computer.o: /usr/include/stdio.h
-damage.o: damage.c
-damage.o: trek.h
-damaged.o: damaged.c
-damaged.o: trek.h
-dcrept.o: dcrept.c
-dcrept.o: trek.h
-destruct.o: destruct.c
-destruct.o: trek.h
-dock.o: dock.c
-dock.o: trek.h
-dumpgame.o: dumpgame.c
-dumpgame.o: trek.h
-dumpme.o: dumpme.c
-dumpme.o: trek.h
-dumpssradio.o: dumpssradio.c
-dumpssradio.o: trek.h
-events.o: events.c
-events.o: trek.h
-externs.o: externs.c
-externs.o: trek.h
-getcodi.o: getcodi.c
-getcodi.o: getpar.h
-getpar.o: getpar.c
-getpar.o: /usr/include/stdio.h
-getpar.o: getpar.h
-help.o: help.c
-help.o: trek.h
-impulse.o: impulse.c
-impulse.o: trek.h
-initquad.o: initquad.c
-initquad.o: trek.h
-kill.o: kill.c
-kill.o: trek.h
-klmove.o: klmove.c
-klmove.o: trek.h
-lose.o: lose.c
-lose.o: trek.h
-lrscan.o: lrscan.c
-lrscan.o: trek.h
-main.o: main.c
-main.o: trek.h
-main.o: /usr/include/stdio.h
-main.o: /usr/include/sgtty.h
-move.o: move.c
-move.o: trek.h
-nova.o: nova.c
-nova.o: trek.h
-out.o: out.c
-out.o: trek.h
-phaser.o: phaser.c
-phaser.o: trek.h
-phaser.o: getpar.h
-play.o: play.c
-play.o: trek.h
-play.o: getpar.h
-ram.o: ram.c
-ram.o: trek.h
-ranf.o: ranf.c
-ranf.o: /usr/include/stdio.h
-rest.o: rest.c
-rest.o: trek.h
-rest.o: getpar.h
-schedule.o: schedule.c
-schedule.o: trek.h
-score.o: score.c
-score.o: trek.h
-score.o: getpar.h
-setup.o: setup.c
-setup.o: trek.h
-setup.o: getpar.h
-setwarp.o: setwarp.c
-setwarp.o: trek.h
-setwarp.o: getpar.h
+abandon.o: abandon.c trek.h
+attack.o: attack.c trek.h
+autover.o: autover.c trek.h
+capture.o: capture.c trek.h
+check_out.o: check_out.c trek.h
+checkcond.o: checkcond.c trek.h
+compkl.o: compkl.c trek.h
+computer.o: computer.c trek.h getpar.h /usr/include/stdio.h
+damage.o: damage.c trek.h
+damaged.o: damaged.c trek.h
+dcrept.o: dcrept.c trek.h
+destruct.o: destruct.c trek.h
+dock.o: dock.c trek.h
+dumpgame.o: dumpgame.c trek.h
+dumpme.o: dumpme.c trek.h
+dumpssradio.o: dumpssradio.c trek.h
+events.o: events.c trek.h
+externs.o: externs.c trek.h
+getcodi.o: getcodi.c getpar.h
+getpar.o: getpar.c /usr/include/stdio.h getpar.h
+help.o: help.c trek.h
+impulse.o: impulse.c trek.h
+initquad.o: initquad.c trek.h
+kill.o: kill.c trek.h
+klmove.o: klmove.c trek.h
+lose.o: lose.c trek.h /usr/include/setjmp.h
+lrscan.o: lrscan.c trek.h
+main.o: main.c trek.h /usr/include/stdio.h /usr/include/sgtty.h
+main.o: /usr/include/sys/ioctl.h /usr/include/sys/ttychars.h
+main.o: /usr/include/sys/ttydev.h /usr/include/setjmp.h
+move.o: move.c trek.h
+nova.o: nova.c trek.h
+out.o: out.c trek.h
+phaser.o: phaser.c trek.h getpar.h
+play.o: play.c trek.h getpar.h /usr/include/setjmp.h
+ram.o: ram.c trek.h
+ranf.o: ranf.c /usr/include/stdio.h
+rest.o: rest.c trek.h getpar.h
+schedule.o: schedule.c trek.h
+score.o: score.c trek.h getpar.h
+setup.o: setup.c trek.h getpar.h
+setwarp.o: setwarp.c trek.h getpar.h
 shell.o: shell.c
-shield.o: shield.c
-shield.o: trek.h
-shield.o: getpar.h
-snova.o: snova.c
-snova.o: trek.h
-srscan.o: srscan.c
-srscan.o: trek.h
-srscan.o: getpar.h
-systemname.o: systemname.c
-systemname.o: trek.h
-torped.o: torped.c
-torped.o: /usr/include/stdio.h
-torped.o: trek.h
+shield.o: shield.c trek.h getpar.h
+snova.o: snova.c trek.h
+srscan.o: srscan.c trek.h getpar.h
+systemname.o: systemname.c trek.h
+torped.o: torped.c /usr/include/stdio.h trek.h
 utility.o: utility.c
-visual.o: visual.c
-visual.o: trek.h
-warp.o: warp.c
-warp.o: trek.h
-win.o: win.c
-win.o: trek.h
-win.o: getpar.h
-cgetc.o: cgetc.c
-cgetc.o: /usr/include/stdio.h
-# DEPENDENCIES MUST END AT END OF FILE
-# IF YOU PUT STUFF HERE IT WILL GO AWAY
-# see make depend above
+visual.o: visual.c trek.h
+warp.o: warp.c trek.h
+win.o: win.c trek.h getpar.h /usr/include/setjmp.h
+cgetc.o: cgetc.c /usr/include/stdio.h
+
+# IF YOU PUT ANYTHING HERE IT WILL GO AWAY

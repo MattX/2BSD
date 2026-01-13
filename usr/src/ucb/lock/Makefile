@@ -14,11 +14,11 @@
 # WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#)Makefile	5.2.2 (2.11BSD) 1996/12/1
+# @(#)Makefile	5.2.3 (2.11BSD) 2025/11/26
 #
 
 CFLAGS=	-O
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	lock.c
 OBJS=	lock.o
 MAN=	lock.0
@@ -27,7 +27,7 @@ MANSRC=	lock.1
 all: lock ${MAN}
 
 lock: ${OBJS}
-	${CC} ${SEPFLAG} -o $@ ${OBJS}
+	${CC} ${LDFLAGS} -o $@ ${OBJS}
 
 lock.0: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
@@ -42,8 +42,8 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: lock ${MAN}
-	install -s -o root -g bin -m 4755 lock ${DESTDIR}/usr/ucb
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat1
+	install -c -s -o root -g staff -m 4755 lock /usr/ucb
+	install -c -o root -g staff -m 444 ${MAN} /usr/man/cat1
 
 lint: ${SRCS}
 	lint ${CFLAGS} ${SRCS}

@@ -1,6 +1,6 @@
 #!/bin/sh -
 
-#	@(#)netstart	5.3 (2.11BSD) 2021/8/30
+#	@(#)netstart	5.5 (2.11BSD) 2026/1/12
 
 INET=`testnet`
 if [ $INET = YES ]; then
@@ -17,31 +17,64 @@ routedflags=NO
 rwhod=YES
 named=NO
 
-# myname is my symbolic name
-# my-netmask is specified in /etc/networks
-# my-default-address should be set to some machine where you
-#	want to send all your packets, by default.
+# Host definitions and network interface selection. IMPORTANT: The values
+# set here also require changes to /etc/hosts and /etc/resolv.conf
+
+# hostname is the symbolic name of this host (address set in /etc/hosts)
+# netmask is network mask, generally assigned by your ISP or router
+# Broadcast is the broadcast address for your local LAN, generally assigned
+#	by your ISP or router
+# gateway should be set to the IP address where this host will send packets
+#	to hosts not on your local LAN, generally assigned by your ISP or
+#	router
 #
 
-hostname=localhost.2bsd.com
+hostname=211bsd.example.com
 netmask=255.255.255.0
-broadcast=127.255.255.255
-default=127.0.0.1
+broadcast=192.168.0.255
+gateway=192.168.0.1
 
 hostname $hostname					>/dev/console 2>&1
 hostid $hostname					>/dev/console 2>&1
 
 if [ $INET = YES ]; then
-	# ifconfig imp0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
-	# ifconfig en0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
-	# ifconfig ec0 inet netmask $netmask $hostname broadcast $broadcast up -trailers arp >/dev/console 2>&1
-	# ifconfig il0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
-	# ifconfig qe0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
-	# ifconfig qt0 inet netmask $netmask $hostname broadcast $broadcast up -trailers >/dev/console 2>&1
-	# ifconfig sl0 inet 192.254.254.2 192.254.254.1 -arp -trailers >/dev/console 2>&1
+	# Un-comment the ifconfig line below for your specific network adapter
+	#
+	# DEC DEUNA/DELUA Unibus Ethernet
+	# ifconfig de0 inet netmask $netmask $hostname broadcast $broadcast up >/dev/console 2>&1
+	#
+	# DEC DEQNA Q-bus Ethernet
+	# ifconfig qe0 inet netmask $netmask $hostname broadcast $broadcast up >/dev/console 2>&1
+	#
+	# DEC DELQA/DEQTA improved Q-bus Ethernet (missing manpage)
+	# ifconfig qt0 inet netmask $netmask $hostname broadcast $broadcast up >/dev/console 2>&1
+	#
+	# It is very unlikely you will have any of the following, many of which
+	# have received limited (or no) testing in recent 2BSD releases
+	#
+	# ARPAnet IMP 1822 interface (limited manpage, API only)
+	# ifconfig imp0 inet netmask $netmask $hostname broadcast $broadcast up >/dev/console 2>&1
+	# 
+	# Xerox 3 Mb/s Ethernet
+	# ifconfig en0 inet netmask $netmask $hostname broadcast $broadcast up >/dev/console 2>&1
+	#
+	# 3Com 10 Mb/s Ethernet
+	# ifconfig ec0 inet netmask $netmask $hostname broadcast $broadcast up >/dev/console 2>&1
+	#
+	# Interlan NI1010 10 Mb/s Ethernet
+	# ifconfig il0 inet netmask $netmask $hostname broadcast $broadcast up >/dev/console 2>&1
+	#
+	# SLIP (Serial Line Internet Protocol) (missing manpage)
+	# The first address is your local IP address, the second is the address
+	# at the far end of the connection
+	# ifconfig sl0 inet 192.254.254.2 192.254.254.1 -arp >/dev/console 2>&1
 	# slattach /dev/ttyS6 9600
-	ifconfig lo0 inet localhost up -trailers	>/dev/console 2>&1
+	#
+	# Loopback interface, should always be left alone
+	ifconfig lo0 inet localhost up >/dev/console 2>&1
 
+	# This is not routing (as warned about above), just definitions of
+	# where to send packets, should always be left alone
 	route add $hostname localhost 0		>/dev/console 2>&1
-	route add default $default 1		>/dev/console 2>&1
+	route add default $gateway 1		>/dev/console 2>&1
 fi

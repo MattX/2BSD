@@ -2,7 +2,7 @@
  *                     RCS utilities
  */
 #if	!defined(lint) && defined(DOSCCS)
-static char rcsid[]= "$Id: rcsutil.c,v 4.3.1 97/10/2 10:40:22 sms Exp $";
+static char rcsid[]= "$Id: rcsutil.c,v 4.3.1 (2.11BSD) 2025/12/26";
 #endif
 /*****************************************************************************
  *****************************************************************************
@@ -298,8 +298,8 @@ FILE * inf, * outf;
         register int rcount, wcount;
 
         /* write the rest of the buffer to outf */
-        while ((--inf->_cnt)>=0) {
-                VOID putc(*inf->_ptr++&0377,outf);
+        while ((--inf->_r)>=0) {
+                VOID putc(*inf->_p++&0377,outf);
         }
         if (fflush(outf) == EOF) {
 		faterror("write error");

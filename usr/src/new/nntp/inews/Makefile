@@ -1,14 +1,10 @@
-#
-# Makefile for pseudo-inews
-#
+#       Makefile        2.0 (2.11BSD) 2025/11/29
 
 SRCS	=	inews.c uname.c ../common/clientlib.c ../common/version.c
 OBJS	=	inews.o uname.o ../common/clientlib.o ../common/version.o
 HFILES	=	../common/nntp.h ../common/conf.h
 
 CFLAGS	= -O
-
-DESTDIR	= /usr/local/lib/rn
 
 inews:  $(OBJS) $(HFILES)
 	$(CC) $(CFLAGS) $(OBJS) -o inews
@@ -24,19 +20,11 @@ uname.o: ../common/conf.h
 	mv version.o ../common/version.o
 
 install: inews
-	cp inews ${DESTDIR}/inews
-	chmod 755 ${DESTDIR}/inews
+	cp inews /usr/new/rn/inews
+	chmod 755 /usr/new/lib/rn/inews
 
 clean:
 	-rm -f ${OBJS} inews make*.out
-
-distrib: clean
-	rm -f make.out
-	rm -rf SCCS
-
-check:
-	sccs check
-	sccs prt -y *.[ch] > /dev/null
 
 lint:
 	lint ${SRCS} ${HFILES}

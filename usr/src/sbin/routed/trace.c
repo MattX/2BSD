@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)trace.c	5.3 (Berkeley) 5/30/86";
-#endif not lint
+#if	!defined(lint)
+static char sccsid[] = "@(#)trace.c	5.4 (2.11BSD) 2025/12/27";
+#endif
 
 /*
  * Routing Table Management Daemon
@@ -177,6 +177,7 @@ traceaction(fd, action, rt)
 }
 
 dumpif(fd, ifp)
+	FILE *fd;
 	register struct interface *ifp;
 {
 	if (ifp->int_input.ifd_count || ifp->int_output.ifd_count) {

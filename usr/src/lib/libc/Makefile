@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	4.19.3 (2.11BSD) 2022/9/17
+#	@(#)Makefile	4.19.4 (2.11BSD) 2025/11/25
 #
 # The system has two monitoring schemes, utilizing either ``prof''
 # or ``gprof''. DFLMON determines the default profiler; mon.o
@@ -27,8 +27,7 @@
 #
 # To compile a non-floating point versions of some standard library
 # routines add -DNONFP.  This will speed up some operations if you don't
-# have hardware floating point.  To compile a non-separate I&D version add
-# -DNONSEPARATE.
+# have hardware floating point.
 #
 # There are two possible methods of doing host name look up.  They are
 # to use the name server or /etc/hosts. HOSTLOOKUP defines which method
@@ -43,7 +42,6 @@
 HOSTLOOKUP=	named
 #HOSTLOOKUP=	hosttable
 #							
-DESTDIR=
 INSTALL=install -m 644
 DFLMON=	mon.o
 MACHINE=pdp
@@ -60,10 +58,10 @@ libc.a libc_p.a: ${MACHINE}/csu ${ALL} net/${HOSTLOOKUP}
 		ar x ../net/${HOSTLOOKUP}/hostlib; \
 		ar cr ../libc.a `lorder *.o | tsort` \
 			../${MACHINE}/csu/${DFLMON}
-	ar ma findiop.o libc.a exit.o
+	ar ma findfp.o libc.a exit.o
 	ar ma exit.o libc.a fakcu.o
-	ar ma fltpr.o libc.a doprnt.o
-	ar ma doprnt.o libc.a ffltpr.o
+	ar ma pfcom.o libc.a vfprintf.o
+	ar ma vfprintf.o libc.a fpfcom.o
 	rm -rf tmp
 	mkdir tmp
 	cd tmp; \
@@ -71,10 +69,10 @@ libc.a libc_p.a: ${MACHINE}/csu ${ALL} net/${HOSTLOOKUP}
 		ar x ../net/${HOSTLOOKUP}/hostlib_p; \
 		ar cr ../libc_p.a `lorder *.o | tsort` \
 			../${MACHINE}/csu/${DFLMON}
-	ar ma findiop.o libc_p.a exit.o
+	ar ma findfp.o libc_p.a exit.o
 	ar ma exit.o libc_p.a fakcu.o
-	ar ma fltpr.o libc_p.a doprnt.o
-	ar ma doprnt.o libc_p.a ffltpr.o
+	ar ma pfcom.o libc_p.a vfprintf.o
+	ar ma vfprintf.o libc_p.a fpfcom.o
 	rm -rf tmp
 
 ${MACHINE}/csu ${ALL} net/${HOSTLOOKUP}: FRC
@@ -84,11 +82,11 @@ FRC:
 	@sleep 1
 
 install: libc.a libc_p.a
-	${INSTALL} libc.a ${DESTDIR}/lib/libc.a
-	ranlib ${DESTDIR}/lib/libc.a
-	${INSTALL} libc_p.a ${DESTDIR}/usr/lib/libc_p.a
-	ranlib ${DESTDIR}/usr/lib/libc_p.a
-	cd ${MACHINE}/csu; make DESTDIR=${DESTDIR} install
+	${INSTALL} libc.a /lib/libc.a
+	ranlib /lib/libc.a
+	${INSTALL} libc_p.a /usr/lib/libc_p.a
+	ranlib /usr/lib/libc_p.a
+	cd ${MACHINE}/csu; make install
 
 tags:
 	for i in ${ALL}; do \
@@ -100,7 +98,7 @@ tags:
 clean:
 	for i in ${MACHINE}/csu ${ALL} net/hosttable net/named; \
 		do (cd $$i; make ${MFLAGS} clean); done
-	rm -rf tmp
+	rm -rf tmp libc.a libc_p.a
 
 depend:
 	for i in ${MACHINE}/csu ${ALL} net/hosttable net/named; \

@@ -6,6 +6,11 @@
  * 2016/03/10 - force bootflags to RB_ASKNAME|RB_SINGLE
  *              (auto/multi-user boot from tape makes no sense)
  *
+ * 2026/1/6   - comment out erroneous 'drive ready' test in hrrec.  the bit
+ *              being tested was the ATA bit which is set for non-transfer
+ *              operations such as rewind.  For READ the bit would never be
+ *              set resulting in an endless loop.
+ *
  * This is a universal tape boot which can handle HT, TM, TS and TMSCP
  * tapes.  This boot is FULL.  Some of the more extended error
  * checking had to be left out to get all the drivers to fit.
@@ -136,8 +141,9 @@ hrrec:
 htcmd:
 	tstb	(csr)			/ controller ready?
 	bpl	htcmd
-	tst	htds(csr)		/ drive ready?
-	bpl	htcmd
+/ see revision history for why these lines are commented out
+/	tst	htds(csr)		/ drive ready?
+/	bpl	htcmd
 	tstb	htcs2+1(csr)		/ any controller errors?
 	bne	ctlerr
 	bit	$!1000,hter(csr)	/ any drive errors except HTER_FCE?

@@ -4,7 +4,10 @@
  * specifies the terms and conditions for redistribution.
  */
 
-char id_mkvers[] = "@(#)mkvers.c	5.1 6/7/85";
+#if	!defined(lint) && defined(DOSCCS)
+char id_mkvers[] = "@(#)mkvers.c 5.2 (2.11BSD) 2025/12/27";
+#endif
+
 /*
  * extract sccs id strings from source files
  * first arg is lib name.
@@ -12,6 +15,8 @@ char id_mkvers[] = "@(#)mkvers.c	5.1 6/7/85";
  */
 
 #include	<stdio.h>
+#include	<time.h>
+#include	<strings.h>
 
 #define SCCS_ID		"@(#)"
 #define VERSION		"Version.c"
@@ -21,7 +26,6 @@ int argc; char **argv;
 {
 	char buf[256];
 	char *s, *e;
-	char *index(), *ctime();
 	long t;
 	FILE *V, *fdopen();
 
@@ -54,8 +58,10 @@ int argc; char **argv;
 			perror(*argv);
 			continue;
 		}
-		while(gets(buf))
+		while(fgets(buf, sizeof(buf), stdin))
 		{
+			s = rindex(buf, '\n');
+			if (s) *s = '\0';
 			s = buf;
 			while(s = index(s, '@'))
 				if (strncmp(s, SCCS_ID, 4) == 0)

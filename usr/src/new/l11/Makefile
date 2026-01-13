@@ -1,6 +1,6 @@
-DESTDIR=
+#       Makefile        2.0 (2.11BSD) 2025/11/25
 
-SEPFLAG=-i
+LDFLAGS=-i
 CFLAGS=	-O
 
 HDRS=	link.h
@@ -8,16 +8,13 @@ SRCS=	in.c link.c pass2.c sup.c
 OBJS=	in.o link.o pass2.o sup.o 
 
 l11: ${OBJS}
-	cc -o $@ ${SEPFLAG} ${OBJS}
-
-obint: obint.o in.o sup.o
-	cc -o $@ ${SEPFLAG} obint.o in.o sup.o
+	cc -o $@ ${LDFLAGS} ${OBJS}
 
 install: l11
-	install -s l11 ${DESTDIR}/usr/new/l11
+	install -c -s l11 /usr/new/l11
 
 cmp: l11
-	cmp l11 ${DESTDIR}/usr/new/l11
+	cmp l11 /usr/new/l11
 
 lint:	
 	lint link.c pass2.c in.c sup.c > FLUFF
@@ -26,7 +23,7 @@ tags: ${HDRS} ${SRCS}
 	ctags $<
 
 clean:
-	rm -f *.o l11 obint tags core
+	rm -f *.o l11 tags FLUFF
 
 in.o:		in.c link.h
 link.o:		link.c link.h

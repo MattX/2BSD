@@ -1,8 +1,8 @@
 #
-#	@(#)Makefile	2.0 (2.11BSD) 2023/4/26
+#	@(#)Makefile	2.1 (2.11BSD) 2025/11/25
 #
 CFLAGS=	 -O
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	telnetd.c gettytab.c subr.c init.c
 OBJS=	telnetd.o gettytab.o subr.o init.o
 MAN=	telnetd.0
@@ -12,7 +12,7 @@ VPATH=	../getty
 all: telnetd telnetd.0
 
 telnetd: ${OBJS}
-	${CC} ${CFLAGS} ${SEPFLAG} -o $@ ${OBJS}
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS}
 
 ${OBJS}: ../getty/gettytab.h
 
@@ -26,8 +26,8 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: telnetd ${MAN}
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat8
-	install -c -s -o root -g bin -m 755 telnetd ${DESTDIR}/usr/libexec/telnetd
+	install -c -o root -g staff -m 444 ${MAN} /usr/man/cat8
+	install -c -s -o root -g staff -m 755 telnetd /usr/libexec/telnetd
 
 lint: ${SRCS}
 	lint -hax ${SRCS}

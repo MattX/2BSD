@@ -7,7 +7,7 @@
 #  All rights reserved.  The Berkeley software License Agreement
 #  specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile.m4	5.3 (Berkeley) 5/2/86
+#	@(#)Makefile.m4	5.4 (2.11BSD) 2025/12/10
 #
 #
 #  Makefile for assorted programs related (perhaps distantly) to Sendmail.
@@ -20,7 +20,6 @@ SRCS=	mconnect.c
 LIBS=	m4LIBS
 DBMLIB=	-ldbm
 CONVTIME=../src/convtime.o
-DESTDIR=
 
 CHOWN=	-echo chown
 CHMOD=	chmod
@@ -28,7 +27,7 @@ O=	-O
 COPTS=
 CCONFIG=-I../`include' m4CONFIG
 CFLAGS=	$O $(COPTS) $(CCONFIG)
-SEPFLAG=-i
+LDFLAGS=-i
 ASMSED=	../`include'/asm.sed
 AR=	-ar
 ARFLAGS=rvu
@@ -59,13 +58,13 @@ OBJMODE=755
 all: $(ALL)
 
 mconnect: mconnect.o
-	cc $(SEPFLAG) $(COPTS) -o $@ mconnect.o
+	cc $(LDFLAGS) $(COPTS) -o $@ mconnect.o
 
 mailstats: mailstats.o
-	cc $(SEPFLAG) $(COPTS) -o $@ mailstats.o
+	cc $(LDFLAGS) $(COPTS) -o $@ mailstats.o
 
 praliases: praliases.o
-	cc $(SEPFLAG) $(COPTS) -o $@ praliases.o
+	cc $(LDFLAGS) $(COPTS) -o $@ praliases.o
 
 sources: $(SRCS)
 

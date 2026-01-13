@@ -1,4 +1,4 @@
-DESTDIR=
+#       Makefile        2.0 (2.11BSD) 2025/11/25
 LIBDIR=	/usr/games/lib
 CFLAGS=	-O
 
@@ -15,8 +15,8 @@ init.o:
 ${OBJ}: old.h
 
 install: chess
-	install -s chess ${DESTDIR}/usr/games
-#	install -c -m 644 book ${DESTDIR}/${LIBDIR}/book
+	install -c -s -m 755 chess /usr/games
+#	install -c -m 644 book ${LIBDIR}/book
 
 clean:
 	rm -f *.o a.out chess core

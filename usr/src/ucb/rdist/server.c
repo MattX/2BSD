@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)server.c	5.3.2 (2.11BSD) 1995/05/16";
+static char sccsid[] = "@(#)server.c	5.3.3 (2.11BSD) 2025/12/26";
 #endif
 
 #include "defs.h"
@@ -1206,7 +1206,7 @@ clean(cp)
 			(void) sprintf(cp, "need to remove: %s\n", target);
 			(void) write(rem, buf, strlen(cp) + 1);
 		} else
-			remove(&stb);
+			rremove(&stb);
 	}
 	closedir(d);
 	(void) write(rem, "E\n", 2);
@@ -1219,7 +1219,7 @@ clean(cp)
  * Remove a file or directory (recursively) and send back an acknowledge
  * or an error message.
  */
-remove(stp)
+rremove(stp)
 	struct stat *stp;
 {
 	DIR *d;
@@ -1267,7 +1267,7 @@ remove(stp)
 			error("%s:%s: %s\n", host, target, strerror(errno));
 			continue;
 		}
-		remove(&stb);
+		rremove(&stb);
 	}
 	closedir(d);
 	tp = otp;
@@ -1354,17 +1354,12 @@ dospecial(cmd)
 		ack();
 }
 
-#include <varargs.h>
-
 /*VARARGS2*/
-log(fp, fmt, va_alist)
-	FILE *fp;
-	char *fmt;
-	va_dcl
+log(FILE *fp, char *fmt, ...)
 {
 	va_list ap;
 
-	va_start(ap);
+	va_start(ap, fmt);
 	/* Print changes locally if not quiet mode */
 	if (!qflag)
 		vprintf(fmt, ap);
@@ -1376,14 +1371,12 @@ log(fp, fmt, va_alist)
 }
 
 /*VARARGS1*/
-error(fmt, va_alist)
-	char *fmt;
-	va_dcl
+error(char *fmt, ...)
 {
 	static FILE *fp;
 	va_list ap;
 
-	va_start(ap);
+	va_start(ap, fmt);
 	++nerrs;
 	if (!fp && !(fp = fdopen(rem, "w")))
 		return;
@@ -1407,14 +1400,12 @@ error(fmt, va_alist)
 }
 
 /*VARARGS1*/
-fatal(fmt, va_alist)
-	char *fmt;
-	va_dcl
+fatal(char *fmt, ...)
 {
 	static FILE *fp;
 	va_list ap;
 
-	va_start(ap);
+	va_start(ap, fmt);
 	++nerrs;
 	if (!fp && !(fp = fdopen(rem, "w")))
 		return;
@@ -1494,14 +1485,12 @@ cleanup()
 	exit(1);
 }
 
-note(fmt, va_alist)
-	char *fmt;
-	va_dcl
+note(char *fmt, ...)
 {
 	char buf[BUFSIZ];
 	va_list ap;
 
-	va_start(ap);
+	va_start(ap, fmt);
 	(void)vsprintf(buf, fmt, ap);
 	va_end(ap);
 	comment(buf);

@@ -8,17 +8,18 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	@(#)Makefile	5.8.1 (2.11BSD) 1996/12/1
+#	@(#)Makefile	5.8.2 (2.11BSD) 2025/11/26
 #
 #
-CFLAGS=	-O -i
+CFLAGS=	-O
+LDFLAGS= -i
 SRCS=	host.c inet.c if.c main.c mbuf.c route.c unix.c ns.c
 OBJS=	host.o inet.o if.o main.o mbuf.o route.o unix.o ns.o
 
 all: netstat
 
 netstat: ${OBJS}
-	${CC} -o $@ ${CFLAGS} ${OBJS}
+	${CC} -o $@ ${LDFLAGS} ${OBJS}
 
 clean: FRC
 	rm -f ${OBJS} core netstat
@@ -27,7 +28,7 @@ depend: FRC
 	mkdep ${CFLAGS} ${SRCS}
 
 install: netstat
-	install -s -g kmem -m 2755 netstat ${DESTDIR}/usr/ucb/netstat
+	install -c -s -g kmem -m 2755 netstat /usr/ucb/netstat
 
 lint: FRC
 	lint ${CFLAGS} ${SRCS}

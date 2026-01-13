@@ -1,19 +1,15 @@
 #
-# pi Makefile - 1.2.3 2022/10/2
+# pi Makefile - 1.3 (2.11BSD) 2025/11/25
 #
-
-DESTDIR=
 
 MKSTR=	/usr/ucb/mkstr
 EYACC=	../eyacc/eyacc
-GET=	sccs get
 
 TEMPDIR=	tmp
 
 CFLAGS= -O -w
 DEFS=	-I.
-LDFLAGS= -X
-SEPFLAG= -i
+LDFLAGS= -X -i
 
 HDRS=	0.h OPnames.h opcode.h tree.h yy.h
 
@@ -33,17 +29,6 @@ OBJS=	ato.o call.o case.o clas.o const.o conv.o cset.o error.o fdec.o \
 	yyid.o yylex.o yymain.o yyoptions.o yypanic.o yyparse.o yyprint.o \
 	yyput.o yyrecover.o yyseman.o yytree.o
 
-BASE=	main.o Version.o putn.o rec.o
-OV1=	TRdata.o ato.o call.o case.o clas.o const.o conv.o cset.o stat.o
-OV4=	rval.o proc.o
-OV2=	gen.o hash.o lab.o lookup.o string.o subr.o tree.o treen.o var.o \
-	nl.o put.o
-OV5=	fdec.o func.o lval.o type.o
-OV3=	yycopy.o yycosts.o yyerror.o yyget.o yyid.o yylex.o yymain.o \
-	yyoptions.o yypanic.o yyparse.o yyprint.o yyput.o yyseman.o \
-	yytree.o error.o
-OV6=	y.tab.o yyrecover.o
-
 INSTALL=	pix px_header.out pi
 UTILS=		version
 ERRORSTRINGS=	pi1.2strings
@@ -61,20 +46,14 @@ tmp:
 	rm -f ${TEMPDIR}/$*.c
 
 pix: pix.c
-	${CC} ${SEPFLAG} ${CFLAGS} ${DEFS} -o pix pix.c
+	${CC} ${LDFLAGS} ${CFLAGS} ${DEFS} -o pix pix.c
 
 px_header.out: px_header.c
 	${CC} ${CFLAGS} ${DEFS} -o px_header.out px_header.c
 	strip px_header.out
 
 pi: ${OBJS} version
-	-if [ X${SEPFLAG} = X-i ]; then \
-		${CC} ${SEPFLAG} ${CFLAGS} -o pi ${OBJS} Version.c; \
-	else \
-		ld ${SEPFLAG} ${LDFLAGS} -o pi /lib/crt0.o ${BASE} \
-		-Z ${OV1} -Z ${OV2} -Z ${OV3} -Z ${OV4} -Z ${OV5} -Z ${OV6} \
-		-Y -lc; \
-	fi
+	${CC} ${LDFLAGS} -o pi ${OBJS} Version.c
 	size pi
 
 y.tab.h y.tab.c: pas.y
@@ -88,15 +67,15 @@ Version.c: version
 	./version > Version.c
 
 install: ${ALL}
-	-mkdir -p ${DESTDIR}/usr/share/pascal
-	chmod 755 ${DESTDIR}/usr/share/pascal
-	install -c ${ERRORSTRINGS} ${DESTDIR}/usr/share/pascal
-	install -c how_pi ${DESTDIR}/usr/share/pascal
-	install -c how_pix ${DESTDIR}/usr/share/pascal
-	dd if=px_header.out of=${DESTDIR}/usr/share/pascal/npx_header conv=sync
-	chmod a+r $(DESTDIR)/usr/share/pascal/npx_header
-	install -s pi ${DESTDIR}/usr/ucb
-	install -s pix ${DESTDIR}/usr/ucb
+	-mkdir -p /usr/share/pascal
+	chmod 755 /usr/share/pascal
+	install -c ${ERRORSTRINGS} /usr/share/pascal
+	install -c how_pi /usr/share/pascal
+	install -c how_pix /usr/share/pascal
+	dd if=px_header.out of=/usr/share/pascal/npx_header conv=sync
+	chmod a+r /usr/share/pascal/npx_header
+	install -c -s -m 755 pi /usr/ucb
+	install -c -s -m 755 pix /usr/ucb
 
 tags: FRC
 	ctags ${HDRS} ${SRCS}
@@ -107,13 +86,6 @@ clean:
 	rm -f *.o ${TEMPDIR}/* y.tab.c y.tab.h \
 		${ALL} core *.list tags Version.c
 	rm -fr tmp
-
-print :
-	@ls -ls | pr
-	@pr READ_ME Makefile
-	@pr 0.h whoami main.c pas.y
-	@pr yy.h yy*.c
-	@pr [a-ln-x]*.c
 
 yy.h:		y.tab.h
 Version.o:	Version.c

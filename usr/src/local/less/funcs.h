@@ -1,3 +1,7 @@
+#if defined(LIBC_SCCS) && !defined(lint)
+static char sccsid[] = "@(#)funcs.h      1.1 (2.11BSD) 2025/12/26";
+#endif /* LIBC_SCCS and not lint */
+
 	public void edit ();
 	public void next_file ();
 	public void prev_file ();
@@ -39,6 +43,8 @@
 	public int carat_char ();
 	public void flush ();
 	public void dropout ();
+#define	putc lessputc
+#define	puts lessputs
 	public void putc ();
 	public void puts ();
 	public void error ();

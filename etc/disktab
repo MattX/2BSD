@@ -1,4 +1,4 @@
-#	@(#)disktab	2.0 (2.11BSD) 2024/9/25
+#	@(#)disktab	2.1 (2.11BSD) 2025/12/15
 #
 # Disk geometry and partition layout tables. 
 # Key:
@@ -47,18 +47,18 @@
 rm02|RM02|rm03|RM03|DEC RM02/03:\
 	:ty=removable:ns#32:nt#5:nc#823:sf:\
 	:b0=/mdec/rm03uboot:\
-	:pa#12160:oa#0:ba#1024:fa#1024:ta=2.11BSD:\
-	:pb#12160:ob#12160:bb#1024:fb#1024:tb=swap:\
+	:pa#14080:oa#0:ba#1024:fa#1024:ta=2.11BSD:\
+	:pb#8960:ob#14080:bb#1024:fb#1024:tb=swap:\
 	:pc#131680:oc#0:bc#1024:fc#1024:\
-	:pg#107200:og#24320:bg#1024:fg#1024:tg=2.11BSD:\
+	:pg#108480:og#23040:bg#1024:fg#1024:tg=2.11BSD:\
 	:ph#131520:oh#0:bh#1024:fh#1024
 
 # RM05
 rm05|RM05|cdc9766|CDC9766:\
 	:ty=removable:ns#32:nt#19:nc#823:sf:\
 	:b0=/mdec/rm05uboot:\
-	:pa#12160:oa#0:ba#1024:fa#1024:ta=2.11BSD:\
-	:pb#12160:ob#12160:bb#1024:fb#1024:tb=swap:\
+	:pa#14592:oa#0:ba#1024:fa#1024:ta=2.11BSD:\
+	:pb#9728:ob#14592:bb#1024:fb#1024:tb=swap:\
 	:pc#500384:oc#0:bc#1024:fc#1024:\
 	:pg#475456:og#24320:bg#1024:fg#1024:tg=2.11BSD:\
 	:ph#499776:oh#0:bh#1024:fh#1024
@@ -66,19 +66,19 @@ rm05|RM05|cdc9766|CDC9766:\
 rp04|RP04|rp05|RP05|DEC RP04/05:\
 	:ty=removable:ns#22:nt#19:nc#411:sf:\
 	:b0=/mdec/hpuboot:\
-	:pa#12540:oa#0:ba#1024:fa#1024:ta=2.11BSD:\
-	:pb#8778:ob#12540:bb#1024:fb#1024:tb=swap:\
+	:pa#15884:oa#0:ba#1024:fa#1024:ta=2.11BSD:\
+	:pb#9196:ob#15884:bb#1024:fb#1024:tb=swap:\
 	:pc#171798:oc#0:bc#1024:fc#1024:\
-	:pg#150062:og#21318:bg#1024:fg#1024:tg=2.11BSD:\
+	:pg#145464:og#25080:bg#1024:fg#1024:tg=2.11BSD:\
 	:ph#171380:oh#0:bh#1024:fh#1024
 
 rp06|RP06|DEC RP06:\
 	:ty=removable:ns#22:nt#19:nc#815:sf:\
 	:b0=/mdec/hpuboot:\
-	:pa#12540:oa#0:ba#1024:fa#1024:ta=2.11BSD:\
-	:pb#8778:ob#12540:bb#1024:fb#1024:tb=swap:\
+	:pa#16720:oa#0:ba#1024:fa#1024:ta=2.11BSD:\
+	:pb#10032:ob#16720:bb#1024:fb#1024:tb=swap:\
 	:pc#340670:oc#0:bc#1024:fc#1024:\
-	:pg#318934:og#21318:bg#1024:fg#1024:tg=2.11BSD:\
+	:pg#313500:og#26752:bg#1024:fg#1024:tg=2.11BSD:\
 	:ph#340252:oh#0:bh#1024:fh#1024
 
 rp07|RP07|DEC RP07:\

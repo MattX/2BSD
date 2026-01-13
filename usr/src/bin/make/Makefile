@@ -1,12 +1,11 @@
-# Description file for the Make command
-# Makefile 4.5 94/1/3
+#       @(#)Makefile    4.6 (2.11BSD) 2025/11/26
 
 OBJECTS=ident.o main.o doname.o misc.o files.o dosys.o gram.o 
 LIBES= 
 LINT=	lint -ps
 XSTR=   /usr/ucb/xstr
 CFLAGS=	-O -I. -I../ar
-SEPFLAG= -i
+LDFLAGS= -i
 
 # Special massaging of C files for sharing of strings
 .c.o:
@@ -18,7 +17,7 @@ SEPFLAG= -i
 all:	make
 
 make:	${OBJECTS} strings.o
-	${CC} -o make ${CFLAGS} ${SEPFLAG} ${OBJECTS} strings.o ${LIBES}
+	${CC} -o make ${LDFLAGS} ${OBJECTS} strings.o ${LIBES}
 
 ${OBJECTS}:  defs
 
@@ -26,7 +25,7 @@ clean:
 	-rm -f *.o gram.c make a.out errs x.c xs.c strings
 
 install: make
-	install -s make ${DESTDIR}/bin/make
+	install -c -s -m 755 -o root make /bin/make
 
 lint :  dosys.c doname.c files.c main.c misc.c ident.c gram.c
 	${LINT} dosys.c doname.c files.c main.c misc.c ident.c gram.c

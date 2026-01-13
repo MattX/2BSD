@@ -14,7 +14,7 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	1.5 (Berkeley) 7/9/88
+#	@(#)Makefile	1.6 (2.11BSD) 2025/11/25
 #
 
 SRCS=	ci.1 co.1 ident.1 rcs.1 rcsdiff.1 rcsfile.5 rcsfreeze.1 \
@@ -28,9 +28,9 @@ LINKS=
 .SUFFIXES: .5 .1 .0
 
 .5.0:
-	${DESTDIR}/usr/man/manroff $*.5 > $*.0
+	/usr/man/manroff $*.5 > $*.0
 .1.0:
-	${DESTDIR}/usr/man/manroff $*.1 > $*.0
+	/usr/man/manroff $*.1 > $*.0
 
 all: ${OBJS}
 
@@ -38,8 +38,8 @@ clean: FRC
 	rm -f ${OBJS}
 
 install: ${OBJS1} ${OBJS5}
-	install -c -o bin -g bin -m 444 ${OBJS1} ${DESTDIR}/usr/new/man/cat1
-	install -c -o bin -g bin -m 444 ${OBJS5} ${DESTDIR}/usr/new/man/cat5
+	install -c -o root -g staff -m 444 ${OBJS1} /usr/new/man/cat1
+	install -c -o root -g staff -m 444 ${OBJS5} /usr/new/man/cat5
 
 FRC:
 

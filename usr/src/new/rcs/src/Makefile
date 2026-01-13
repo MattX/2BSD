@@ -1,4 +1,4 @@
-# Makefile 2.0 2020/3/20
+#       Makefile        2.1 (2.11BSD) 2025/11/29
 #
 # Copyright (C) 1982 by Walter F. Tichy
 #                       Purdue University
@@ -27,7 +27,6 @@
 #    Figure out where to put the modified diff commands, and
 #    install them. (Read the instructions in the Make-files).
 #    Define DIFF accordingly
-DESTDIR   =
 DIFF      = /bin/diff
 
 # 2.  Figure out where to put the RCS commands; define RCSDIR accordingly.
@@ -58,8 +57,7 @@ LOCKING   = 1
 
 # 6.  Decide what loader flags you need, and define LDFLAGS accordingly.
 #     On the Vax you need none, on PDP-11s with split i/d you need -i.
-SEPFLAG   = -i
-LDFLAGS   = ${SEPFLAG}
+LDFLAGS   = -i
 
 # 7.  RCS can maintain a log of the use of the co and ci commands. If you
 #     want the logging, you must
@@ -77,7 +75,7 @@ SNOOP	= /usr/local/bin/snoop
 # On the PDP-11, define SMALLOG (-DSMALLOG in DEFINES) to reduce the
 # maximum size of the log message and save memory.
 #
-DEFINES= $(OS) -DSTRICT_LOCKING=$(LOCKING) -DDIFF='"${DESTDIR}$(DIFF)"' -DMERGE='"${DESTDIR}$(MERGE)"' -DTARGETDIR='"${DESTDIR}$(RCSDIR)"' -DSMALLOG
+DEFINES= $(OS) -DSTRICT_LOCKING=$(LOCKING) -DDIFF='"$(DIFF)"' -DMERGE='"$(MERGE)"' -DTARGETDIR='"$(RCSDIR)"' -DSMALLOG
 CFLAGS	= -O $(DEFINES)
 LINT = lint -c -u  -Dlint $(DEFINES)
 
@@ -130,27 +128,25 @@ $(BOBJECTS):	rcsbase.h
 partime.o maketime.o co.o ci.o rcs.o rlog.o rcsutil.o:        time.h
 
 install:	all 
-#	Save the old commands if you have any.
-#	-cd ${DESTDIR}$(RCSDIR); mv $(RCSCOMMANDS) ${DESTDIR}$(OLDDIR)
-	${INSTALL} -m 775 -o bin -g bin -s ci ${DESTDIR}$(RCSDIR)
-	${INSTALL} -m 775 -o bin -g bin -s ident ${DESTDIR}$(RCSDIR)
-	${INSTALL} -m 775 -o bin -g bin -s rcs ${DESTDIR}$(RCSDIR)
-	${INSTALL} -m 775 -o bin -g bin -s rcsdiff ${DESTDIR}$(RCSDIR)
-	${INSTALL} -m 775 -o bin -g bin -s rcsmerge ${DESTDIR}$(RCSDIR)
-	${INSTALL} -m 775 -o bin -g bin -s rlog ${DESTDIR}$(RCSDIR)
-	${INSTALL} -m 775 -o bin -g bin -s co ${DESTDIR}$(RCSDIR)
-	${INSTALL} -m 775 -o bin -g bin -c merge ${DESTDIR}$(RCSDIR)
-#	${INSTALL} -m 775 -o bin -g bin -c rcsclean ${DESTDIR}$(RCSDIR)
-#	${INSTALL} -m 775 -o bin -g bin -c rcsfreeze.sh ${DESTDIR}${RCSDIR}/rcsfreeze
-	${INSTALL} -m 775 -o bin -g bin -c sccstorcs ${DESTDIR}$(RCSDIR)
+	${INSTALL} -m 755 -o root -g staff -c -s ci $(RCSDIR)
+	${INSTALL} -m 755 -o root -g staff -c -s ident $(RCSDIR)
+	${INSTALL} -m 755 -o root -g staff -c -s rcs $(RCSDIR)
+	${INSTALL} -m 755 -o root -g staff -c -s rcsdiff $(RCSDIR)
+	${INSTALL} -m 755 -o root -g staff -c -s rcsmerge $(RCSDIR)
+	${INSTALL} -m 755 -o root -g staff -c -s rlog $(RCSDIR)
+	${INSTALL} -m 755 -o root -g staff -c -s co $(RCSDIR)
+	${INSTALL} -m 755 -o root -g staff -c merge $(RCSDIR)
+#	${INSTALL} -m 755 -o root -g staff -c rcsclean $(RCSDIR)
+#	${INSTALL} -m 755 -o root -g staff -c rcsfreeze.sh ${RCSDIR}/rcsfreeze
+	${INSTALL} -m 755 -o root -g staff -c sccstorcs $(RCSDIR)
 
 installog:	installsnoop install
 
 installsnoop:	snoop
-	install -s snoop ${DESTDIR}$(SNOOP)
-	chmod u+s ${DESTDIR}$(SNOOP)
-	touch ${DESTDIR}$(SNOOPFILE)
-	chmod 644 ${DESTDIR}$(SNOOPFILE)
+	install -c -m 755 -s snoop $(SNOOP)
+	chmod u+s $(SNOOP)
+	touch $(SNOOPFILE)
+	chmod 644 $(SNOOPFILE)
 # CAUTION: You may have to do a chown of SNOOP and SNOOPFILE (if not owned by root).
 lint: ci.lint co.lint ident.lint rlog.lint rcs.lint rcsdiff.lint rcsmerge.lint snoop.lint
 

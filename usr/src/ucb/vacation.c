@@ -9,7 +9,7 @@
 */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char	SccsId[] = "@(#)vacation.c	5.3.2 (2.11BSD GTE) 1996/10/23";
+static char	SccsId[] = "@(#)vacation.c	5.3.3 (2.11BSD) 2025/12/26";
 #endif
 
 # include <sys/types.h>
@@ -401,13 +401,15 @@ initialize()
 **		none.
 */
 
-usrerr(f, p)
-	char *f;
-	char *p;
+usrerr(char *f, ...)
 {
+	va_list ap;
+
+	va_start(ap, f);
 	fprintf(stderr, "vacation: ");
-	_doprnt(f, &p, stderr);
+	vfprintf(stderr, f, ap);
 	fprintf(stderr, "\n");
+	va_end(ap);
 }
 /*
 **  SYSERR -- print system error
@@ -423,13 +425,15 @@ usrerr(f, p)
 **		none.
 */
 
-syserr(f, p)
-	char *f;
-	char *p;
+syserr(char *f, ...)
 {
+	va_list ap;
+
+	va_start(ap, f);
 	fprintf(stderr, "vacation: ");
-	_doprnt(f, &p, stderr);
+	vfprintf(stderr, f, ap);
 	fprintf(stderr, "\n");
+	va_end(ap);
 	exit(EX_USAGE);
 }
 /*

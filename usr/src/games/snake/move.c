@@ -5,7 +5,7 @@
  */
 
 #if	!defined(lint) && defined(DOSCCS)
-static char sccsid[] = "@(#)move.c	5.2 (2.11BSD) 2020/1/7";
+static char sccsid[] = "@(#)move.c	5.3 (2.11BSD) 2025/12/25";
 #endif
 
 /*************************************************************************
@@ -373,11 +373,14 @@ int v0,v1,v2,v3,v4,v5,v6,v7,v8,v9;
 	pstring(str);
 }
 
-printf(st,v0,v1,v2,v3,v4,v5,v6,v7,v8,v9)
-char *st;
-int v0,v1,v2,v3,v4,v5,v6,v7,v8,v9;
+int
+printf(const char *fmt, ...)
 {
-	sprintf(str,st,v0,v1,v2,v3,v4,v5,v6,v7,v8,v9);
+	va_list ap;
+
+	va_start(ap, fmt);
+	vsprintf(str, fmt, ap);
+	va_end(ap);
 	pstring(str);
 }
 

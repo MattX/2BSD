@@ -3,11 +3,10 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.5 (2.11BSD) 1997/7/26
+#	@(#)Makefile	5.6 (2.11BSD) 2025/11/25
 #
-DESTDIR=
 CFLAGS=	-O
-SEPFLAG= -i
+LDFLAGS= -i
 
 # Programs that live in subdirectories, and have makefiles of their own.
 #
@@ -33,22 +32,22 @@ NSTD=	canfield primes rain worm worms
 all:	${SUBDIR} ${STD} ${NSTD}
 
 ${SUBDIR}: FRC
-	cd $@; make ${MFLAGS} SEPFLAG=${SEPFLAG}
+	cd $@; make ${MFLAGS}
 
 FRC:
 
 ${STD}:
-	cc ${CFLAGS} ${SEPFLAG} -o $@ $@.c
+	cc ${CFLAGS} ${LDFLAGS} -o $@ $@.c
 
 install: ${STD} ${NSTD}
 	-for i in ${SUBDIR}; do \
-		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
+		(cd $$i; make ${MFLAGS} install); done
 	-for i in ${SCRIPT}; do \
-		(install -c -m 755  $$i.sh ${DESTDIR}/usr/games/$$i); done
+		(install -c -m 755  $$i.sh /usr/games/$$i); done
 	-for i in ${STD} ${NSTD}; do \
-		(install -s -m 755 $$i ${DESTDIR}/usr/games/$$i); done
-	cat >${DESTDIR}/usr/games/lib/cfscores </dev/null
-	chmod 777 ${DESTDIR}/usr/games/lib/cfscores
+		(install -c -s -m 755 $$i /usr/games/$$i); done
+	cat >/usr/games/lib/cfscores </dev/null
+	chmod 777 /usr/games/lib/cfscores
 
 clean:
 	rm -f a.out core *.s *.o
@@ -76,19 +75,19 @@ depend:
 # Files listed in ${NSTD} have explicit make lines given below.
 
 canfield:
-	cc -o canfield ${CFLAGS} ${SEPFLAG} canfield.c -lcurses -ltermcap
+	cc -o canfield ${CFLAGS} ${LDFLAGS} canfield.c -lcurses -ltermcap
 
 primes:
-	cc -o primes ${CFLAGS} ${SEPFLAG} primes.c -lm
+	cc -o primes ${CFLAGS} ${LDFLAGS} primes.c -lm
 
 rain:
-	cc -o rain ${CFLAGS} ${SEPFLAG} rain.c -lcurses -ltermcap
+	cc -o rain ${CFLAGS} ${LDFLAGS} rain.c -lcurses -ltermcap
 
 worm:
-	cc -o worm ${CFLAGS} ${SEPFLAG} worm.c -lcurses -ltermcap
+	cc -o worm ${CFLAGS} ${LDFLAGS} worm.c -lcurses -ltermcap
 
 worms:
-	cc -o worms ${CFLAGS} ${SEPFLAG} worms.c -lcurses -ltermcap
+	cc -o worms ${CFLAGS} ${LDFLAGS} worms.c -lcurses -ltermcap
 
 # DO NOT DELETE THIS LINE -- make depend uses it
 

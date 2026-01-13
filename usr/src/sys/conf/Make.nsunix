@@ -9,7 +9,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	2.10	(2.11BSD GTE) 1997/11/28
+#	2.11	(2.11BSD) 2025/11/25
 #
 #########################################################
 # Networking, separate I/D kernel			#
@@ -172,8 +172,8 @@ clean:
 	rm -f netnix netbind d.unix.s d.netnix.s
 
 install:
-	install -c -o root -g kmem -m 744 unix ${DESTDIR}/unix
-	install -c -o root -g kmem -m 744 netnix ${DESTDIR}/netnix
+	install -c -o root -g kmem -m 744 unix /unix
+	install -c -o root -g kmem -m 744 netnix /netnix
 
 depend: FRC
 	for i in ${SUB}; do \

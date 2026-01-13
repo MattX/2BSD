@@ -4,33 +4,9 @@
  * profit and the author is credited appropriately.
  */
 
-/*
- * $Header: RCS/options.h,v 1.7.1 96/3/23 18:13:30 sms Exp $
- *
- * $Log:	options.h,v $
- * Revision 1.7  90/12/15  18:13:30  mcooper
- * Add copywrite notice.
- * 
- * Revision 1.6  90/11/13  15:28:39  mcooper
- * Add OptBool cvtarg routine.
- * 
- * Revision 1.5  90/10/29  19:34:03  mcooper
- * Fixed comment for NoArg.
- * 
- * Revision 1.4  90/10/29  18:48:43  mcooper
- * Cleanup some comments.
- * 
- * Revision 1.3  90/10/29  14:47:29  mcooper
- * UsageString is now a real function.
- * 
- * Revision 1.2  90/10/26  15:55:44  mcooper
- * Add defines for "__" and ArgHidden.
- * 
- * Revision 1.1  90/10/26  14:42:53  mcooper
- * Initial revision
- * 
- */
-
+#if     defined(DOSCCS) && !defined(lint)
+static char *sccsid = "@(#)od.c 1.8 (2.11BSD) 2025/12/25";
+#endif
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -90,7 +66,3 @@ int OptStr();
 
 extern char *OptionChars;
 extern int errno;
-extern char *sys_errlist[];
-extern long strtol();
-extern char *malloc();
-extern char *strcpy();

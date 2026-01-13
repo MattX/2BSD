@@ -1,6 +1,6 @@
-#ifndef lint
-static char sccsid[] = "@(#)tree.c	4.1	(Berkeley)	2/11/83";
-#endif not lint
+#if	!defined(lint) && defined(DOSCCS)
+static char sccsid[] = "@(#)tree.c	4.1	(2.11BSD) 2025/12/27";
+#endif
 
 # include "y.tab.h"
 #include "b.h"
@@ -221,7 +221,7 @@ int length;
 		if (ptr[i] == '\0')
 			return(i + 1);
 		}
-	fprintf(2,"string %s too long to be copied by str_copy at address %d\n",
+	fprintf(stderr, "string %s too long to be copied by str_copy at address %d\n",
 			*s,ptr);
 	exit(1);
 	}

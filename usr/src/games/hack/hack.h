@@ -1,5 +1,5 @@
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
-/* hack.h - version 1.0.3 */
+/* hack.h - version 1.0.4 (2.11BSD) 2025/12/25 */
 
 #include "config.h"
 
@@ -25,7 +25,6 @@ typedef struct {
 #include	"def.obj.h"
 #include	"def.flag.h"
 
-extern char *sprintf();
 #define	plur(x)	(((x) == 1) ? "" : "s")
 
 #define	BUFSZ	256	/* for getlin buffers */

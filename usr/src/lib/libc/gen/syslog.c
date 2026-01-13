@@ -32,7 +32,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)syslog.c	8.4.3 (2.11BSD) 1995/07/15";
+static char sccsid[] = "@(#)syslog.c	8.4.4 (2.11BSD) 2025/12/25";
 #endif /* LIBC_SCCS and not lint */
 
 #include <sys/types.h>
@@ -47,8 +47,6 @@ static char sccsid[] = "@(#)syslog.c	8.4.3 (2.11BSD) 1995/07/15";
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-
-#include <varargs.h>
 
 #define	STDERR_FILENO	2
 
@@ -73,23 +71,17 @@ extern	int	errno;			/* error number */
  *	print message on log file; output is intended for syslogd(8).
  */
 void
-syslog(pri, fmt, va_alist)
-	int pri;
-	char *fmt;
-	va_dcl
+syslog(int pri, char *fmt, ...)
 {
 	va_list ap;
 
-	va_start(ap);
+	va_start(ap, fmt);
 	vsyslog(pri, fmt, ap);
 	va_end(ap);
 }
 
 void
-vsyslog(pri, fmt, ap)
-	int pri;
-	register char *fmt;
-	va_list ap;
+vsyslog(int pri, register char *fmt, va_list ap)
 {
 	int cnt;
 	char ch;

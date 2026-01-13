@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.7.1 (2.11BSD GTE) 4/9/94
+#	@(#)Makefile	5.7.2 (2.11BSD) 2025/11/29
 #
 #
 SRCS=	aldiv.s almul.s alrem.s csv.s ldiv.s lmul.s lrem.s udiv.s \
@@ -42,37 +42,22 @@ clean:
 	rm -f *.o profiled/*.o errs a.out core crtlib crtlib_p \
 		tags Makefile.bak
 
-depend:
-	for i in ${SRCS}; do \
-	    cc -M ${CFLAGS} $$i | awk ' { if ($$1 != prev) \
-		{ if (rec != "") print rec; rec = $$0; prev = $$1; } \
-		else { if (length(rec $$2) > 78) { print rec; rec = $$0; } \
-		else rec = rec " " $$2 } } \
-		END { print rec } ' >> makedep; done
-	echo '/^# DO NOT DELETE THIS LINE/+2,$$d' >eddep
-	echo '$$r makedep' >>eddep
-	echo 'w' >>eddep
-	cp Makefile Makefile.bak
-	ed - Makefile < eddep
-	rm eddep makedep
-	echo '# DEPENDENCIES MUST END AT END OF FILE' >> Makefile
-	echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY' >> Makefile
-	echo '# see make depend above' >> Makefile
+depend:	${SRCS}
+	mkdep ${CFLAGS} ${SRCS}
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
 
-# DO NOT DELETE THIS LINE -- make depend uses it
+aldiv.o: aldiv.s DEFS.h
+almul.o: almul.s DEFS.h
+alrem.o: alrem.s DEFS.h
+csv.o: csv.s DEFS.h
+ldiv.o: ldiv.s DEFS.h
+lmul.o: lmul.s DEFS.h
+lrem.o: lrem.s DEFS.h
+udiv.o: udiv.s DEFS.h
+uldiv.o: uldiv.s DEFS.h
+ulrem.o: ulrem.s DEFS.h
+ulsh.o: ulsh.s DEFS.h
+ultof.o: ultof.s DEFS.h
 
-aldiv.o: aldiv.s ./DEFS.h
-almul.o: almul.s ./DEFS.h
-alrem.o: alrem.s ./DEFS.h
-csv.o: csv.s ./DEFS.h
-ldiv.o: ldiv.s ./DEFS.h
-lmul.o: lmul.s ./DEFS.h
-lrem.o: lrem.s ./DEFS.h
-udiv.o: udiv.s ./DEFS.h
-uldiv.o: uldiv.s ./DEFS.h
-ulrem.o: ulrem.s ./DEFS.h
-ulsh.o: ulsh.s ./DEFS.h
-ultof.o: ultof.s ./DEFS.h
-# DEPENDENCIES MUST END AT END OF FILE
-# IF YOU PUT STUFF HERE IT WILL GO AWAY
-# see make depend above
+# IF YOU PUT ANYTHING HERE IT WILL GO AWAY

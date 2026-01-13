@@ -11,6 +11,10 @@
  * the handler if we are reading from the keyboard.
  */
 
+#if     defined(DOSCCS) && !defined(lint)
+static char *sccsid = "@(#)signal.c 1.1 (2.11BSD) 2025/12/25";
+#endif
+
 #include "less.h"
 #include <signal.h>
 #include <setjmp.h>
@@ -210,6 +214,10 @@ lsystem(cmd)
  */
 #if GLOB
 
+#undef NULL
+#undef EOF
+#undef putc
+#undef puts
 #include <stdio.h>
 
 	char *

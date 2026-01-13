@@ -1,5 +1,5 @@
 #
-#	Makefile	1.13	86/03/11
+#	Makefile	1.14	(2.11BSD) 2025/11/25
 #
 # Makefile for PCC
 #
@@ -81,7 +81,7 @@ stab.o: $(P2ONEP) stab.c
 	$(CC) -c $(COPTS) stab.c
 
 install: all
-	install -s ${TESTDIR}/ccom ${DESTDIR}/lib/ccom
+	install -s ${TESTDIR}/ccom /lib/ccom
 
 GREP=	egrep
 

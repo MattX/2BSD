@@ -1,4 +1,8 @@
 #! /bin/sh -
+#
+#   @(#)weekly  1.1   (2.11BSD) 2025/12/28
+#
+
 PATH=/usr/sbin:/usr/local:/usr/ucb:/bin:/usr/bin
 echo "Subject: weekly run output"
 
@@ -15,10 +19,11 @@ EOF
 echo ""
 echo "Rotating messages:"
 cd /usr/adm
-mv messages.2 messages.3
-mv messages.1 messages.2
-mv messages.0 messages.1
-mv messages   messages.0
+mv -f messages.2.Z messages.3.Z
+mv -f messages.1.Z messages.2.Z
+mv -f messages.0.Z messages.1.Z
+mv -f messages   messages.0
+compress -f messages.0
 cp /dev/null  messages
 chmod 644 messages
 

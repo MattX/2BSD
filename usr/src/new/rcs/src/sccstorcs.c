@@ -1,5 +1,5 @@
 static char *RCSid =
-"$Header: /usr/src/new/rcs/src/RCS/sccstorcs.c,v 1.4.1 94/1/1 21:12:11 root Exp $";
+"$Header: /usr/src/new/rcs/src/RCS/sccstorcs.c,v 1.4. (2.11BSD)";
 
 /*
  * SCCSTORCS - build RCS file from SCCS file preserving deltas.
@@ -78,7 +78,7 @@ quit (fmt, args)
 char *fmt;
 {
     fprintf (stderr, "sccstorcs: ");
-    _doprnt(fmt, &args, stderr);
+    fprintf (stderr, fmt, args);
     exit (1);
 }
 

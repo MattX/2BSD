@@ -9,7 +9,7 @@
 # software without specific prior written permission. This software
 # is provided ``as is'' without express or implied warranty.
 #
-#	2.9 (2.11BSD GTE) 1997/11/28
+#	2.10 (2.11BSD) 2025/11/25
 #
 #########################################################
 # Non-networking, non-separate I/D kernel		#
@@ -121,7 +121,7 @@ clean:
 	rm -f unix core mklog *.o assym.h genassym checksys
 
 install:
-	install -c -o root -g kmem -m 744 unix ${DESTDIR}/unix
+	install -c -o root -g kmem -m 744 unix /unix
 
 depend: FRC
 	for i in ${SUB}; do \

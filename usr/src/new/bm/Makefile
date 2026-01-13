@@ -1,10 +1,7 @@
-#
-# bm Makefile - revised 1996/1/28
-#
-DESTDIR=
+#       Makefile        2.0 (2.11BSD) 2025/11/25
 
 CFLAGS = -O
-SEPFLAG = -i
+LDFLAGS = -i
 
 HDRS=	Extern.h bm.h
 SRCS=	Execute.c GetPatFile.c Global.c MakeDesc.c MakeSkip.c MatchFound.c \
@@ -18,11 +15,11 @@ OBJS=	Execute.o GetPatFile.o Global.o MakeDesc.o MakeSkip.o MatchFound.o \
 	/usr/man/manroff $*.1 > $*.0
 
 bm: ${OBJS} bm.0
-	cc -o $@ ${SEPFLAG} ${OBJS}
+	cc -o $@ ${LDFLAGS} ${OBJS}
 
 install: bm bm.0
-	install -s bm ${DESTDIR}/usr/new/bm
-	install -c -m 444 -o bin -g bin  bm.0 ${DESTDIR}/usr/new/man/cat1/bm.0
+	install -c -s -m 755 bm /usr/new/bm
+	install -c -m 444 -o root -g staff  bm.0 /usr/new/man/cat1/bm.0
 
 tags: ${HDRS} ${SRCS}
 	ctags $<

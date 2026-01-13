@@ -2,7 +2,7 @@
 .\" All rights reserved.  The Berkeley software License Agreement
 .\" specifies the terms and conditions for redistribution.
 .\"
-.\"	@(#)1.t	2.6 (2.11BSD) 2020/1/4
+.\"	@(#)1.t	2.7 (2.11BSD) 2025/12/10
 .\"
 .ds lq ``
 .ds rq ''
@@ -22,18 +22,10 @@
 .PP
 This document explains how to install \*(2B UNIX for the PDP-11 on your
 system.  This document has been revised several times since the first
-release of \*(2B, most recently in July 1995 to reflect the addition of disk
-labels to the system.  The format of the bootable tape has changed. 
-There is now a standalone
-.B disklabel
-program present.
-While the system call interface is the same
-as that of \*(1B,
-a full bootstrap from the distribution tape is required because the
-filesystem has changed to allow file names longer than 14 characters.
-Also, the 3 byte block number packing scheme used by earlier versions
-of UNIX for the PDP-11 has been eliminated.  Block numbers are always 4 byte
-\fBlongs\fP now.
+release of \*(2B in 1991. The last significant revision in July 1995 
+dealt with the addition of disk labels to the system.  This December 2025
+revision is in preparation for the release in 2026 of the 35th Anniversary 
+Edition of \*(2B.
 .PP
 The procedure for performing a full bootstrap is outlined in chapter 2.
 The process includes copying a root file system from
@@ -50,33 +42,21 @@ It is desirable to recompile most local software after the conversion,
 as there are changes and performance improvements in the standard
 libraries.
 .PP
-Binaries from \*(1B which do not read directories or inode structures
-may be used but should be recompiled to pick up changes in the standard
-libraries.  Note too, that the portable ASCII format of \fIar\fP(1) archives
-is now in place - any local archive files will have to be converted using
-\fI/usr/old/arcv\fP.
 .NH 1
 Hardware supported
 .PP
-This distribution can be booted on a PDP-11
-with 1Mb of memory or more\(ua,
-.FS
-.IP \(ua
-\*(2B would probably only require a moderate amount of squeezing to
-fit on machines with less memory, but it would also be very
-unhappy about the prospect.
-.FE
+This distribution can be booted on a PDP-11 with 1Mb of memory or more,
 separate I&D, and with any of the following disks:
-.DS
-.TS
-lw(1.5i) l.
+.sp
 RK06, RK07
-Any MSCP disk, including but not limited to: RD53, RD54, RA81, RZ2x
+.sp
+Any MSCP disk
+.sp
 RM03, RM05
+.sp
 RP04, RP05, RP06
+.sp
 Many other SMD disks, for example: CDC 9766, Fuji 160, Fuji Eagle
-.TE
-.DE
 .PP
 Other disks are supported (RX23, RX33, RX50, RD51) but are not large
 enough to hold a root filesystem plus a swap partition.  The old restriction
@@ -100,33 +80,15 @@ TE16, TU45, TU77
 TK50, TU81, TU81+, TZ30
 .TE
 .DE
-Although \*(2B contains a kernel level floating point simulator, it has
-never been tested.  In fact it would not even compile/assemble without
-errors!  That problem has been fixed but it is still not know if the
-simulator works, KDJ-11 based systems have builtin floating point so the
-simulator can not be tested.  At the release of \*(Ps some thought was given
-to the possibility of lifting the separate I&D restriction, but that
-thought has languished.  The work will
-never be done.  As time passes more and more programs have
-become almost too large even with separate I&D.
 .NH 1
 Distribution format
 .PP
 The basic distribution contains the following items:
 .DS
-(2)\0\0 1600bpi 2400' magnetic tapes, or
-(2)\0\0 TK25 tape cartridges, or
-(1)\0\0 TK50 tape cartridge, and
-(1)\0\0 Hardcopy of this document,
-(1)\0\0 Hardcopy of the \fIChanges in \*(2B\fP document,
-(1)\0\0 Hardcopy of the \*(2B /README and /VERSION files, and
-(1)\0\0 Hardcopy of manual pages from sections 4, and 8.
+(1)\0\0 SimH magnetic tape image
+(1)\0\0 template SimH config file (simh.ini)
+(1)\0\0 Soft copy of this document
 .DE
-Installation on any machine requires a tape unit. 
-Since certain standard PDP-11 packages
-do not include a tape drive, this means one must either
-borrow one from another PDP-11 system or one must be purchased
-separately.
 .PP
 \fBThe distribution does not fit on several standard PDP-11 configurations
 that contain only small disks\fP.  If your hardware configuration does not
@@ -140,16 +102,8 @@ standalone
 .B disklabel
 program.
 .PP
-If you have the facilities, it is a good idea to copy the
-magnetic tape(s) in the distribution kit to guard against disaster.
-The tapes are 9-track 1600 BPI, TK50 or TK25 cartridges and contain some
-512-byte records, followed by some 1024-byte records,
-followed by many 10240-byte records.
-There are interspersed tape marks; end-of-tape is signaled
-by a double end-of-file.
-.PP
 The basic bootstrap material is present in six
-short files at the beginning of the first tape.
+short files at the beginning of the tape.
 The first file on the tape contains preliminary bootstrapping programs.
 This is followed by several standalone
 utilities (\fIdisklabel\fP, \fImkfs\fP\|(8), \fIrestor\fP\|(8), and 
@@ -160,20 +114,14 @@ References of the form X(Y) mean the subsection named
 X in section Y of the UNIX programmer's manual.
 .FE
 followed by a full dump of a root file system (see \fIdump\fP\|(8)).
-Following the root file system dump is a tape archive image of \fB/usr\fP
-except for \fB/usr/src\fP (see \fItar\fP\|(1)).  Finally, a tape archive
-of the kernel source ends the first tape.  The
-second tape contains a tape archive image, also in \fItar\fP format, of
-the remaining source that comes with the system.
-.PP
-The entire distribution (barely) fits on a single TK50 cartridge, references to
-the second tape should be treated as being the 9th file on the TK50.  Many of
-the programs in /usr/src/new have been tar+compress'd in order to keep the
-distribution to a single tape.
+Following the root file system dump is a \fItar\fP archive of \fB/usr\fP
+except for \fB/usr/src\fP.  Next a \fItar\fP archive
+of the kernel source.  Finally a \fItar\fP archive of
+the remaining system sources.
 .PP
 .KS
 .DS L
-TAPE 1:
+TAPE:
 .TS
 n n n l.
 Tape file	Record size	Records\(ua	Contents
@@ -188,18 +136,10 @@ _
 5	10240	285	\fIdump\fP of ``root'' file system
 6	10240	3368	\fItar\fP dump of /usr, excepting /usr/src
 7	10240	519	\fItar\fP dump of /usr/src/sys
-.TE
-
-TAPE 2:
-.TS
-n n n l.
-Tape file	Record size	Records\(ua	Contents
-_
-0	10240	4092	\fItar\fP dump of /usr/src excepting sys
+8	10240	4092	\fItar\fP dump of /usr/src excepting sys
 .TE
 .DE
 .KE
-.FS
 .IP \(ua
 The number of records in each tape file are approximate
 and do not necessarily correspond to the actual number on the tape.
@@ -279,30 +219,6 @@ respectively.  This should always be zero unless you
 \fBreally\fP know what you are doing.  The ability to load a kernel from
 the swap area is planned for the future but does not presently exist.
 For tapes \fIz\fP is a file number on the tape.\(ua
-.KS
-.FS
-.IP \(ua
-\fBNote:\fP that while a tape file consists of a single data stream,
-the distribution tape(s) have data structures in these files.
-Although the first tape contains only 8 tape files, they comprise
-several thousand UNIX files.
-.IP
-\fBNote:\fP The standalone tape drive unit number is specially encoded
-to specify both unit number and tape density (BPI).  Most tape subsystems
-either automatically adjust to tape density or have switches on the drives to
-force the density to a particular setting, but for those which don't the
-following density select mechanisms may be necessary.  The \fBts\fP only
-operates at 1600BPI, so there is no special unit density encoding.  The
-\fBht\fP will operate at either 800BPI or 1600BPI.  Units 0 through 3
-corresponding to 800BPI, and Units 4 through 7 corresponding to 1600BPI
-on drives 0 through 3 respectively.  The standard DEC \fBtm\fP only supports
-800BPI (and hence can't be used with the \*(2B distribution tape),
-but several widely used \fBtm\fP emulators support 1600BPI and even
-6250BPI.  Units 0 through 3 corresponding to 800BPI, Units 4 through
-7 corresponding to 1600BPI, and Units 8 through 11 corresponding to
-6250BPI on drives 0 through 3 respectively.
-.FE
-.KE
 .PP
 In all simple cases, a drive with unit number 0 (determined either by
 a unit plug on the front of the drive, or jumper settings on the drive
@@ -318,9 +234,6 @@ TE16/TU tape formatter on drive 0, the
 files on the tape have names ``ht(0,0)'', ``ht(0,1)'', etc.
 Here ``file'' means a tape file containing a single data stream
 separated by a single tape mark.
-The distribution tapes have data structures in the tape
-files and though the first tape contains only 7 tape files, it contains
-several thousand UNIX files.
 .PP
 Each UNIX physical disk is divided into 8 logical disk partitions,
 each of which may occupy any consecutive cylinder range on the
@@ -367,17 +280,6 @@ a single large file system or to access the entire pack when making a
 copy of it on another.  Care must be taken when using this partition not
 to overwrite the last few tracks and thereby destroying the bad sector
 information.
-.PP
-Unfortunately while the drivers can follow the rules above the entries
-in \fI/etc/disktab\fP (\fIdisktab\fP\|(5)) do not.  The entries in 
-\fI/etc/disktab\fP are translations of the old partition tables which
-used to be embedded in the device drivers and are thus probably not suitable
-for use without editing.
-In some cases it
-may be that the 8th ('h') partition is used for access to the entire
-disk rather than the third ('c') partition.
-Caution should be observed when using the \fInewfs\fP\|(8) and
-\fIdisklabel\fP\|(8) commands.
 .NH 1
 UNIX devices: block and raw
 .PP

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)limits.h	8.2.1 (2.11BSD) 1996/1/11
+ *	@(#)limits.h	8.2.2 (2.11BSD) 2025/12/24
  */
 
 #ifndef _LIMITS_H_
@@ -62,10 +62,8 @@
 #define	_POSIX2_EXPR_NEST_MAX	32
 #define	_POSIX2_LINE_MAX	2048
 #define	_POSIX2_RE_DUP_MAX	255
-
 */
 
 #include <machine/limits.h>
-/* #include <sys/syslimits.h> */
 
 #endif /* !_LIMITS_H_ */

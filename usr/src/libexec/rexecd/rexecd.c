@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if !defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1983 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)rexecd.c	5.4 (Berkeley) 5/9/86";
-#endif not lint
+static char sccsid[] = "@(#)rexecd.c	5.5 (2.11BSD) 2025/12/26";
+#endif
 
 #include <sys/ioctl.h>
 #include <sys/param.h>
@@ -26,12 +24,10 @@ static char sccsid[] = "@(#)rexecd.c	5.4 (Berkeley) 5/9/86";
 #include <pwd.h>
 #include <signal.h>
 #include <netdb.h>
+#include <strings.h>
+#include <unistd.h>
 
-extern	errno;
-struct	passwd *getpwnam();
-char	*crypt(), *rindex(), *strncat(), *sprintf();
-/*VARARGS1*/
-int	error();
+extern	int errno;
 
 /*
  * remote execute server:
@@ -198,7 +194,6 @@ doit(f, fromp)
 	exit(1);
 }
 
-/*VARARGS1*/
 error(fmt, a1, a2, a3)
 	char *fmt;
 	int a1, a2, a3;

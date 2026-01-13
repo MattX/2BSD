@@ -2,7 +2,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.2.1 (2.11BSD) 1999/10/24
+#	@(#)Makefile	5.2.2 (2.11BSD) 2025/11/27
 #
 # curses package
 #
@@ -20,8 +20,7 @@ OBJS=	addch.o addstr.o box.o clear.o clrtobot.o clrtoeol.o cr_put.o \
 	toucholap.o standout.o touchwin.o tstp.o unctrl.o
 
 CTAGS=	ctags
-DEFS=	-DNOSCCS
-CFLAGS=	-O $(DEFS)
+CFLAGS=	-O $(DEFS) -DNOSCCS
 TAGSFILE=tags
 
 .c.o:
@@ -41,10 +40,10 @@ libcurses libcurses_p: ${OBJS}
 	ranlib libcurses
 
 install: libcurses libcurses_p
-	install -m 644 libcurses ${DESTDIR}/usr/lib/libcurses.a
-	ranlib ${DESTDIR}/usr/lib/libcurses.a
-	install -m 644 libcurses_p ${DESTDIR}/usr/lib/libcurses_p.a
-	ranlib ${DESTDIR}/usr/lib/libcurses_p.a
+	install -c -m 644 libcurses /usr/lib/libcurses.a
+	ranlib /usr/lib/libcurses.a
+	install -c -m 644 libcurses_p /usr/lib/libcurses_p.a
+	ranlib /usr/lib/libcurses_p.a
 
 tags:
 	cwd=`pwd`; \
@@ -67,6 +66,3 @@ test:	libcurses test.o
 
 test.o:	test.c
 	${CC} ${CFLAGS} -c test.c
-
-ar:
-	ar crv curses.ar ${CFILES} curses.h curses.ext Makefile

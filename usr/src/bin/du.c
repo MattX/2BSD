@@ -1,11 +1,12 @@
-#ifndef lint
-static char *sccsid = "@(#)du.c	4.11 (Berkeley) 7/1/83";
+#if     defined(DOSCCS) && !defined(lint)
+static char *sccsid = "@(#)du.c	4.12 (2.11BSD) 2025/12/25";
 #endif
 
 #include <stdio.h>
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/dir.h>
+#include <strings.h>
 
 char	path[BUFSIZ], name[BUFSIZ];
 int	aflg;
@@ -20,7 +21,6 @@ struct {
 int	mlx;
 
 long	descend();
-char	*index(), *rindex(), *strcpy(), *sprintf();
 
 #define	kb(n)	(howmany(dbtob(n), 1024))
 

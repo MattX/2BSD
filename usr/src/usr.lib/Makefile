@@ -3,11 +3,9 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.12.4 (2.11BSD) 2020/1/4
+#	@(#)Makefile	5.12.5 (2.11BSD) 2025/11/29
 #
-DESTDIR=
 CFLAGS=	-O
-SEPFLAG= -i
 TAGSFILE=tags
 
 # Subdirectories whose routines are included in the making of the
@@ -16,30 +14,25 @@ TAGSFILE=tags
 #
 TAGSDIR=libcurses libdbm libln libmp libtermlib libutil liberrlst
 
-# Programs that live in subdirectories, and have makefiles of their own.
-#
-# 2.11BSD XXX - Libpc isn't important till someone - if ever - ports
-# the 4.3BSD version of ucb/pascal.
-#
+# Programs that live in subdirectories and have makefiles of their own.
+
 SUBDIR=	lib2648 libF77 libI77 libU77 libcurses libdbm libln \
 	libom libmp libplot libtermlib liby libutil libvmf \
 	liberrlst libident libstubs
 
-# Shell scripts that need only be installed and are never removed.
-#
-
 all:	${SUBDIR}
 
 ${SUBDIR}: FRC
-	cd $@; make ${MFLAGS} SEPFLAG=${SEPFLAG}
+	cd $@; make ${MFLAGS}
 
 FRC:
 
 install: FRC
 	-for i in ${SUBDIR}; do \
-		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); done
-	rm -f ${DESTDIR}/usr/lib/libm.a
-	ln ${DESTDIR}/usr/lib/libom.a ${DESTDIR}/usr/lib/libm.a
+		(cd $$i; make ${MFLAGS} install); done
+	rm -f /usr/lib/libm.a /usr/lib/libm_p.a
+	ln /usr/lib/libom.a /usr/lib/libm.a
+	ln /usr/lib/libom_p.a /usr/lib/libm_p.a
 
 tags:
 	-for i in ${TAGSDIR}; do \

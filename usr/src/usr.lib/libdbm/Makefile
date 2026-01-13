@@ -3,10 +3,9 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.3 (Berkeley) 4/30/86
+#	@(#)Makefile	5.4 (2.11BSD) 2025/11/27
 #
-DEFS= -DNOSCCS
-CFLAGS=-O $(DEFS)
+CFLAGS=-O -DNOSCCS
 TAGSFILE=tags
 
 all: libdbm.a libdbm_p.a
@@ -22,10 +21,10 @@ libdbm_p.a: dbm.c
 	rm -f dbm.o
 
 install: all
-	install -m 644 libdbm.a $(DESTDIR)/usr/lib
-	install -m 644 libdbm_p.a $(DESTDIR)/usr/lib
-	-cmp -s dbm.h $(DESTDIR)/usr/include/dbm.h || \
-		install -c -m 444 dbm.h $(DESTDIR)/usr/include
+	install -c -m 644 libdbm.a /usr/lib
+	install -c -m 644 libdbm_p.a /usr/lib
+	-cmp -s dbm.h /usr/include/dbm.h || \
+		install -c -m 444 dbm.h /usr/include
 
 tags:
 	ctags -a -f ${TAGSFILE} `pwd`/dbm.c

@@ -1,5 +1,5 @@
 /*
- *	@(#)zdump.c	1.1 zdump.c 3/4/87
+ *	@(#)zdump.c	1.2 (2.11BSD) 2025/12/26
  */
 
 #include "stdio.h"
@@ -13,14 +13,10 @@
 #define FALSE		0
 #endif
 
-extern char *		asctime();
 extern char **		environ;
-extern struct tm *	gmtime();
 extern char *		imalloc();
 extern char *		optarg;
 extern int		optind;
-extern char *		sprintf();
-extern long		time();
 extern char *		tzname[2];
 extern void		tzset();
 

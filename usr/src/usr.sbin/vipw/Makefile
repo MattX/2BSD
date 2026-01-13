@@ -14,11 +14,11 @@
 # WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#)Makefile	5.1.3 (2.11BSD) 1996/11/16
+# @(#)Makefile	5.1.4 (2.11BSD) 2025/11/28
 #
 
 CFLAGS=	-O
-SEPFLAG= -i
+LDFLAGS= -i
 SRCS=	vipw.c
 OBJS=	vipw.o
 MAN=	vipw.0
@@ -27,7 +27,7 @@ MANSRC=	vipw.8
 all: vipw ${MAN}
 
 vipw: ${OBJS}
-	${CC} ${SEPFLAG} -o $@ ${CFLAGS} ${OBJS}
+	${CC} ${LDFLAGS} -o $@ ${OBJS}
 
 vipw.0: ${MANSRC}
 	/usr/man/manroff ${MANSRC} > ${MAN}
@@ -42,8 +42,8 @@ depend: ${SRCS}
 	mkdep ${CFLAGS} ${SRCS}
 
 install: ${MAN} vipw
-	install -s -o bin -g bin -m 755 vipw ${DESTDIR}/usr/sbin
-	install -c -o bin -g bin -m 444 ${MAN} ${DESTDIR}/usr/man/cat8
+	install -c -s -o root -g staff -m 755 vipw /usr/sbin
+	install -c -o root -g staff -m 444 ${MAN} /usr/man/cat8
 
 lint: ${SRCS}
 	lint ${CFLAGS} ${SRCS}

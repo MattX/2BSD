@@ -14,25 +14,24 @@
 # IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 # WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-#	@(#)Makefile	1.3 (Berkeley) 7/9/88
+#	@(#)Makefile	1.4 (2.11BSD) 2025/11/25
 #
-SEPFLAG=-i
 
 SUBDIR=	src man
 
 all: ${SUBDIR}
 
 ${SUBDIR}: FRC
-	cd $@; make ${MFLAGS} SEPFLAG=${SEPFLAG}
+	cd $@; make ${MFLAGS}
 
 install:
 	for i in ${SUBDIR}; do \
-		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} install); \
+		(cd $$i; make ${MFLAGS} install); \
 	done
 
 clean:
 	for i in ${SUBDIR}; do \
-		(cd $$i; make ${MFLAGS} DESTDIR=${DESTDIR} clean); \
+		(cd $$i; make ${MFLAGS} clean); \
 	done
 
 FRC:

@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	2.0 (2.11BSD) 2022/8/30
+#	@(#)Makefile	2.1 (2.11BSD) 2025/11/25
 #
 ALL=	bruboot hkuboot rauboot rkuboot rluboot si95uboot rx02uboot \
 	rx01uboot
@@ -41,4 +41,4 @@ clean:
 	rm -f x.s a.out b.out ${ALL} ${MBDISK}
 
 install: all
-	cp *boot ${DESTDIR}/mdec
+	cp *boot /mdec

@@ -1,11 +1,10 @@
-
-#	@(#)Makefile	1.1 (Berkeley) 12/15/82
+#	@(#)Makefile	1.2 (2.11BSD) 2025/11/27
 
 CFLAGS = -O
-SEPFLAG= -i
+LDFLAGS= -i
 
 ratfor:	r0.o r1.o r2.o rio.o rlook.o rlex.o y.tab.o
-	cc ${SEPFLAG} r*.o y.tab.o -o ratfor
+	cc ${LDFLAGS} r*.o y.tab.o -o ratfor
 
 r0.o:	r.h y.tab.h r0.c
 r1.o:	r.h y.tab.h r1.c
@@ -17,8 +16,9 @@ y.tab.c:	r.g
 	yacc -d r.g
 y.tab.h:	r.g
 	yacc -d r.g
+
 install: ratfor
-	install -s ratfor $(DESTDIR)/usr/bin
+	install -c -s -m 755 ratfor /usr/bin
 clean:
 	rm -f y.tab.c *.o ratfor y.tab.h
 

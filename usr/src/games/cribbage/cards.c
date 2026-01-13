@@ -4,9 +4,9 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)cards.c	5.1 (Berkeley) 5/30/85";
-#endif not lint
+#if  defined(DOSCCS) && !defined(lint)
+static char sccsid[] = "@(#)cards.c	5.2 (2.11BSD) 2025/12/25";
+#endif
 
 #include	<stdio.h>
 #include	"deck.h"
@@ -95,7 +95,7 @@ isone( a, b, n )
  * remove the card a from the deck d of n cards
  */
 
-remove( a, d, n )
+cremove( a, d, n )
 
     CARD		a, d[];
     int			n;

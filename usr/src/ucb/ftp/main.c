@@ -20,7 +20,7 @@ char copyright[] =
 "@(#) Copyright (c) 1985, 1989 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)main.c	based on 5.14 (2.11BSD) 2025/3/21";
+static char sccsid[] = "@(#)main.c	based on 5.15 (2.11BSD) 2026/1/5";
 #endif
 
 /*
@@ -207,6 +207,7 @@ cmdscanner(top)
 {
 	register struct cmd *c;
 	struct cmd *getcmd();
+	char *cp;
 	extern int help();
 
 	if (!top)
@@ -216,11 +217,14 @@ cmdscanner(top)
 			printf("ftp> ");
 			(void) fflush(stdout);
 		}
-		if (gets(line) == 0) {
+		if (fgets(line, sizeof line, stdin) == 0) {
 			if (feof(stdin) || ferror(stdin))
 				quit();
 			break;
 		}
+		cp = index(line, '\n');
+		if (cp) *cp = '\0';
+
 		if (line[0] == 0)
 			break;
 		makeargv();

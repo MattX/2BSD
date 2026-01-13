@@ -3,7 +3,7 @@
 # All rights reserved.  The Berkeley software License Agreement
 # specifies the terms and conditions for redistribution.
 #
-#	@(#)Makefile	5.3.2	(2.11BSD GTE)	1996/12/1
+#	@(#)Makefile	5.3.3	(2.11BSD) 2025/12/26
 #
 # make file for tip device drivers
 #

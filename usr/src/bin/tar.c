@@ -4,15 +4,13 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
+#if     !defined(lint) && defined(DOSCCS)
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
 
-#ifndef lint
-static char sccsid[] = "@(#)tar.c	5.7 (Berkeley) 4/26/86";
-#endif not lint
+static char sccsid[] = "@(#)tar.c	5.8 (2.11BSD) 2025/12/25";
+#endif
 
 /*
  * Tape Archival Program
@@ -27,6 +25,7 @@ static char sccsid[] = "@(#)tar.c	5.7 (Berkeley) 4/26/86";
 #include <signal.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <strings.h>
 
 #define TBLOCK	512
 #define NBLOCK	20
@@ -104,16 +103,8 @@ char	tname[] = "/tmp/tarXXXXXX";
 char	*usefile;
 char	magtape[] = "/dev/rmt8";
 char	*malloc();
-long	time();
-off_t	lseek();
-char	*mktemp();
-char	*sprintf();
-char	*strcat();
-char	*strcpy();
-char	*rindex();
-char	*getcwd();
-char	*getwd();
 char	*getmem();
+char	*getcwd();
 
 main(argc, argv)
 int	argc;

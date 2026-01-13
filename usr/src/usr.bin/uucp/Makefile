@@ -1,4 +1,4 @@
-#	Makefile	5.11.3 (2.11BSD GTE)	1996/11/17
+#	Makefile	5.11.4 (2.11BSD)	2025/11/25
 #
 # LIBS can be set to reference other object modules and libraries needed
 # by uucico, such as -lunet (needed when UNET is defined).
@@ -29,20 +29,17 @@ LSRCS=	anlwrk.c anyread.c assert.c cfgets.c chkpth.c \
 LIBOBJS= gethnamadr.o getsent.o getsbyname.o res_init.o res_send.o \
 	res_query.o res_mkquery.o res_comp.o
 
-DESTDIR=
-
 OWNER=	uucp
 GROUP=	daemon
 CFLAGS=	-O
-LDFLAGS=
-SEPFLAG= -i
+LDFLAGS=-i
 LINTFLAGS= -chba
 LIBS= 
-SBINDIR=	${DESTDIR}/usr/sbin
-LIBEXECDIR=	${DESTDIR}/usr/libexec
-BIN=	${DESTDIR}/usr/bin
-PUBDIR=	${DESTDIR}/usr/spool/uucppublic
-SPOOL=	${DESTDIR}/usr/spool/uucp
+SBINDIR=	/usr/sbin
+LIBEXECDIR=	/usr/libexec
+BIN=	/usr/bin
+PUBDIR=	/usr/spool/uucppublic
+SPOOL=	/usr/spool/uucp
 XQTDIR=	${SPOOL}/XTMP
 CORRUPT= ${SPOOL}/CORRUPT
 AUDIT=	${SPOOL}/AUDIT
@@ -67,62 +64,62 @@ print:	$(SRCS)
 	touch print
 
 uucp:	uucp.o uulib.a
-	${CC} -o uucp ${SEPFLAG} ${LDFLAGS} uucp.o uulib.a ${LIBS}
+	${CC} -o uucp ${LDFLAGS} uucp.o uulib.a ${LIBS}
 
 uux:	uux.o uulib.a
-	${CC} -o uux ${SEPFLAG} ${LDFLAGS} uux.o uulib.a ${LIBS}
+	${CC} -o uux ${LDFLAGS} uux.o uulib.a ${LIBS}
 
 uuxqt:	uuxqt.o uulib.a
-	${CC} -o uuxqt ${SEPFLAG} ${LDFLAGS} uuxqt.o uulib.a ${LIBS}
+	${CC} -o uuxqt ${LDFLAGS} uuxqt.o uulib.a ${LIBS}
 
 uucico:	cico.o cntrl.o conn.o condevs.o gnsys.o pk0.o chksum.o pk1.o tio.o \
 	fio.o gio.o imsg.o uulib.a aculib/aculib.a
 	-if egrep -s "^#define[ 	]BSDTCP" uucp.h; then \
 	   ar x /lib/libc.a ${LIBOBJS}; \
-	   ${CC} -o uucico ${SEPFLAG} ${LDFLAGS} cico.o cntrl.o condevs.o \
-	            gnsys.o pk0.o chksum.o pk1.o tio.o fio.o gio.o imsg.o \
+	   ${CC} -o uucico ${LDFLAGS} cico.o cntrl.o condevs.o \
+	            gnsys.o pk0.o chksum.o tio.o fio.o imsg.o \
 	            uulib.a aculib/aculib.a \
-		    -Z ${LIBOBJS} \
-		    -Z conn.o \
+		    -Z gio.o ${LIBOBJS} \
+		    -Z pk1.o conn.o \
 		    -Y ${LIBS} ; \
 	else \
-	 ${CC} -o uucico ${SEPFLAG} ${LDFLAGS} cico.o cntrl.o conn.o condevs.o \
+	 ${CC} -o uucico ${LDFLAGS} cico.o cntrl.o conn.o condevs.o \
 	 gnsys.o pk0.o chksum.o pk1.o tio.o fio.o gio.o imsg.o \
 	 uulib.a aculib/aculib.a ${LIBS} ; \
 	fi
 
 uulog:	uulog.o uulib.a
-	${CC} -o uulog ${SEPFLAG} ${LDFLAGS} uulog.o uulib.a ${LIBS}
+	${CC} -o uulog ${LDFLAGS} uulog.o uulib.a ${LIBS}
 
 uuclean: uuclean.o uulib.a
-	${CC} -o uuclean ${SEPFLAG} ${LDFLAGS} uuclean.o uulib.a ${LIBS}
+	${CC} -o uuclean ${LDFLAGS} uuclean.o uulib.a ${LIBS}
 
 uuname:	uuname.o uulib.a
-	${CC} -o uuname ${SEPFLAG} ${LDFLAGS} uuname.o uulib.a ${LIBS}
+	${CC} -o uuname ${LDFLAGS} uuname.o uulib.a ${LIBS}
 
 uupoll:	uupoll.o uulib.a
-	${CC} -o uupoll ${SEPFLAG} ${LDFLAGS} uupoll.o uulib.a ${LIBS}
+	${CC} -o uupoll ${LDFLAGS} uupoll.o uulib.a ${LIBS}
 
 uusnap:	uusnap.o
-	${CC} -o uusnap ${SEPFLAG} ${LDFLAGS} uusnap.o ${LIBS}
+	${CC} -o uusnap ${LDFLAGS} uusnap.o ${LIBS}
 
 uuencode: uuencode.o
-	${CC} -o uuencode ${SEPFLAG} ${LDFLAGS} uuencode.o ${LIBS}
+	${CC} -o uuencode ${LDFLAGS} uuencode.o ${LIBS}
 
 uudecode: uudecode.o
-	${CC} -o uudecode ${SEPFLAG} ${LDFLAGS} uudecode.o ${LIBS}
+	${CC} -o uudecode ${LDFLAGS} uudecode.o ${LIBS}
 
 uusend: uusend.o
-	${CC} -o uusend ${SEPFLAG} ${LDFLAGS} uusend.o uulib.a ${LIBS}
+	${CC} -o uusend ${LDFLAGS} uusend.o uulib.a ${LIBS}
 
 uucpd: uucpd.o uucp.h
-	${CC} -o uucpd ${SEPFLAG} ${LDFLAGS} uucpd.o ${LIBS}
+	${CC} -o uucpd ${LDFLAGS} uucpd.o ${LIBS}
 
 uuq: uuq.o uulib.a
-	${CC} -o uuq ${SEPFLAG} ${LDFLAGS} uuq.o uulib.a ${LIBS}
+	${CC} -o uuq ${LDFLAGS} uuq.o uulib.a ${LIBS}
 
 acucntrl: acucntrl.o
-	${CC} -o acucntrl ${SEPFLAG} ${LDFLAGS} acucntrl.o ${LIBS}
+	${CC} -o acucntrl ${LDFLAGS} acucntrl.o ${LIBS}
 
 mkdirs:
 	-for i in ${SPOOL} ${PUBDIR} ${XQTDIR} ${CORRUPT} \
@@ -150,16 +147,16 @@ aculib/aculib.a:
 
 install: mkdirs ${ALL}
 	for i in uucico uuclean; do \
-		install -s -m 6111 -o ${OWNER} -g ${GROUP} $$i ${SBINDIR} ;\
+		install -c -s -m 6555 -o ${OWNER} -g ${GROUP} $$i ${SBINDIR} ;\
 	done
 	for i in uucp uux uulog uuname uusnap uupoll uuq uusend; do \
-		install -s -m 6111 -o ${OWNER} -g ${GROUP} $$i ${BIN} ;\
+		install -c -s -m 6555 -o ${OWNER} -g ${GROUP} $$i ${BIN} ;\
 	done
 	rm -f ${BIN}/ruusend
 	ln ${BIN}/uusend ${BIN}/ruusend
-	install -s -m 6110 -o ${OWNER} -g ${GROUP} uuxqt ${LIBEXECDIR}
-	install -s -m 6110 -o root -g ${GROUP} acucntrl ${LIBEXECDIR}
-	install -s -m 500 -o uucp uucpd ${LIBEXECDIR}
+	install -c -s -m 6550 -o ${OWNER} -g ${GROUP} uuxqt ${LIBEXECDIR}
+	install -c -s -m 6550 -o root -g ${GROUP} acucntrl ${LIBEXECDIR}
+	install -c -s -m 500 -o uucp uucpd ${LIBEXECDIR}
 	@echo Dont forget to fork off /usr/libexec/uucpd in /etc/rc.local
 	@echo if you are not running 'inetd'
 	install -s uuencode ${BIN}

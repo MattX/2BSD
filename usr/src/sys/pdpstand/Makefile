@@ -1,4 +1,4 @@
-#	Makefile	(2.11BSD)	2.5	2020/1/4
+#	Makefile	(2.11BSD)	2.6	2026/1/4
 #
 #	The limitations on program size have been removed.  The addition
 #	of disklabel support pushed 'restor' over the limit.  Even with
@@ -72,22 +72,22 @@ tmscptape: ${ALL} ${DUMP}
 	./maketape /dev/nr${TAPE} maketape.data
 	dd if=${DUMP} of=/dev/nr${TAPE} bs=20b
 	cd ${ROOT}/usr; tar cfb /dev/nr${TAPE} 20 \
-		adm bin crash dict doc games guest hosts include ingres \
-		lib libdata libexec local man msgs new old preserve pub \
+		adm bin crash dict doc games guest include ingres \
+		lib libdata libexec local man msgs new preserve pub \
 		sbin share spool tmp ucb
 	cd ${ROOT}/usr/src; tar cfb /dev/nr${TAPE} 20 \
 		sys
 	cd ${ROOT}/usr/src; tar cfb /dev/r${TAPE} 20 \
 		Makefile bin etc games \
-		lib libexec local man new old sbin share ucb usr.bin \
+		lib libexec local man new sbin share ucb usr.bin \
 		usr.lib usr.sbin
 
 tape1: ${ALL} ${DUMP}
 	./maketape /dev/nr${TAPE} maketape.data
 	dd if=${DUMP} of=/dev/nr${TAPE} bs=20b
 	cd ${ROOT}/usr; tar cfb /dev/nr${TAPE} 20 \
-		adm bin crash dict doc games guest hosts include ingres \
-		lib libdata libexec local man msgs new old preserve pub \
+		adm bin crash dict doc games guest include ingres \
+		lib libdata libexec local man msgs new preserve pub \
 		sbin share spool tmp ucb
 	cd ${ROOT}/usr/src; tar cfb /dev/nr${TAPE} 20 \
 		sys
@@ -101,7 +101,7 @@ FRC:
 tape2:
 	cd ${ROOT}/usr/src; tar cfb /dev/r${TAPE} 20 \
 		Makefile bin etc games \
-		lib libexec local man new old sbin share ucb usr.bin \
+		lib libexec local man new sbin share ucb usr.bin \
 		usr.lib usr.sbin
 
 ${DUMP}:
@@ -111,8 +111,8 @@ ${DUMP}:
 dump:
 	dump 0f ${DUMP} /dev/r${DISK}
 
-install: boot
-	install -s boot ${ROOT}/
+install: boot toyset disklabel
+	install -s -m 744 boot toyset disklabel ${ROOT}/
 
 
 libsa.a: ${DRIVERS}

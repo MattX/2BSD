@@ -9,8 +9,8 @@ char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
 
-static char sccsid[] = "@(#)main.c	5.5 (2.11BSD) 2019/11/18";
-#endif not lint
+static char sccsid[] = "@(#)main.c	5.6 (2.11BSD) 2026/1/6";
+#endif
 
 #include <sys/param.h>
 #include <sys/inode.h>
@@ -37,6 +37,7 @@ main(argc, argv)
 	char *name, inbuf[128], outbuf[128];
 
 	setbuffer(stdin, inbuf, sizeof (inbuf));
+	setlinebuf(stdin);
 	setbuffer(stdout, outbuf, sizeof (outbuf));
 	setlinebuf(stdout);
 	sync();

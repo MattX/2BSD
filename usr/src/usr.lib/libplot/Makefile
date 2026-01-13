@@ -1,4 +1,4 @@
-#	Makefile	4.10	85/09/21
+#	Makefile	4.11 (2.11BSD) 2025/11/27
 #
 ALL=	libf77plot libplot lib300 lib300s lib4013 lib4014 lib450 libvt0 \
 	libplotaed libplotbg libplotdumb libplotgigi libplot2648 \
@@ -57,8 +57,8 @@ FRC:
 
 install: all
 	for i in ${ALL}; do \
-		install -m 644 $$i ${DESTDIR}/usr/lib/$$i.a; \
-		ranlib ${DESTDIR}/usr/lib/$$i.a; \
+		install -c -m 644 $$i /usr/lib/$$i.a; \
+		ranlib /usr/lib/$$i.a; \
 	done
 
 clean:

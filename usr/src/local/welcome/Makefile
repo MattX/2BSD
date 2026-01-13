@@ -1,10 +1,8 @@
-#	
-#	Makefile for welcome.  Revised 1996/1/28
-#
-DESTDIR=
+#       Makefile        2.0 (2.11BSD) 2025/11/25
+
 BINDIR=	/usr/local
 CFLAGS= -O
-SEPFLAG= -i
+LDFLAGS= -i
 PROGRAM=	welcome
 SRCS=		welcome.c
 OBJS=		welcome.o
@@ -14,11 +12,11 @@ LIBS=
 all:	${PROGRAM} ${MAN}
 
 ${PROGRAM}:	${OBJS}
-	${CC} ${SEPFLAG} ${CFLAGS} -o $@ ${OBJS} ${LIBS}
+	${CC} ${LDFLAGS} ${CFLAGS} -o $@ ${OBJS} ${LIBS}
 
 install: ${PROGRAM} welcome.0
-	install -s -m 755 ${PROGRAM} ${DESTDIR}/${BINDIR}
-	install -c -m 444 -o bin -g bin welcome.0 ${DESTDIR}/usr/local/man/cat1
+	install -c -s -m 755 ${PROGRAM} ${BINDIR}
+	install -c -m 444 -o root -g staff welcome.0 /usr/local/man/cat1
 
 welcome.0: welcome.1
 	/usr/man/manroff welcome.1 > welcome.0

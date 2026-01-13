@@ -3,7 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  *
- *	@(#)machparam.h	1.4 (2.11BSD GTE) 1998/9/15
+ *	@(#)machparam.h	1.5 (2.11BSD) 2025/12/26
  */
 
 /*
@@ -33,22 +33,7 @@ u_short	ntohs(), htons();
 u_long	ntohl(), htonl();
 #endif
 
-#define	CHAR_BIT	NBBY
-#define	CHAR_MAX	0x7f
-#define	CHAR_MIN	0x80
-#define	CLK_TCK		60			/* for times() */
-#define	INT_MAX		0x7fff
-#define	INT_MIN		0x8000
-#define	LONG_MAX	0x7fffffff
-#define	LONG_MIN	0x80000000
-#define	SCHAR_MAX	0x7f
-#define	SCHAR_MIN	0x80
-#define	SHRT_MAX	0x7fff
-#define	SHRT_MIN	0x8000
-#define	UCHAR_MAX	0xff
-#define	UINT_MAX	((unsigned int)0xffff)
-#define	ULONG_MAX	0x7fffffff
-#define	USHRT_MAX	((unsigned short)0xffff)
+#include <machine/limits.h>
 
 #define	NBPG		512		/* bytes/page */
 #define	PGOFSET		(NBPG-1)	/* byte offset into page */
